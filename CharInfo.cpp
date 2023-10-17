@@ -1,12 +1,10 @@
-// CharInfo.cpp: implementation of the CCharInfo class.
 //
-//////////////////////////////////////////////////////////////////////
+// Copyright (c) Sharon Fox (sharon at sharonfox dot dev)
+//
+// Distributed under the MIT License. (See accompanying file LICENSE)
+//
 
 #include "CharInfo.h"
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 CCharInfo::CCharInfo()
 {
@@ -18,8 +16,4 @@ CCharInfo::CCharInfo()
 	m_iDay    = 0;
 	m_iHour   = 0;
 	m_iMinute = 0;
-}
-
-CCharInfo::~CCharInfo()
-{
 }
