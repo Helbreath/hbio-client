@@ -48,10 +48,10 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
         m_iPDBGSdivX = sDivX;
         m_iPDBGSdivY = sDivY;
         indexY = sDivY + m_pMapData->m_sPivotY;
-        for (iy = -sModY; iy < GetHeight() + 48; iy += 32)
+        for (iy = -sModY; iy < GetVirtualHeight() + 48; iy += 32)
         {
             indexX = sDivX + m_pMapData->m_sPivotX;
-            for (ix = -sModX; ix < GetWidth() + 48; ix += 32)
+            for (ix = -sModX; ix < GetVirtualWidth() + 48; ix += 32)
             {
                 sSpr = m_pMapData->m_tile[indexX][indexY].m_sTileSprite;
                 sSprFrame = m_pMapData->m_tile[indexX][indexY].m_sTileSpriteFrame;

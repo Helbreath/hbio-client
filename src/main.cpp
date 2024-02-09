@@ -120,6 +120,14 @@ int main(int argc, char * argv[])
     {
         game->autologin = true;
     }
+    if (!cfg["xresolution"].is_null() && !cfg["yresolution"].is_null())
+    {
+        game->SetResolution(cfg["xresolution"].get<uint16_t>(), cfg["yresolution"].get<uint16_t>());
+    }
+    if (!cfg["vxresolution"].is_null() && !cfg["vyresolution"].is_null())
+    {
+        game->SetVirtualResolution(cfg["vxresolution"].get<uint16_t>(), cfg["vyresolution"].get<uint16_t>());
+    }
 #endif
 
     if (!game->CreateRenderer())

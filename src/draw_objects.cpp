@@ -63,16 +63,16 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     m_stMCursor.sCursorFrame = 0;
 
     indexY = sDivY + sPivotY - 7;
-    for (iy = -sModY - 224; iy <= 427 + 352; iy += 32)
+    for (iy = -sModY - 224; iy <= GetVirtualHeight() + 352; iy += 32)
     {
         indexX = sDivX + sPivotX - 4;
-        for (ix = -sModX - 128; ix <= 640 + 128; ix += 32)
+        for (ix = -sModX - 128; ix <= GetVirtualWidth() + 128; ix += 32)
         {
            
             sDynamicObject = NULL;
             bRet = FALSE;
 
-            if ((ix >= -sModX) && (ix <= 640 + 16) && (iy >= -sModY) && (iy <= 427 + 32 + 16))
+            if ((ix >= -sModX) && (ix <= GetVirtualHeight() + 16) && (iy >= -sModY) && (iy <= GetVirtualWidth() + 32 + 16))
             {
 
                 _tmp_wObjectID = _tmp_sOwnerType = _tmp_sAppr1 = _tmp_sAppr2 = _tmp_sAppr3 = _tmp_sAppr4 = _tmp_sStatus = NULL;

@@ -223,8 +223,8 @@ void CGame::UpdateScreen()
     visible.display();
 
     sf::Sprite sprite = sf::Sprite(visible.getTexture());
-    //sprite.setPosition(0, 0);
-    //sprite.setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+    sprite.setPosition(0, 0);
+    sprite.setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
 
     window.clear();
 
@@ -261,6 +261,7 @@ void CGame::UpdateScreen()
     if (my < 55)
         drawcursory = my + 50;
 
+/*
     TESTTEXT.setString(fmt::format("R({},{})", mx, my));
     TESTTEXT.setOutlineColor(Color(0, 0, 0));
     TESTTEXT.setOutlineThickness(3.f);
@@ -273,6 +274,7 @@ void CGame::UpdateScreen()
     TESTTEXT.setString(fmt::format("V({},{})", m_stMCursor.sX, m_stMCursor.sY));
 
     draw_to(TESTTEXT, DS_WIN);
+*/
 
     window.draw(_text);
 
@@ -1300,16 +1302,16 @@ void CGame::UpdateScreen_OnSelectCharacter()
         InitGameSettings();
 
         pMI = new CMouseInterface();
-        pMI->AddRect(100, 50, 210, 250);
-        pMI->AddRect(211, 50, 321, 250);
-        pMI->AddRect(322, 50, 431, 250);
-        pMI->AddRect(432, 50, 542, 250);
+        pMI->AddRect(100 + modx, 50 + mody, 210 + modx, 250 + mody);
+        pMI->AddRect(211 + modx, 50 + mody, 321 + modx, 250 + mody);
+        pMI->AddRect(322 + modx, 50 + mody, 431 + modx, 250 + mody);
+        pMI->AddRect(432 + modx, 50 + mody, 542 + modx, 250 + mody);
 
-        pMI->AddRect(360, 283, 545, 315);
-        pMI->AddRect(360, 316, 545, 345);
-        pMI->AddRect(360, 346, 545, 375);
-        pMI->AddRect(360, 376, 545, 405);
-        pMI->AddRect(360, 406, 545, 435);
+        pMI->AddRect(360 + modx, 283 + mody, 545 + modx, 315 + mody);
+        pMI->AddRect(360 + modx, 316 + mody, 545 + modx, 345 + mody);
+        pMI->AddRect(360 + modx, 346 + mody, 545 + modx, 375 + mody);
+        pMI->AddRect(360 + modx, 376 + mody, 545 + modx, 405 + mody);
+        pMI->AddRect(360 + modx, 406 + mody, 545 + modx, 435 + mody);
 
         m_cMaxFocus = 4;
         if (m_cCurFocus > m_cMaxFocus) m_cCurFocus = 1;
@@ -1400,7 +1402,7 @@ void CGame::UpdateScreen_OnSelectCharacter()
     }
 
     UpdateMouseState(msX, msY, msZ, cLB, cRB);
-    UpdateScreen_OnSelectCharacter(sX, sY, msX, msY);
+    UpdateScreen_OnSelectCharacter(sX + modx, sY + mody, msX, msY);
 
     if ((dwTime - dwCTime) > 100)
     {
@@ -1639,12 +1641,12 @@ void CGame::UpdateScreen_OnConnecting()
         break;
 
     case '3':
-        UpdateScreen_OnSelectCharacter(0, 0, 0, 0);
+        UpdateScreen_OnSelectCharacter(modx, mody, 0, 0);
         break;
 
     case '4':
         // Change Password
-        UpdateScreen_OnSelectCharacter(0, 0, 0, 0, TRUE);
+        UpdateScreen_OnSelectCharacter(modx, mody, 0, 0, TRUE);
         break;
     }
     m_bIsHideLocalCursor = FALSE;
@@ -2739,7 +2741,7 @@ void CGame::UpdateScreen_OnQueryForceLogin()
     }
 
     UpdateMouseState(msX, msY, msZ, cLB, cRB);
-    UpdateScreen_OnSelectCharacter(0, 0, 0, 0);
+    UpdateScreen_OnSelectCharacter(modx, mody, 0, 0);
     if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6))
     {
         DrawShadowBox(0, 0, 639, 479);
@@ -2823,10 +2825,10 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 
 
 
-    sY = 10;
+    //sY = 10;
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_SELECTCHAR, 0, 0, 0);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 50);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_SELECTCHAR, sX, sY, 0);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX, sY, 50);
 
     iTemp1 = 0;
     iTemp2 = 0;
@@ -2836,8 +2838,8 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
     {
 
         if ((m_cCurFocus - 1 == i) && (bIgnoreFocus == FALSE))
-            m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, 63 - 9, 62, dwTime);
-        else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, 63 - 9, 61, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, sY + 63 - 9, 62, dwTime);
+        else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, sY + 63 - 9, 61, dwTime);
 
         if (m_pCharList[i] != NULL)
         {
@@ -2868,16 +2870,16 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
                 if (m_Misc.bCheckValidString(m_pCharList[i]->m_cName) == TRUE)
                 {
 
-                    m_pEffectSpr[0]->PutTransSprite(sX + 157 + i * 109, sY + 138, 1, dwTime);
-                    DrawObject_OnMove_ForMenu(0, 0, sX + 157 + i * 109, sY + 138, FALSE, dwTime, 0, 0);
+                    m_pEffectSpr[0]->PutTransSprite(sX + 157 + i * 109, sY + 138 + 10, 1, dwTime);
+                    DrawObject_OnMove_ForMenu(0, 0, sX + 157 + i * 109, sY + 138 + 10, FALSE, dwTime, 0, 0);
 
-                    PutString(sX + 112 + i * 109, sY + 179 - 9, m_pCharList[i]->m_cName, Color(51, 0, 51));//25,35,25);
+                    PutString(sX + 112 + i * 109, sY + 179, m_pCharList[i]->m_cName, Color::White, false, 1);//25,35,25);
                     int	_sLevel = m_pCharList[i]->m_sLevel;
                     format_to_local(G_cTxt, "{}", _sLevel);
-                    PutString(sX + 138 + i * 109, sY + 196 - 10, G_cTxt, Color(51, 0, 51)); //25,35,25);
+                    PutString(sX + 138 + i * 109, sY + 196, G_cTxt, Color::White, false, 1); //25,35,25);
 
                     format_to_local(G_cTxt, "{}", m_pCharList[i]->m_iExp);
-                    PutString(sX + 138 + i * 109, sY + 211 - 10, G_cTxt, Color(51, 0, 51)); //25,35,25);
+                    PutString(sX + 138 + i * 109, sY + 211, G_cTxt, Color::White, false, 1); //25,35,25);
                 }
                 else
                 {
@@ -2907,82 +2909,77 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 
     i = 0;
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 51);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 52);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 53);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 54);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 55);
-    if ((msX > 360) && (msY >= 283) && (msX < 545) & (msY <= 315))
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 51);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 52);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 53);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 54);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 55);
+    if ((msX > sX + 360) && (msY >= sY + 283) && (msX < sX + 545) && (msY <= sY + 315))
     {
-        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 56);
-        PutAlignedString(98, 357, 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER1);
-        PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER2);
-        PutAlignedString(98, 357, 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER3);
-        PutAlignedString(98, 357, 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER4);
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 56);
+        PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER1);
+        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER2);
+        PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER3);
+        PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER4);
+    }
+    else if ((msX > sX + 360) && (msY >= sY + 316) && (msX < sX + 545) && (msY <= sY + 345))
+    {
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 57);
+        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER5);
+    }
+    else if ((msX > sX + 360) && (msY >= sY + 346) && (msX < sX + 545) && (msY <= sY + 375))
+    {
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 58);
+        PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER6);
+        PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER7);
+        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER8);
+        PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER9);
+        PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER10);
+        PutAlignedString(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER11);
+
+    }
+    else if ((msX > sX + 360) && (msY >= sY + 376) && (msX < sX + 545) && (msY <= sY + 405))
+    {
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 59);
+        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER12);
+    }
+    else if ((msX > sX + 360) && (msY >= sY + 406) && (msX < sX + 545) && (+ msY <= sY + 435))
+    {
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 60);
+        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER13);
     }
     else
-        if ((msX > 360) && (msY >= 316) && (msX < 545) & (msY <= 345))
-        {
-            DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 57);
-            PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER5);
-
-        }
-        else
-            if ((msX > 360) && (msY >= 346) && (msX < 545) & (msY <= 375))
-            {
-
-                DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 58);
-                PutAlignedString(98, 357, 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER6);
-                PutAlignedString(98, 357, 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER7);
-                PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER8);
-                PutAlignedString(98, 357, 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER9);
-                PutAlignedString(98, 357, 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER10);
-                PutAlignedString(98, 357, 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER11);
-
-            }
-            else
-                if ((msX > 360) && (msY >= 376) && (msX < 545) & (msY <= 405))
-                {
-                    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 59);
-                    PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER12);
-                }
-                else if ((msX > 360) && (msY >= 406) && (msX < 545) & (msY <= 435))
-                {
-                    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 60);
-                    PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER13);
-                }
-                else
-                {
-                    //		if ((msX > 360) && (msY >= 406) && (msX < 545) & (msY <= 435)) {
-                    //			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0,0,60);
+    {
+        //		if ((msX > 360) && (msY >= 406) && (msX < 545) & (msY <= 435)) {
+        //			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0,0,60);
                     
-                    //		} else {
+        //		} else {
 
-                    if (cTotalChar == 0)
-                    {
-                        PutAlignedString(98, 357, 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER14);
-                        PutAlignedString(98, 357, 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER15);
-                        PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER16);
-                        PutAlignedString(98, 357, 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER17);
-                        PutAlignedString(98, 357, 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER18);
-                    }
-                    else if (cTotalChar < 4)
-                    {
-                        PutAlignedString(98, 357, 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER19);
-                        PutAlignedString(98, 357, 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER20);
-                        PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER21);
-                        PutAlignedString(98, 357, 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER22);
-                        PutAlignedString(98, 357, 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER23);
-                        PutAlignedString(98, 357, 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER24);
-                    }
-                    if (cTotalChar == 4)
-                    {
-                        PutAlignedString(98, 357, 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER25);
-                        PutAlignedString(98, 357, 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER26);
-                        PutAlignedString(98, 357, 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER27);
-                        PutAlignedString(98, 357, 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER28);
-                    }
-                }
+        if (cTotalChar == 0)
+        {
+            PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER14);
+            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER15);
+            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER16);
+            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER17);
+            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER18);
+        }
+        else if (cTotalChar < 4)
+        {
+            PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER19);
+            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER20);
+            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER21);
+            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER22);
+            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER23);
+            PutAlignedString(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER24);
+        }
+        if (cTotalChar == 4)
+        {
+            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER25);
+            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER26);
+            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER27);
+            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER28);
+        }
+    }
 
    
     int iTempMon, iTempDay, iTempHour, iTempMin;
@@ -3005,7 +3002,7 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
         else strcpy(G_cTxt, UPDATE_SCREEN_ON_SELECT_CHARACTER39);
 
     }
-    PutAlignedString(98, 357, 385 + 10, G_cTxt);
+    PutAlignedString(sX + 98, sX + 357, sY + 385 + 10, G_cTxt);
 
     if (m_iIpYear != 0)
     {
@@ -3027,15 +3024,15 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 
     }
 
-    PutAlignedString(98, 357, 400 + 10, G_cTxt);
+    PutAlignedString(sX + 98, sX + 357, sY + 400 + 10, G_cTxt);
 
     if (iYear != 0)
     {
         format_to_local(G_cTxt, UPDATE_SCREEN_ON_SELECT_CHARACTER43, iYear, iMonth, iDay, iHour, iMinute);
-        PutAlignedString(98, 357, 415 + 10, G_cTxt);
+        PutAlignedString(sX + 98, sX + 357, sY + 415 + 10, G_cTxt);
     }
 
-    PutAlignedString(129, 321, 456, MSG_WORLDNAME1);
+    PutAlignedString(sX + 129, sX + 321, sY + 456, MSG_WORLDNAME1);
 }
 
 void CGame::UpdateScreen_OnWaitingResponse()
@@ -3104,28 +3101,28 @@ void CGame::UpdateScreen_OnWaitingResponse()
         break;
 
     case '3':
-        UpdateScreen_OnSelectCharacter(0, 0, 0, 0);
+        UpdateScreen_OnSelectCharacter(modx, mody, 0, 0);
         break;
 
     case '4':
         // Change Password
-        UpdateScreen_OnSelectCharacter(0, 0, 0, 0, TRUE);
+        UpdateScreen_OnSelectCharacter(modx, mody, 0, 0, TRUE);
         break;
     }
     m_bIsHideLocalCursor = FALSE;
 
     DrawShadowBox(0, 0, 639, 479);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
-    PutString_SprFont(172 + 44 - 17, 190, "Connected. Waiting for response...", 7, 0, 0);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
+    PutString_SprFont(modx + 172 + 44 - 17, mody + 190, "Connected. Waiting for response...", 7, 0, 0);
 
     if ((dwTime - m_dwTime) > 7000)
     {
-        PutAlignedString(180, 463, 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE1);
+        PutAlignedString(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE1);
         
-        PutAlignedString(180, 463, 195 + 45, UPDATE_SCREEN_ON_WATING_RESPONSE2);
+        PutAlignedString(modx + 180, modx + 463, mody + 195 + 45, UPDATE_SCREEN_ON_WATING_RESPONSE2);
         
     }
-    else PutAlignedString(180, 463, 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
+    else PutAlignedString(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
     
 
     DrawVersion();
@@ -3149,8 +3146,8 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
     if (m_cGameModeCount == 0)
     {
         pMI = new CMouseInterface();
-        pMI->AddRect(200, 244, 200 + DEF_BTNSZX, 244 + DEF_BTNSZY);
-        pMI->AddRect(370, 244, 370 + DEF_BTNSZX, 244 + DEF_BTNSZY);
+        pMI->AddRect(modx + 200, mody + 244, modx + 200 + DEF_BTNSZX, mody + 244 + DEF_BTNSZY);
+        pMI->AddRect(modx + 370, mody + 244, modx + 370 + DEF_BTNSZX, mody + 244 + DEF_BTNSZY);
         //m_cCurFocus = 1;
         //m_cMaxFocus = 2;
         m_bEnterPressed = FALSE;
@@ -3172,7 +3169,7 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
     }
 
     UpdateMouseState(msX, msY, msZ, cLB, cRB);
-    UpdateScreen_OnSelectCharacter(0, 0, 500, 70);
+    UpdateScreen_OnSelectCharacter(modx, mody, 500, 70);
     if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6))
     {
         DrawShadowBox(0, 0, 639, 479);
@@ -3183,24 +3180,24 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
         DrawShadowBox(0, 0, 639, 479);
     }
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
 
-    PutString_SprFont(172 + 86, 160, "Delete Character", 7, 0, 0);
-    PutString(215, 195, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER1, Color(5, 5, 5));
+    PutString_SprFont(modx + 172 + 86, mody + 160, "Delete Character", 7, 0, 0);
+    PutString(modx + 215, mody + 195, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER1, Color(5, 5, 5));
     //"Character Name"
-    PutString(335, 199, "__________", Color(5, 5, 5));
-    PutString(335, 195, m_pCharList[m_wEnterGameType - 1]->m_cName, Color(25, 35, 25));
-    PutAlignedString(178, 453, 220, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER2);
+    PutString(modx + 335, mody + 199, "__________", Color(5, 5, 5));
+    PutString(modx + 335, mody + 195, m_pCharList[m_wEnterGameType - 1]->m_cName, Color(25, 35, 25));
+    PutAlignedString(modx + 178, modx + 453, mody + 220, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER2);
     
 
 // v2.05
-    if ((msX >= 200) && (msX <= 200 + DEF_BTNSZX) && (msY >= 244) && (msY <= 244 + DEF_BTNSZY))
-        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 200, 244, 19);
-    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 200, 244, 18);
+    if ((msX >= modx + 200) && (msX <= modx + 200 + DEF_BTNSZX) && (msY >= mody + 244) && (msY <= mody + 244 + DEF_BTNSZY))
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 200, mody + 244, 19);
+    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 200, mody + 244, 18);
 
-    if ((msX >= 370) && (msX <= 370 + DEF_BTNSZX) && (msY >= 244) && (msY <= 244 + DEF_BTNSZY))
-        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 370, 244, 3);
-    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 370, 244, 2);
+    if ((msX >= modx + 370) && (msX <= modx + 370 + DEF_BTNSZX) && (msY >= mody + 244) && (msY <= mody + 244 + DEF_BTNSZY))
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 370, mody + 244, 3);
+    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 370, mody + 244, 2);
 
     if ((dwTime - dwCTime) > 100)
     {
@@ -3345,14 +3342,14 @@ void CGame::UpdateScreen_OnLogResMsg()
     case '3':
         sX = 0;
         sY = 0;
-        UpdateScreen_OnSelectCharacter(sX, sY, 0, 0);
+        UpdateScreen_OnSelectCharacter(GetVirtualWidth() / 2 - 640 / 2, GetVirtualHeight() / 2 - 480 / 2, 0, 0);
         break;
 
     case '6':
         sX = 146;
         sY = 114;
 
-        UpdateScreen_OnSelectCharacter(0, 0, 0, 0, TRUE);
+        UpdateScreen_OnSelectCharacter(GetVirtualWidth() / 2 - 640 / 2, GetVirtualHeight() / 2 - 480 / 2, 0, 0, TRUE);
         break;
     case '8':
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_MAINMENU, -1, -1, 0, TRUE);
@@ -3984,8 +3981,8 @@ void CGame::UpdateScreen_OnGame()
     sDivY = sVal / 32;
     sModY = sVal % 32;
 
-//     float bgdx = (float(GetWidth()) / 2) - ((float(GetVirtualWidth()) * (zoom / 100)) / 2) - sModX + pan_x;
-//     float bgdy = (float(GetHeight()) / 2) - ((float(GetVirtualHeight()) * (zoom / 100)) / 2) - sModY + pan_y;
+    float bgdx = (float(GetWidth()) / 2) - ((float(GetVirtualWidth()) * (zoom / 100)) / 2) - sModX + pan_x;
+    float bgdy = (float(GetHeight()) / 2) - ((float(GetVirtualHeight()) * (zoom / 100)) / 2) - sModY + pan_y;
 
     uint8_t oldTarget = getRenderTarget();
 
@@ -3995,7 +3992,7 @@ void CGame::UpdateScreen_OnGame()
         DrawBackground(sDivX, sModX, sDivY, sModY);
         bg.display();
         bg_sprite = sf::Sprite(bg.getTexture());
-        //bg_sprite.setScale(zoom / 100, zoom / 100);
+        bg_sprite.setScale(zoom / 100, zoom / 100);
         bg_sprite.setPosition({ (float)-sModX, (float)-sModY });
     }
 
@@ -4007,8 +4004,8 @@ void CGame::UpdateScreen_OnGame()
         DrawEffects();
         dynamic_bg.display();
         dynbg_sprite = sf::Sprite(dynamic_bg.getTexture());
-        //dynbg_sprite.setScale(zoom / 100, zoom / 100);
-        //dynbg_sprite.setPosition({ bgdx, bgdy });
+        dynbg_sprite.setScale(zoom / 100, zoom / 100);
+        //dynbg_sprite.setPosition({ (float)-sModX, (float)-sModY });
     }
 
     setRenderTarget(oldTarget);

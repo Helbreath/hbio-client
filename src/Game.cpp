@@ -8534,15 +8534,15 @@ void CGame::DrawVersion()
     WORD  wR, wG, wB;
     wR = 140; wG = 140; wB = 140;
     // Ver
-    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSpriteColor(14, 463, 19, wR, wG, wB, dwTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSpriteColor(modx + 14, mody + 463, 19, wR, wG, wB, dwTime);
     // Upper Version
     format_to_local(G_cTxt, "{}", DEF_UPPERVERSION);
-    PutString_SprNum(36, 463, G_cTxt, 140, 140, 140);
+    PutString_SprNum(modx + 36, mody + 463, G_cTxt, 140, 140, 140);
     // .
-    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSpriteColor(42, 463, 18, wR, wG, wB, dwTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSpriteColor(modx + 42, mody + 463, 18, wR, wG, wB, dwTime);
     // Lower Version
     format_to_local(G_cTxt, "{}", DEF_LOWERVERSION);
-    PutString_SprNum(46, 463, G_cTxt, 140, 140, 140);
+    PutString_SprNum(modx + 46, mody + 463, G_cTxt, 140, 140, 140);
 }
 
 char CGame::GetOfficialMapName(char * pMapName, char * pName)

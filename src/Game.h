@@ -281,6 +281,10 @@ public:
     sf::Sprite bg_sprite;
     sf::Sprite dynbg_sprite;
 
+    // todo: cleanup
+    uint16_t modx{};
+    uint16_t mody{};
+
     uint8_t drawState = 0;
 
     void draw(const Drawable & drawable, const RenderStates & states = RenderStates::Default)
