@@ -7000,30 +7000,48 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, BOOL bIsPreDC)
                     else iSize2 += 4;
             if (m_Misc.bCheckIMEString(str.c_str()) == FALSE)
             {
-                //                 PutString(sX - iSize2, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
-                //                 PutString(sX - iSize2 + 1, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
+//                 PutString(sX - iSize2, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
+//                 PutString(sX - iSize2 + 1, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
                 PutString3(sX - iSize2, sY - 65 - iLoc, str, Color(180, 30, 30));
             }
-            else PutString_SprFont3(sX - iSize2, sY - 65 - iLoc, str, m_wR[14] * 4, m_wG[14] * 4, m_wB[14] * 4, false, 0);
+            else
+            {
+                PutOverheadString(sX - iSize2, sY - 65 - iLoc, str, overhead_magic_color, 4, false, 16);
+                //PutString_SprFont3(sX - iSize2, sY - 65 - iLoc, str, m_wR[14] * 4, m_wG[14] * 4, m_wB[14] * 4, false, 0);
+            }
             break;
 
         case 21:
         case 22:
         case 23:
-            iFontSize = 23 - (int)m_pChatMsgList[iChatIndex]->m_cType;
+            switch (m_pChatMsgList[iChatIndex]->m_cType)
+            {
+                case 21:
+                    iFontSize = 12; break;
+                case 22:
+                    iFontSize = 16; break;
+                case 23:
+                    iFontSize = 20; break;
+            }
             switch (iLines)
             {
                 case 1:
-                    PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    //PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
                     break;
                 case 2:
-                    PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
-                    PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 81 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
+//                     PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+//                     PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
                     break;
                 case 3:
-                    PutString_SprFont3(sX - iSize, sY - 97 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
-                    PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
-                    PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgC, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 97 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 81 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgC, overhead_damage_color, 2, bIsTrans, iFontSize);
+//                     PutString_SprFont3(sX - iSize, sY - 97 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+//                     PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
+//                     PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgC, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
                     break;
             }
             break;
@@ -8473,61 +8491,6 @@ void CGame::EraseItem(char cItemID)
     m_pItemList[cItemID] = NULL;
     m_bIsItemEquipped[cItemID] = FALSE;
     m_bIsItemDisabled[cItemID] = FALSE;
-}
-
-void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int sStatus)
-{
-    char cTxt[32], cTxt2[64];
-    ZeroMemory(cTxt, sizeof(cTxt));
-    ZeroMemory(cTxt2, sizeof(cTxt2));
-
-    GetNpcName(sOwnerType, cTxt);
-    if ((sStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
-    if ((sStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
-
-    PutString2(sX, sY, cTxt, 255, 255, 255);
-
-    if (m_bIsObserverMode == TRUE) PutString2(sX, sY + 14, cTxt, 50, 50, 255);
-    else if (m_bIsConfusion || (m_iIlusionOwnerH != NULL))
-    {
-        ZeroMemory(cTxt, sizeof(cTxt));
-        strcpy(cTxt, DRAW_OBJECT_NAME87);
-        PutString2(sX, sY + 14, cTxt, 150, 150, 150);
-    }
-    else
-    {
-        switch (_iGetFOE(sStatus))
-        {
-            case -2:
-                PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
-                break;
-            case -1:
-                PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
-                break;
-            case 0:
-                PutString2(sX, sY + 14, DRAW_OBJECT_NAME88, 50, 50, 255);
-                break;
-            case 1:
-                PutString2(sX, sY + 14, DRAW_OBJECT_NAME89, 30, 255, 30);
-                break;
-        }
-    }
-
-    switch ((sStatus & 0x0F00) >> 8)
-    {
-        case 0: break;
-        case 1: strcpy(cTxt2, DRAW_OBJECT_NAME52); break;//"Clairvoyant"
-        case 2: strcpy(cTxt2, DRAW_OBJECT_NAME53); break;//"Destruction of Magic Protection"
-        case 3: strcpy(cTxt2, DRAW_OBJECT_NAME54); break;//"Anti-Physical Damage"
-        case 4: strcpy(cTxt2, DRAW_OBJECT_NAME55); break;//"Anti-Magic Damage"
-        case 5: strcpy(cTxt2, DRAW_OBJECT_NAME56); break;//"Poisonous"
-        case 6: strcpy(cTxt2, DRAW_OBJECT_NAME57); break;//"Critical Poisonous" 
-        case 7: strcpy(cTxt2, DRAW_OBJECT_NAME58); break;//"Explosive"  
-        case 8: strcpy(cTxt2, DRAW_OBJECT_NAME59); break;//"Critical Explosive"
-    }
-    if (m_Misc.bCheckIMEString(cTxt2)) PutString_SprFont3(sX, sY + 28, cTxt2, m_wR[13] * 4, m_wG[13] * 4, m_wB[13] * 4, FALSE, 2);
-    else PutString2(sX, sY + 28, cTxt2, 240, 240, 70);
-
 }
 
 BOOL CGame::FindGuildName(char * pName, int * ipIndex)

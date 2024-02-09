@@ -203,9 +203,9 @@ void CGame::PutString(int iX, int iY, std::string pString, Color color, bool bHi
             PutFontString("default", iX + 1, iY, pString, color);
             break;
         case 1:
-            PutFontString("default", iX, iY + 1, pString, Color(255, 5, 5, 255));
-            PutFontString("default", iX + 1, iY + 1, pString, Color(255, 5, 5, 255));
-            PutFontString("default", iX + 1, iY, pString, Color(255, 5, 5, 255));
+            PutFontString("default", iX, iY + 1, pString, Color(5, 5, 5));
+            PutFontString("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
+            PutFontString("default", iX + 1, iY, pString, Color(5, 5, 5));
             break;
         }
         PutFontString("default", iX, iY, pString, color);
@@ -222,9 +222,9 @@ void CGame::PutString(int iX, int iY, std::string pString, Color color, bool bHi
             PutFontString("default", iX + 1, iY, pString, color);
             break;
         case 1:
-            PutFontString("default", iX, iY + 1, pString, Color(255, 5, 5, 255));
-            PutFontString("default", iX + 1, iY + 1, pString, Color(255, 5, 5, 255));
-            PutFontString("default", iX + 1, iY, pString, Color(255, 5, 5, 255));
+            PutFontString("default", iX, iY + 1, pString, Color(5, 5, 5));
+            PutFontString("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
+            PutFontString("default", iX + 1, iY, pString, Color(5, 5, 5));
             break;
         }
         PutFontString("default", iX, iY, pString, color);
@@ -309,4 +309,22 @@ void CGame::PutAlignedString(int iX1, int iX2, int iY, std::string text, Color c
         //__asm int 3;
         __debugbreak();
     }
+}
+
+void CGame::PutOverheadString(int x, int y, std::string text, Color color, int multiplier, bool transparency, int size)
+{
+    overhead_text.setString(text);
+    overhead_text.setFillColor(Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, transparency ? 200 : 255));
+    overhead_text.setPosition((float)x, (float)y);
+    overhead_text.setCharacterSize(size);
+    draw(overhead_text);
+}
+
+void CGame::PutUnderEntityString(int x, int y, std::string text, Color color, int size)
+{
+    under_text.setString(text);
+    under_text.setFillColor(color);
+    under_text.setPosition((float)x, (float)y);
+    under_text.setCharacterSize(size);
+    draw(under_text);
 }

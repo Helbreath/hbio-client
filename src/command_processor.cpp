@@ -1587,7 +1587,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 {
                     ZeroMemory(cTxt, sizeof(cTxt));
                     format_to_local(cTxt, "{}!", m_pMagicCfgList[m_iCastingMagicType]->m_cName);
-                    m_pChatMsgList[i] = new CMsg(41, cTxt, unixtime());
+                    m_pChatMsgList[i] = new CMsg(chat_types::magic, cTxt, unixtime());
                     m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
                     m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i);

@@ -19,6 +19,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include <SFML/Graphics/Color.hpp>
+using Color = sf::Color;
 
 // template <typename OutputIt, typename Locale, typename... T,
 //     FMT_ENABLE_IF(std::detail::is_output_iterator<OutputIt, char>::value &&
@@ -64,6 +66,46 @@ inline bool isValidNpc(int64_t id)
     if (id > 10000 && id < 30000) return true;
     return false;
 }
+
+enum chat_types
+{
+    skill_up = 20,
+    small_damage = 21,
+    medium_damage = 22,
+    critical_damage = 23, // TODO: also level up - separate out?
+    magic = 41,
+    something = 42, // TODO: figure this out
+};
+
+static const auto colorW0 = Color(0, 0, 0); // Black
+static const auto colorW1 = Color(70, 70, 80); // Light-blue
+static const auto colorW2 = Color(70, 70, 80); // Light-blue
+static const auto colorW3 = Color(70, 70, 80); // Light-blue
+static const auto colorW4 = Color(70, 100, 70); // Green
+static const auto colorW5 = Color(130, 90, 10); // ??
+static const auto colorW6 = Color(42, 53, 111); // Heavy-blue
+static const auto colorW7 = Color(145, 145, 145); // White
+static const auto colorW8 = Color(120, 100, 120); // Violet
+static const auto colorW9 = Color(75, 10, 10); // Heavy-red
+static const auto colorW10 = Color(135, 104, 30); // Gold
+
+static const auto color0 = Color(100, 100, 100); // ??
+static const auto color1 = Color(40, 40, 96); // Blue
+static const auto color2 = Color(79, 79, 62); // Manufactured Item?
+static const auto color3 = Color(135, 104, 30); // Gold
+static const auto color4 = Color(128, 13, 0); // Orange
+static const auto color5 = Color(10, 60, 10); // Green
+static const auto color6 = Color(40, 40, 40); // Gray
+static const auto color7 = Color(48, 129, 130); // ??
+static const auto color8 = Color(128, 53, 140); // ??
+static const auto color9 = Color(90, 90, 90); // Violet
+
+static const auto color10 = Color(0, 35, 60); // ??
+static const auto color11 = Color(105, 90, 70); // Tan
+static const auto color12 = Color(95, 91, 54); // Khaki
+static const auto overhead_damage_color = Color(85, 85, 8); // Yellow
+static const auto overhead_magic_color = Color(63, 10, 10); // Red
+static const auto color15 = Color(48, 48, 48); // Black
 
 
 

@@ -1429,7 +1429,7 @@ void CGame::MotionEventHandler(char * pData)
             {
                 ZeroMemory(cTxt, sizeof(cTxt));
                 format_to_local(cTxt, "{}!", m_pMagicCfgList[sV1]->m_cName);
-                m_pChatMsgList[i] = new CMsg(41, cTxt, m_dwCurTime);
+                m_pChatMsgList[i] = new CMsg(chat_types::magic, cTxt, m_dwCurTime);
                 m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;
                 if (m_pMapData->bSetChatMsgOwner(wObjectID - 30000, -10, -10, i) == FALSE)
                 {
@@ -1452,9 +1452,9 @@ void CGame::MotionEventHandler(char * pData)
                 else strcpy(cTxt, "Critical!");
 
                 int iFontType;
-                if ((sV1 >= 0) && (sV1 < 12))		iFontType = 21;
-                else if ((sV1 >= 12) && (sV1 < 40)) iFontType = 22;
-                else if ((sV1 >= 40) || (sV1 < 0))	iFontType = 23;
+                if ((sV1 >= 0) && (sV1 < 12))		iFontType = chat_types::small_damage;
+                else if ((sV1 >= 12) && (sV1 < 40)) iFontType = chat_types::medium_damage;
+                else if ((sV1 >= 40) || (sV1 < 0))	iFontType = chat_types::critical_damage;
 
                 m_pChatMsgList[i] = new CMsg(iFontType, cTxt, m_dwCurTime);
                 m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;
@@ -1497,16 +1497,16 @@ void CGame::MotionEventHandler(char * pData)
                     else strcpy(cTxt, "Critical!");
 
                     int iFontType;
-                    if ((sV1 >= 0) && (sV1 < 12))		iFontType = 21;
-                    else if ((sV1 >= 12) && (sV1 < 40)) iFontType = 22;
-                    else if ((sV1 >= 40) || (sV1 < 0))	iFontType = 23;
+                    if ((sV1 >= 0) && (sV1 < 12))		iFontType = chat_types::small_damage;
+                    else if ((sV1 >= 12) && (sV1 < 40)) iFontType = chat_types::medium_damage;
+                    else if ((sV1 >= 40) || (sV1 < 0))	iFontType = chat_types::critical_damage;
 
                     m_pChatMsgList[i] = new CMsg(iFontType, cTxt, m_dwCurTime);
                 }
                 else
                 {
                     strcpy(cTxt, " * Failed! *");
-                    m_pChatMsgList[i] = new CMsg(22, cTxt, m_dwCurTime);
+                    m_pChatMsgList[i] = new CMsg(chat_types::medium_damage, cTxt, m_dwCurTime);
                     PlaySound('C', 17, 0);
                 }
                 m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;

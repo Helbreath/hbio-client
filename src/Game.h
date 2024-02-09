@@ -445,6 +445,8 @@ public:
 
     void PutFontStringSize(std::string fontname, int iX, int iY, std::string text, Color color, int size);
     void PutFontString(std::string fontname, int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
+    void PutOverheadString(int x, int y, std::string text, Color color = Color(255, 255, 255), int multiplier = 1, bool transparency = false, int size = 12);
+    void PutUnderEntityString(int x, int y, std::string text, Color color = Color(255, 255, 255), int size = 14);
     void PutChatString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
     void PutChatWindowString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
     void PutString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255), bool bHide = false, char cBGtype = 2);
@@ -497,6 +499,8 @@ public:
     std::map<std::string, sf::Font> _font;
     sf::Text _text;
     sf::Text chat_window_text;
+    sf::Text overhead_text;
+    sf::Text under_text;
 
     std::string workingdirectory;
 

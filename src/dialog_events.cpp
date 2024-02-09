@@ -11765,6 +11765,8 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
     int i, iGuildIndex, iFOE, iAddY = 0; 
     BOOL bPK, bCitizen, bAresden, bHunter;
 
+    sY += 14;
+
     iFOE = _iGetFOE(sStatus);
     if (iFOE < 0)
     {
@@ -11811,7 +11813,9 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
     if ((sStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
     if ((sStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
 
-    PutString2(sX, sY, cTxt, 255, 255, 255);
+    PutUnderEntityString(sX, sY, cTxt, Color(255, 255, 255));
+
+    //PutString2(sX, sY, cTxt, 255, 255, 255);
     ZeroMemory(cTxt, sizeof(cTxt));
 
     if (memcmp(m_cPlayerName, pName, 10) == 0)
@@ -11819,13 +11823,15 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
         if (m_iGuildRank == 0)
         {
             format_to_local(G_cTxt, DEF_MSG_GUILDMASTER, m_cGuildName);
-            PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
+            PutUnderEntityString(sX, sY + 14, G_cTxt, Color(180, 180, 180));
+            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
             iAddY = 14;
         }
         if (m_iGuildRank > 0)
         {
             format_to_local(G_cTxt, DEF_MSG_GUILDSMAN, m_cGuildName);
-            PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
+            PutUnderEntityString(sX, sY + 14, G_cTxt, Color(180, 180, 180));
+            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
             iAddY = 14;
         }
         if (m_iPKCount != 0)
@@ -11863,14 +11869,16 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
                         if (m_stGuildName[iGuildIndex].iGuildRank == 0)
                         {
                             format_to_local(G_cTxt, DEF_MSG_GUILDMASTER, m_stGuildName[iGuildIndex].cGuildName);
-                            PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
+                            PutUnderEntityString(sX, sY + 14, G_cTxt, Color(180, 180, 180));
+                            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
                             m_stGuildName[iGuildIndex].dwRefTime = m_dwCurTime;
                             iAddY = 14;
                         }
                         else if (m_stGuildName[iGuildIndex].iGuildRank > 0)
                         {
                             format_to_local(G_cTxt, DEF_MSG_GUILDSMAN, m_stGuildName[iGuildIndex].cGuildName);
-                            PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
+                            PutUnderEntityString(sX, sY + 14, G_cTxt, Color(180, 180, 180));
+                            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
                             m_stGuildName[iGuildIndex].dwRefTime = m_dwCurTime;
                             iAddY = 14;
                         }
@@ -11916,5 +11924,70 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
             else strcpy(cTxt, DEF_MSG_ELVPK);
         }
     }
-    PutString2(sX, sY + 14 + iAddY, cTxt, sR, sG, sB);
+    //PutString2(sX, sY + 14 + iAddY, cTxt, sR, sG, sB);
+    PutUnderEntityString(sX, sY + 14 + iAddY, cTxt, Color(sR, sG, sB));
+}
+
+void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int sStatus)
+{
+    char cTxt[32], cTxt2[64];
+    ZeroMemory(cTxt, sizeof(cTxt));
+    ZeroMemory(cTxt2, sizeof(cTxt2));
+
+    GetNpcName(sOwnerType, cTxt);
+    if ((sStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
+    if ((sStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
+
+    sY += 14;
+
+    PutUnderEntityString(sX, sY, cTxt, Color(255, 255, 255));
+
+    //PutString2(sX, sY, cTxt, 255, 255, 255);
+
+    if (m_bIsObserverMode == TRUE) PutString2(sX, sY + 14, cTxt, 50, 50, 255);
+    else if (m_bIsConfusion || (m_iIlusionOwnerH != NULL))
+    {
+        ZeroMemory(cTxt, sizeof(cTxt));
+        strcpy(cTxt, DRAW_OBJECT_NAME87);
+        PutUnderEntityString(sX, sY + 14, cTxt, Color(150, 150, 150));
+        //PutString2(sX, sY + 14, cTxt, 150, 150, 150);
+    }
+    else
+    {
+        switch (_iGetFOE(sStatus))
+        {
+            case -2:
+                PutUnderEntityString(sX, sY + 14, DRAW_OBJECT_NAME90, Color(255, 0, 0));
+                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
+                break;
+            case -1:
+                PutUnderEntityString(sX, sY + 14, DRAW_OBJECT_NAME90, Color(255, 0, 0));
+                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
+                break;
+            case 0:
+                PutUnderEntityString(sX, sY + 14, DRAW_OBJECT_NAME88, Color(50, 50, 255));
+                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME88, 50, 50, 255);
+                break;
+            case 1:
+                PutUnderEntityString(sX, sY + 14, DRAW_OBJECT_NAME89, Color(30, 255, 30));
+                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME89, 30, 255, 30);
+                break;
+        }
+    }
+
+    switch ((sStatus & 0x0F00) >> 8)
+    {
+        case 0: break;
+        case 1: strcpy(cTxt2, DRAW_OBJECT_NAME52); break;//"Clairvoyant"
+        case 2: strcpy(cTxt2, DRAW_OBJECT_NAME53); break;//"Destruction of Magic Protection"
+        case 3: strcpy(cTxt2, DRAW_OBJECT_NAME54); break;//"Anti-Physical Damage"
+        case 4: strcpy(cTxt2, DRAW_OBJECT_NAME55); break;//"Anti-Magic Damage"
+        case 5: strcpy(cTxt2, DRAW_OBJECT_NAME56); break;//"Poisonous"
+        case 6: strcpy(cTxt2, DRAW_OBJECT_NAME57); break;//"Critical Poisonous" 
+        case 7: strcpy(cTxt2, DRAW_OBJECT_NAME58); break;//"Explosive"  
+        case 8: strcpy(cTxt2, DRAW_OBJECT_NAME59); break;//"Critical Explosive"
+    }
+//     if (m_Misc.bCheckIMEString(cTxt2)) PutString_SprFont3(sX, sY + 28, cTxt2, m_wR[13] * 4, m_wG[13] * 4, m_wB[13] * 4, FALSE, 2);
+//     else PutString2(sX, sY + 28, cTxt2, 240, 240, 70);
+    PutUnderEntityString(sX, sY + 28, cTxt2, Color(240, 240, 70));
 }

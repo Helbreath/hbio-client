@@ -592,6 +592,19 @@ bool CGame::CreateRenderer(bool fs)
     chat_window_text.setFont(_font.at("arya"));
     chat_window_text.setCharacterSize(12);
 
+    overhead_text.setFont(_font.at("test"));
+    overhead_text.setCharacterSize(12);
+    overhead_text.setOutlineColor(sf::Color::Black);
+    overhead_text.setOutlineThickness(2);
+
+    under_text.setFont(_font.at("arya"));
+    under_text.setCharacterSize(12);
+    under_text.setOutlineColor(sf::Color::Black);
+    under_text.setOutlineThickness(1);
+
+    modx = GetVirtualWidth() / 2 - 640 / 2;
+    mody = GetVirtualHeight() / 2 - 480 / 2;
+
     return true;
 }
 

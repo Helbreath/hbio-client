@@ -3627,7 +3627,7 @@ void CGame::NotifyMsg_LevelUp(char * pData)
         {
             ZeroMemory(cTxt, sizeof(cTxt));
             strcpy(cTxt, "Level up!");
-            m_pChatMsgList[i] = new CMsg(23, cTxt, m_dwCurTime);
+            m_pChatMsgList[i] = new CMsg(chat_types::critical_damage, cTxt, m_dwCurTime); // TODO: level up message - give own type
             m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
             if (m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i) == FALSE)
@@ -4341,7 +4341,7 @@ void CGame::NotifyMsg_Skill(char * pData)
             {
                 ZeroMemory(cTxt, sizeof(cTxt));
                 format_to_local(cTxt, "{} +{}%%", m_pSkillCfgList[sSkillIndex]->m_cName, sValue - m_pSkillCfgList[sSkillIndex]->m_iLevel);
-                m_pChatMsgList[i] = new CMsg(20, cTxt, m_dwCurTime);
+                m_pChatMsgList[i] = new CMsg(chat_types::skill_up, cTxt, m_dwCurTime);
                 m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
                 if (m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i) == FALSE)
@@ -4365,7 +4365,7 @@ void CGame::NotifyMsg_Skill(char * pData)
             {
                 ZeroMemory(cTxt, sizeof(cTxt));
                 format_to_local(cTxt, "{} -{}%%", m_pSkillCfgList[sSkillIndex]->m_cName, sValue - m_pSkillCfgList[sSkillIndex]->m_iLevel);
-                m_pChatMsgList[i] = new CMsg(20, cTxt, m_dwCurTime);
+                m_pChatMsgList[i] = new CMsg(chat_types::skill_up, cTxt, m_dwCurTime);
                 m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
                 if (m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i) == FALSE)
