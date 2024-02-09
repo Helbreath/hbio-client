@@ -1219,11 +1219,11 @@ void CGame::InitDataResponseHandler(char * pData)
 
 void CGame::MotionEventHandler(char * pData)
 {
-    WORD * wp, wEventType, wObjectID;
-    short * sp, sX, sY, sType, sAppr1, sAppr2, sAppr3, sAppr4, sStatus, sV1, sV2, sV3, sPrevAppr2;
-    char * cp, cDir, cName[12];
-    int * ip, iApprColor, iLoc;
-    char    cTxt[120];
+    WORD * wp, wEventType{}, wObjectID{};
+    short * sp, sX{}, sY{}, sType{}, sAppr1{}, sAppr2{}, sAppr3{}, sAppr4{}, sStatus{}, sV1{}, sV2{}, sV3{}, sPrevAppr2{};
+    char * cp, cDir{}, cName[12]{};
+    int * ip, iApprColor{}, iLoc{};
+    char    cTxt[120]{};
     int i;
 
     ZeroMemory(cName, sizeof(cName));
@@ -2457,11 +2457,11 @@ void CGame::InitPlayerCharacteristics(char * pData)
     cp += 4;
 
     ip = (int *)cp;
-    m_iAC = *ip;		
+    m_iAC = *ip; // defense ratio
     cp += 4;
 
     ip = (int *)cp;
-    m_iTHAC0 = *ip;    
+    m_iTHAC0 = *ip; // hit ratio
     cp += 4;
 
     ip = (int *)cp;

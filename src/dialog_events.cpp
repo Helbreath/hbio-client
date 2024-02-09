@@ -905,7 +905,7 @@ void CGame::DlgBoxClick_SysMenu(short msX, short msY)
             m_cRestartCount = 5;
             m_dwRestartCountTime = unixtime();
             DisableDialogBox(19);
-            format_to_local(G_cTxt, DLGBOX_CLICK_SYSMENU1, m_cRestartCount);
+            format_to_local(G_cTxt, DLGBOX_CLICK_SYSMENU1, (int16_t)m_cRestartCount);
             AddEventList(G_cTxt, 10);
             PlaySound('E', 14, 5);
         }

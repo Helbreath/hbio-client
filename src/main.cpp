@@ -39,12 +39,12 @@ std::condition_variable cv2;
 
 uint64_t unixtime()
 {
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 int32_t unixseconds()
 {
-    return (int32_t)duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+    return (int32_t)duration_cast<seconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 bool isvm()

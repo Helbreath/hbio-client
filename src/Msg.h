@@ -14,14 +14,14 @@
 class CMsg  
 {
 public:
-	CMsg(char cType, const char * pMsg, DWORD dwTime);
-	CMsg(char cType, std::string_view msg, DWORD dwTime);
-	CMsg(char cType, std::string & msg, DWORD dwTime);
+	CMsg(char cType, const char * pMsg, uint64_t dwTime);
+	CMsg(char cType, std::string_view msg, uint64_t dwTime);
+	CMsg(char cType, std::string & msg, uint64_t dwTime);
 	~CMsg() = default;
 
 	char m_cType;
 	short m_sX, m_sY;
-	DWORD m_dwTime;
+    uint64_t m_dwTime;
 
     std::string message;
 

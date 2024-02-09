@@ -241,7 +241,7 @@ void CGame::PutChatWindowString(int iX, int iY, std::string pString, Color color
         chat_window_text.setString(pString);
         chat_window_text.setFillColor(color);
         chat_window_text.setPosition((float)iX, (float)iY);
-        visible.draw(chat_window_text);
+        draw(chat_window_text);
     }
     catch (const std::out_of_range &)
     {
@@ -259,7 +259,7 @@ void CGame::PutFontStringSize(std::string fontname, int iX, int iY, std::string 
         _text.setFillColor(color);
         _text.setPosition((float)iX, (float)iY);
         _text.setCharacterSize(size);
-        visible.draw(_text);
+        draw(_text);
     }
     catch (const std::out_of_range &)
     {
@@ -278,7 +278,7 @@ void CGame::PutFontString(std::string fontname, int iX, int iY, std::string text
         _text.setFillColor(color);
         _text.setPosition((float)iX, (float)iY);
         _text.setCharacterSize(12);
-        visible.draw(_text);
+        draw(_text);
     }
     catch (const std::out_of_range &)
     {
@@ -301,7 +301,7 @@ void CGame::PutAlignedString(int iX1, int iX2, int iY, std::string text, Color c
         _text.setPosition((float)iX1, (float)iY);
         _text.setCharacterSize(12);
 
-        visible.draw(_text);
+        draw(_text);
     }
     catch (const std::out_of_range &)
     {

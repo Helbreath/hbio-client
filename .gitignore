@@ -48,3 +48,5 @@ bin/
 /x64
 JSON/Schemas/Catalog/
 Res/
+
+enc_temp_folder/

@@ -528,7 +528,7 @@ bool CGame::bInit()
     m_wWR[7] = 145; m_wWG[7] = 145; m_wWB[7] = 145; // White
     m_wWR[8] = 120; m_wWG[8] = 100; m_wWB[8] = 120; // Violet
     m_wWR[9] = 75; m_wWG[9] = 10; m_wWB[9] = 10; // Heavy-Red
-    m_wR[10] = 135; m_wG[10] = 104; m_wB[10] = 30; // Gold
+    m_wWR[10] = 135; m_wWG[10] = 104; m_wWB[10] = 30; // Gold
 
     m_wR[0] = 200 / 2; m_wG[0] = 200 / 2; m_wB[0] = 200 / 2;
     m_wR[1] = 0x50 / 2; m_wG[1] = 0x50 / 2; m_wB[1] = 0xC0 / 2; // Blue
@@ -4650,7 +4650,9 @@ void CGame::ReleaseTimeoverChatMsg()
     int i;
     DWORD dwTime;
 
-    dwTime = G_dwGlobalTime;
+    // TODO: why is this not as updated anymore? Magic is created with a time in the "future" compared to this
+    //dwTime = G_dwGlobalTime;
+    dwTime = unixtime();
 
     for (i = 1; i < DEF_MAXCHATMSGS; i++)
         if (m_pChatMsgList[i] != NULL)
@@ -6898,7 +6900,7 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, BOOL bIsPreDC)
     int iLines, i, iSize, iSize2, iLoc, iFontSize;
     DWORD dwTime;
     Color rgb;
-    BOOL bIsTrans;
+    bool bIsTrans;
     std::string & str = m_pChatMsgList[iChatIndex]->message;
 
     ZeroMemory(cMsgA, sizeof(cMsgA));
@@ -6980,15 +6982,15 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, BOOL bIsPreDC)
     }
 
     if (m_cDetailLevel == 0)
-        bIsTrans = FALSE;
-    else bIsTrans = TRUE;
+        bIsTrans = false;
+    else bIsTrans = true;
 
     switch (m_pChatMsgList[iChatIndex]->m_cType)
     {
         case 41:
         case 42:
             iSize2 = 0;
-            for (i = 0; i < 100; i++)
+            for (i = 0; i < str.length(); i++)
                 if (str[i] != 0)
                     if ((unsigned char)str[i] >= 128)
                     {
@@ -8344,13 +8346,13 @@ int CGame::_iGetFOE(int sStatus)
 
     if (m_iPKCount != 0) return -1;
 
-    if (sStatus & 0x8000) bPK = TRUE;
+    if (sStatus & 0x80000000) bPK = TRUE;
     else bPK = FALSE;
-    if (sStatus & 0x4000) bCitizen = TRUE;
+    if (sStatus & 0x40000000) bCitizen = TRUE;
     else bCitizen = FALSE;
-    if (sStatus & 0x2000) bAresden = TRUE;
+    if (sStatus & 0x20000000) bAresden = TRUE;
     else bAresden = FALSE;
-    if (sStatus & 0x1000) bHunter = TRUE;
+    if (sStatus & 0x10000000) bHunter = TRUE;
     else bHunter = FALSE;
 
     if (bPK == TRUE) return -2;
@@ -9216,6 +9218,12 @@ void CGame::GetItemName(CItem * pItem, char * pStr1, char * pStr2, char * pStr3,
     char cTxt[256], cTxt2[256], cName[51];
     DWORD dwType1, dwType2, dwValue1, dwValue2, dwValue3;
 
+    if (pItem == nullptr)
+    {
+        std::cout << "Item non-existant\n";
+        return;
+    }
+
     m_bIsSpecial = FALSE;
 
     ZeroMemory(cName, sizeof(cName));
@@ -10056,11 +10064,9 @@ void CGame::ShowEventList(DWORD dwTime)
                     PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(230, 230, 130), FALSE, 1);
                     break;
                 case 10:
-                    
                     PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(180, 255, 180), FALSE, 1);
                     break;
                 case 20:
-                    
                     PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(150, 150, 170), FALSE, 1);
                     break;
             }
@@ -10088,11 +10094,9 @@ void CGame::ShowEventList(DWORD dwTime)
                     PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(230, 230, 130), FALSE, 1);
                     break;
                 case 10:
-                    
                     PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(180, 255, 180), FALSE, 1);
                     break;
                 case 20:
-                    
                     PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(150, 150, 170), FALSE, 1);
                     break;
             }
