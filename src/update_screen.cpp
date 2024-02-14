@@ -218,7 +218,7 @@ void CGame::UpdateScreen()
         //         visible.draw(sprite);
     }
 
-    if (draw_version) DrawVersion();
+    //if (draw_version) DrawVersion();
 
     visible.display();
 
@@ -3630,7 +3630,7 @@ void CGame::UpdateScreen_OnVersionNotMatch()
 #endif
 
 
-    PutAlignedString(168, 474, 250, "www.helbreath.com");
+    PutAlignedString(168, 474, 250, "www.helbreathx.net");
 
     DrawVersion();
     
