@@ -4423,9 +4423,9 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
                 iApprColor = *ip;
                 cp += 4;
                 // Status
-                sp = (short *)cp;
-                sStatus = *sp;
-                cp += 2;
+                ip = (int *)cp;
+                sStatus = *ip;
+                cp += 4;
                 // Name
                 ZeroMemory(cName, sizeof(cName));
                 memcpy(cName, cp, 10);
@@ -4440,9 +4440,9 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
                 sAppr2 = *sp;
                 cp += 2;
                 // Status
-                sp = (short *)cp;
-                sStatus = *sp;
-                cp += 2;
+                ip = (int *)cp;
+                sStatus = *ip;
+                cp += 4;
                 // Name
                 ZeroMemory(cName, sizeof(cName));
                 memcpy(cName, cp, 5);

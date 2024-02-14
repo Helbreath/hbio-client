@@ -291,6 +291,12 @@ void sprite::DrawSprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color
 
 void sprite::DrawColor(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
+    if (this == nullptr)
+    {
+        // todo: find a better solution - like showing what doesn't exist
+        std::cout << "Sprite does not exist!";
+        return;
+    }
     if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
         return;
     if (sFrame >= m_iTotalFrame)

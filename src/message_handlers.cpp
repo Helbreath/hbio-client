@@ -1220,8 +1220,9 @@ void CGame::InitDataResponseHandler(char * pData)
 void CGame::MotionEventHandler(char * pData)
 {
     WORD * wp, wEventType{}, wObjectID{};
-    short * sp, sX{}, sY{}, sType{}, sAppr1{}, sAppr2{}, sAppr3{}, sAppr4{}, sStatus{}, sV1{}, sV2{}, sV3{}, sPrevAppr2{};
+    short * sp, sX{}, sY{}, sType{}, sAppr1{}, sAppr2{}, sAppr3{}, sAppr4{}, sV1{}, sV2{}, sV3{}, sPrevAppr2{};
     char * cp, cDir{}, cName[12]{};
+    int sStatus{};
     int * ip, iApprColor{}, iLoc{};
     char    cTxt[120]{};
     int i;
@@ -1284,9 +1285,9 @@ void CGame::MotionEventHandler(char * pData)
             iApprColor = *ip;
             cp += 4;
 
-            sp = (short *)cp;
-            sStatus = *sp;
-            cp += 2;
+            ip = (int *)cp;
+            sStatus = *ip;
+            cp += 4;
 
             iLoc = *cp;
             cp++;
@@ -1318,9 +1319,9 @@ void CGame::MotionEventHandler(char * pData)
             sAppr2 = *sp;
             cp += 2;
 
-            sp = (short *)cp;
-            sStatus = *sp;
-            cp += 2;
+            ip = (int *)cp;
+            sStatus = *ip;
+            cp += 4;
 
             iLoc = *cp;
             cp++;
@@ -1783,9 +1784,9 @@ void CGame::ConnectionEstablishHandler(char cWhere)
 void CGame::LogEventHandler(char * pData)
 {
     WORD * wp, wEventType, wObjectID;
-    short * sp, sX, sY, sType, sAppr1, sAppr2, sAppr3, sAppr4, sStatus;
+    short * sp, sX, sY, sType, sAppr1, sAppr2, sAppr3, sAppr4;
     char * cp, cDir, cName[12];
-    int * ip, iApprColor;
+    int * ip, iApprColor, sStatus;
 
     wp = (WORD *)(pData + DEF_INDEX2_MSGTYPE);
     wEventType = *wp;
@@ -1838,9 +1839,9 @@ void CGame::LogEventHandler(char * pData)
         iApprColor = *ip;
         cp += 4;
 
-        sp = (short *)cp;
-        sStatus = *sp;
-        cp += 2;
+        ip = (int *)cp;
+        sStatus = *ip;
+        cp += 4;
     }
     else
     {
@@ -1854,9 +1855,9 @@ void CGame::LogEventHandler(char * pData)
         sAppr2 = *sp;
         cp += 2;
 
-        sp = (short *)cp;
-        sStatus = *sp;
-        cp += 2;
+        ip = (int *)cp;
+        sStatus = * ip;
+        cp += 4;
     }
 
     switch (wEventType)
