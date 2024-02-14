@@ -230,24 +230,7 @@ void CGame::UpdateScreen()
 
     window.draw(sprite);
 
-    // draw mouse over everything - this draws it full size at every virtual resolution.
-    // this needs to go above `window.draw(sprite);` and draw to `visible` above to scale with virtual resolution
-    if (m_bIsObserverMode == true)
-    {
-        DrawLine(mx - 5, my, mx + 5, my, Color(255, 0, 0));
-        DrawLine(mx, my, mx, my + 5, Color(255, 0, 0));
-
-        DrawLine(mx - 5, my - 1, mx + 5, my - 1, Color(255, 0, 0, 127));
-        DrawLine(mx - 1, my - 5, mx - 1, my + 5, Color(255, 0, 0, 127));
-
-        DrawLine(mx - 5, my + 1, mx + 5, my + 1, Color(255, 0, 0, 127));
-        DrawLine(mx + 1, my - 5, mx + 1, my + 5, Color(255, 0, 0, 127));
-    }
-    else
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->draw_to(mx, my, m_stMCursor.sCursorFrame, unixtime(), Color(255, 255, 255), DS_WIN);
-
     m_stMCursor.sZ = 0;
-
 
     sf::Text TESTTEXT;
 
@@ -289,6 +272,7 @@ void CGame::UpdateScreen()
     _text.setPosition(5, 80);
     _text.setString(fmt::format("x: {} - y: {}", this->m_sPlayerX, this->m_sPlayerY));
     window.draw(_text);
+    render_mouse(mx, my, scale_mouse_rendering);
 }
 
 void CGame::UpdateScreen_OnMainMenu()

@@ -107,6 +107,5 @@ public:
     stBrush * brush = nullptr;
     uint64_t wPageid = 0;
 
-private:
     sf::Sprite * sprite_ = nullptr;
 };

@@ -384,10 +384,13 @@ void CGame::OnEvent(sf::Event event)
         case Keyboard::Return:
             if (event.key.alt)
             {
+                // todo: recreate surfaces to resize to recenter area
                 fullscreen = !fullscreen;
                 window.close();
                 window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
                 captured = true;
+                window.setMouseCursorGrabbed(clipmousegame);
+                window.setMouseCursorVisible(false);
             }
             else
             {
@@ -396,6 +399,19 @@ void CGame::OnEvent(sf::Event event)
             break;
         case Keyboard::F12:
             CreateScreenShot();
+            break;
+
+        case Keyboard::F11:
+            scale_mouse_rendering = !scale_mouse_rendering;
+            if (scale_mouse_rendering)
+            {
+                for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                    m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+            }
+            else
+                for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                    m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(1, 1);
+
             break;
 
         case Keyboard::F6:
@@ -696,4 +712,23 @@ void CGame::ChangeDisplayMode()
     sf::ContextSettings context;
     fullscreen = !fullscreen;
     window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
+}
+
+void CGame::render_mouse(int mx, int my, bool scale_mouse_rendering)
+{
+    if (m_bIsObserverMode == true)
+    {
+        DrawLine(mx - 5, my, mx + 5, my, Color(255, 0, 0));
+        DrawLine(mx, my, mx, my + 5, Color(255, 0, 0));
+
+        DrawLine(mx - 5, my - 1, mx + 5, my - 1, Color(255, 0, 0, 127));
+        DrawLine(mx - 1, my - 5, mx - 1, my + 5, Color(255, 0, 0, 127));
+
+        DrawLine(mx - 5, my + 1, mx + 5, my + 1, Color(255, 0, 0, 127));
+        DrawLine(mx + 1, my - 5, mx + 1, my + 5, Color(255, 0, 0, 127));
+    }
+    else
+    {
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->draw_to(mx, my, m_stMCursor.sCursorFrame, unixtime(), Color(255, 255, 255), DS_WIN);
+    }
 }

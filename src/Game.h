@@ -350,6 +350,9 @@ public:
         return drawState;
     }
 
+    void render_mouse(int mx, int my, bool scale_mouse_rendering = false);
+    bool scale_mouse_rendering = false;
+
     void setRenderTarget(uint8_t s, bool clearbuffer = false, Color color = Color(0, 0, 0))
     {
         drawState = s;
