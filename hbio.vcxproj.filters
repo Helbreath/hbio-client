@@ -189,7 +189,7 @@
     <ClCompile Include="src\MapData.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
-    <ClCompile Include="src\drawbackground.cpp">
+    <ClCompile Include="src\draw_background.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
     <ClCompile Include="src\config_reading.cpp">

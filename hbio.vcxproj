@@ -51,7 +51,7 @@
     <ClCompile Include="src\command_processor.cpp" />
     <ClCompile Include="src\config_reading.cpp" />
     <ClCompile Include="src\dialog_events.cpp" />
-    <ClCompile Include="src\drawbackground.cpp" />
+    <ClCompile Include="src\draw_background.cpp" />
     <ClCompile Include="src\draw_dialogs.cpp" />
     <ClCompile Include="src\draw_objects.cpp" />
     <ClCompile Include="src\draw_strings.cpp" />
