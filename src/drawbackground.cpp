@@ -48,16 +48,16 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
         m_iPDBGSdivX = sDivX;
         m_iPDBGSdivY = sDivY;
         indexY = sDivY + m_pMapData->m_sPivotY;
-        for (iy = -sModY; iy < GetVirtualHeight() + 48; iy += 32)
+        for (iy = -sModY; iy < get_virtual_height() + 300; iy += 32)
         {
             indexX = sDivX + m_pMapData->m_sPivotX;
-            for (ix = -sModX; ix < GetVirtualWidth() + 48; ix += 32)
+            for (ix = -sModX; ix < get_virtual_width() + 300; ix += 32)
             {
                 sSpr = m_pMapData->m_tile[indexX][indexY].m_sTileSprite;
                 sSprFrame = m_pMapData->m_tile[indexX][indexY].m_sTileSpriteFrame;
                 if (m_pTileSpr[sSpr])
                 {
-                    m_pTileSpr[sSpr]->DrawSpriteNCK(ix - 16 + sModX, iy - 16 + sModY, sSprFrame, m_dwCurTime);
+                    m_pTileSpr[sSpr]->draw_sprite_no_color_key(ix - 16 + sModX, iy - 16 + sModY, sSprFrame, m_dwCurTime);
                 }
                 indexX++;
             }
@@ -72,10 +72,10 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
             std::string text;
 
             indexY = sDivY;
-            for (iy = -sModY; iy < GetHeight() + 32; iy += 32)
+            for (iy = -sModY; iy < get_height() + 32; iy += 32)
             {
                 indexX = sDivX;
-                for (ix = -sModX; ix < GetWidth() + 32; ix += 32)
+                for (ix = -sModX; ix < get_width() + 32; ix += 32)
                 {
                     {
                         sf::Vertex line[] = {

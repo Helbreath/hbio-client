@@ -2354,7 +2354,7 @@ void CGame::LogResponseHandler(char * pData, uint64_t size)
 
     case DEF_ENTERGAMERESTYPE_CONFIRM:
     {
-        socketmode(true);
+        socket_mode(true);
         printf("ENTERGAMERESTYPE_CONFIRM\n");
         ConnectionEstablishHandler(DEF_SERVERTYPE_GAME);
     }

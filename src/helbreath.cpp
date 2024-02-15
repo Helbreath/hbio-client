@@ -13,9 +13,9 @@
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
 
-std::shared_ptr<CGame::MsgQueueEntry> CGame::GetLoginMsgQueue()
+std::shared_ptr<CGame::msg_queue_entry> CGame::get_login_msg_queue()
 {
-    std::shared_ptr<CGame::MsgQueueEntry> msg = loginpipe.front();
+    std::shared_ptr<CGame::msg_queue_entry> msg = loginpipe.front();
     loginpipe.pop_front();
     return msg;
 }
@@ -24,12 +24,12 @@ void CGame::on_message(const ix::WebSocketMessagePtr & msg)
 {
     if (msg->type == ix::WebSocketMessageType::Message)
     {
-        auto message = std::make_shared<CGame::MsgQueueEntry>();
+        auto message = std::make_shared<CGame::msg_queue_entry>();
         message->data = new char[msg->str.length()];
         memcpy(message->data, msg->str.c_str(), msg->str.length());
         message->size = msg->str.length();
         std::lock_guard<std::mutex> l(socket_mut);
-        PutMsgQueue(message, loginpipe);
+        put_msg_queue(message, loginpipe);
     }
     else if (msg->type == ix::WebSocketMessageType::Open)
     {
@@ -43,7 +43,7 @@ void CGame::on_message(const ix::WebSocketMessagePtr & msg)
         disconnecting = true;
         std::cout << "ws error\n" << msg->errorInfo.reason.c_str() << '\n';
         connection_loss_gamemode();
-        socketmode(0);
+        socket_mode(0);
         loggedin = false;
     }
     else if (msg->type == ix::WebSocketMessageType::Close)
@@ -52,7 +52,7 @@ void CGame::on_message(const ix::WebSocketMessagePtr & msg)
         disconnecting = true;
         std::cout << "ws close\n";
         connection_loss_gamemode();
-        socketmode(0);
+        socket_mode(0);
         loggedin = false;
     }
 }
@@ -77,10 +77,10 @@ bool CGame::is_closing() const
     return ws && ws->getReadyState() == ix::ReadyState::Closing;
 }
 
-void CGame::PutMsgQueue(MsgQueue & q, char * data, std::size_t size)
+void CGame::put_msg_queue(msg_queue & q, char * data, std::size_t size)
 {
     //poco_information(*logger, "PutMsgQueue()");
-    std::shared_ptr<MsgQueueEntry> msg = std::make_shared<MsgQueueEntry>();
+    std::shared_ptr<msg_queue_entry> msg = std::make_shared<msg_queue_entry>();
 
     msg->data = new char[size];
     memcpy(msg->data, data, size);
@@ -89,14 +89,14 @@ void CGame::PutMsgQueue(MsgQueue & q, char * data, std::size_t size)
     q.push_back(msg);
 }
 
-void CGame::PutMsgQueue(std::shared_ptr<CGame::MsgQueueEntry> msg, MsgQueue & q)
+void CGame::put_msg_queue(std::shared_ptr<CGame::msg_queue_entry> msg, msg_queue & q)
 {
     q.push_back(msg);
 }
 
-std::shared_ptr<CGame::MsgQueueEntry> CGame::GetMsgQueue()
+std::shared_ptr<CGame::msg_queue_entry> CGame::get_msg_queue()
 {
-    std::shared_ptr<CGame::MsgQueueEntry> msg = socketpipe.front();
+    std::shared_ptr<CGame::msg_queue_entry> msg = socketpipe.front();
     socketpipe.pop_front();
     return msg;
 }
@@ -182,7 +182,7 @@ void CGame::close(uint32_t code, const std::string & reason)
     }
 }
 
-void CGame::OnEvent(sf::Event event)
+void CGame::on_input_event(sf::Event event)
 {
     //TODO: fix
 
@@ -227,365 +227,350 @@ void CGame::OnEvent(sf::Event event)
 
     switch (event.type)
     {
-    case sf::Event::KeyPressed:
-    {
-        switch (event.key.code)
+        case sf::Event::KeyPressed:
         {
-        case Keyboard::Backspace:
-            if (m_pInputBuffer)
-                if (int len = (int)strlen(m_pInputBuffer))
-                    m_pInputBuffer[len - 1] = 0;
-            break;
-        case Keyboard::Add:
-            //                                      iv1, iv2, iv3,          iv4
-            //bSendCommand(message_id::TEST_MSG, 1, 0,  1,   0,   0, nullptr,   0);
-            window.setFramerateLimit(++frame_limit);
-            //zoom *= 1.05;
-//                     m_sViewPointX *= 1.05;
-//                     m_sViewPointY *= 1.05;
-            break;
-        case Keyboard::Subtract:
-            //                            submsg    iv1, iv2, iv3,          iv4
-            //bSendCommand(message_id::TEST_MSG, 1, 0, -1,   0,   0, nullptr,   0);
-            window.setFramerateLimit(--frame_limit);
-            //zoom /= 1.05;
-//                     m_sViewPointX /= 1.05;
-//                     m_sViewPointY /= 1.05;
-            break;
-        case Keyboard::Left:
-            //                                      iv1, iv2, iv3,          iv4
-            //bSendCommand(message_id::TEST_MSG, 1, 0,  0,   1,   0, nullptr,   0);
-//                     if (event.key.shift)
-//                     {
-//                         if (event.key.control)
-//                             m_sViewPointX--;
-//                         else
-//                             m_sViewDstX--;
-//                     }
-//                     else
-//                     {
-//                         m_sPlayerX--;
-//                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-//                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-//                     }
-            if (event.key.shift)
-                testx2--;
-            else
-                testx--;
-            m_cArrowPressed = 1;
-            //m_pMapData->ShiftMapData(7);
-            break;
-        case Keyboard::Right:
-            //                            submsg    iv1, iv2, iv3,          iv4
-            //bSendCommand(message_id::TEST_MSG, 1, 0,  0,  -1,   0, nullptr,   0);
-//                     if (event.key.shift)
-//                     {
-//                         if (event.key.control)
-//                             m_sViewPointX++;
-//                         else
-//                             m_sViewDstX++;
-//                     }
-//                     else
-//                     {
-//                         m_sPlayerX++;
-//                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-//                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-//                     }
-            if (event.key.shift)
-                testx2++;
-            else
-                testx++;
-            m_cArrowPressed = 3;
-            //m_pMapData->ShiftMapData(3);
-            break;
-        case Keyboard::Up:
-            //                     if (event.key.shift)
-            //                     {
-            //                         if (event.key.control)
-            //                             m_sViewPointY--;
-            //                         else
-            //                             m_sViewDstY--;
-            //                     }
-            //                     else
-            //                     {
-            //                         m_sPlayerY--;
-            //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-            //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-            //                     }
-            if (event.key.shift)
-                testy2--;
-            else
-                testy--;
-            m_cArrowPressed = 2;
-            break;
-        case Keyboard::Down:
-            //                     if (event.key.shift)
-            //                     {
-            //                         if (event.key.control)
-            //                             m_sViewPointY++;
-            //                         else
-            //                             m_sViewDstY++;
-            //                     }
-            //                     else
-            //                     {
-            //                         m_sPlayerY++;
-            //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-            //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-            //                     }
-            if (event.key.shift)
-                testy2++;
-            else
-                testy++;
-            m_cArrowPressed = 4;
-            break;
+            switch (event.key.code)
+            {
+            case Keyboard::Backspace:
+                if (m_pInputBuffer)
+                    if (int len = (int)strlen(m_pInputBuffer))
+                        m_pInputBuffer[len - 1] = 0;
+                break;
+            case Keyboard::Add:
+                //                                      iv1, iv2, iv3,          iv4
+                //bSendCommand(message_id::TEST_MSG, 1, 0,  1,   0,   0, nullptr,   0);
+                window.setFramerateLimit(++frame_limit);
+                //zoom *= 1.05;
+    //                     m_sViewPointX *= 1.05;
+    //                     m_sViewPointY *= 1.05;
+                break;
+            case Keyboard::Subtract:
+                //                            submsg    iv1, iv2, iv3,          iv4
+                //bSendCommand(message_id::TEST_MSG, 1, 0, -1,   0,   0, nullptr,   0);
+                window.setFramerateLimit(--frame_limit);
+                //zoom /= 1.05;
+    //                     m_sViewPointX /= 1.05;
+    //                     m_sViewPointY /= 1.05;
+                break;
+            case Keyboard::Left:
+                //                                      iv1, iv2, iv3,          iv4
+                //bSendCommand(message_id::TEST_MSG, 1, 0,  0,   1,   0, nullptr,   0);
+    //                     if (event.key.shift)
+    //                     {
+    //                         if (event.key.control)
+    //                             m_sViewPointX--;
+    //                         else
+    //                             m_sViewDstX--;
+    //                     }
+    //                     else
+    //                     {
+    //                         m_sPlayerX--;
+    //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
+    //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
+    //                     }
+                if (event.key.shift)
+                    testx2--;
+                else
+                    testx--;
+                m_cArrowPressed = 1;
+                //m_pMapData->ShiftMapData(7);
+                break;
+            case Keyboard::Right:
+                //                            submsg    iv1, iv2, iv3,          iv4
+                //bSendCommand(message_id::TEST_MSG, 1, 0,  0,  -1,   0, nullptr,   0);
+    //                     if (event.key.shift)
+    //                     {
+    //                         if (event.key.control)
+    //                             m_sViewPointX++;
+    //                         else
+    //                             m_sViewDstX++;
+    //                     }
+    //                     else
+    //                     {
+    //                         m_sPlayerX++;
+    //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
+    //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
+    //                     }
+                if (event.key.shift)
+                    testx2++;
+                else
+                    testx++;
+                m_cArrowPressed = 3;
+                //m_pMapData->ShiftMapData(3);
+                break;
+            case Keyboard::Up:
+                //                     if (event.key.shift)
+                //                     {
+                //                         if (event.key.control)
+                //                             m_sViewPointY--;
+                //                         else
+                //                             m_sViewDstY--;
+                //                     }
+                //                     else
+                //                     {
+                //                         m_sPlayerY--;
+                //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
+                //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
+                //                     }
+                if (event.key.shift)
+                    testy2--;
+                else
+                    testy--;
+                m_cArrowPressed = 2;
+                break;
+            case Keyboard::Down:
+                //                     if (event.key.shift)
+                //                     {
+                //                         if (event.key.control)
+                //                             m_sViewPointY++;
+                //                         else
+                //                             m_sViewDstY++;
+                //                     }
+                //                     else
+                //                     {
+                //                         m_sPlayerY++;
+                //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
+                //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
+                //                     }
+                if (event.key.shift)
+                    testy2++;
+                else
+                    testy++;
+                m_cArrowPressed = 4;
+                break;
 
-        case Keyboard::F5:
-            //RequestFullObjectData(ot_player, m_sPlayerObjectID);
-            if (!is_connected()) perform_connect();
-            break;
-        case Keyboard::F7:
-            ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
-            break;
-        case Keyboard::F8:
-            m_showGrid = !m_showGrid;
-            break;
-        case Keyboard::Escape:
-            clipmousegame = !clipmousegame;
-            window.setMouseCursorGrabbed(clipmousegame);
-            m_bEscPressed = true;
-            captured = true;
-            break;
-        case Keyboard::LShift:
-            m_bShiftPressed = true;
-            break;
-        case Keyboard::LControl:
-            m_bCtrlPressed = true;
-            break;
-        case Keyboard::LAlt:
-            m_altPressed = true;
-            break;
-        case Keyboard::Tab:
-            if (m_bShiftPressed)
-            {
-                m_cCurFocus--;
-                if (m_cCurFocus < 1) m_cCurFocus = m_cMaxFocus;
-            }
-            else
-            {
-                m_cCurFocus++;
-                if (m_cCurFocus > m_cMaxFocus) m_cCurFocus = 1;
-            }
-            if (m_cGameMode == DEF_GAMEMODE_ONMAINGAME)
-            {
-                //bSendCommand(message_id::COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
-                bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
-            }
-            break;
-        case Keyboard::Return:
-            if (event.key.alt)
-            {
-                // todo: recreate surfaces to resize to recenter area
-                fullscreen = !fullscreen;
-                window.close();
-                window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
-                captured = true;
+            case Keyboard::F5:
+                //RequestFullObjectData(ot_player, m_sPlayerObjectID);
+                if (!is_connected()) perform_connect();
+                break;
+            case Keyboard::F7:
+                ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
+                break;
+            case Keyboard::F8:
+                m_showGrid = !m_showGrid;
+                break;
+            case Keyboard::Escape:
+                clipmousegame = !clipmousegame;
                 window.setMouseCursorGrabbed(clipmousegame);
-                window.setMouseCursorVisible(false);
+                m_bEscPressed = true;
+                captured = true;
+                break;
+            case Keyboard::LShift:
+                m_bShiftPressed = true;
+                break;
+            case Keyboard::LControl:
+                m_bCtrlPressed = true;
+                break;
+            case Keyboard::LAlt:
+                m_altPressed = true;
+                break;
+            case Keyboard::Tab:
+                if (m_bShiftPressed)
+                {
+                    m_cCurFocus--;
+                    if (m_cCurFocus < 1) m_cCurFocus = m_cMaxFocus;
+                }
+                else
+                {
+                    m_cCurFocus++;
+                    if (m_cCurFocus > m_cMaxFocus) m_cCurFocus = 1;
+                }
+                if (m_cGameMode == DEF_GAMEMODE_ONMAINGAME)
+                {
+                    //bSendCommand(message_id::COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
+                    bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
+                }
+                break;
+            case Keyboard::Return:
+                if (event.key.alt)
+                {
+                    // todo: recreate surfaces to resize to recenter area
+                    fullscreen = !fullscreen;
+                    window.close();
+                    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
+                    captured = true;
+                    window.setMouseCursorGrabbed(clipmousegame);
+                    window.setMouseCursorVisible(false);
+                }
+                else
+                {
+                    m_bEnterPressed = true;
+                }
+                break;
+            case Keyboard::F12:
+                CreateScreenShot();
+                break;
+
+            case Keyboard::F11:
+                scale_mouse_rendering = !scale_mouse_rendering;
+                if (scale_mouse_rendering)
+                {
+                    for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                        m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+                }
+                else
+                    for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                        m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(1, 1);
+
+                break;
+
+            case Keyboard::F6:
+                calcoldviewport = !calcoldviewport;
+                if (!calcoldviewport)
+                {
+                    AddEventList("Switched to new viewport code.");
+                }
+                else
+                {
+                    AddEventList("Switched to old viewport code.");
+                }
+                break;
+            }
+            break;
+        }
+        case sf::Event::KeyReleased:
+        {
+            if (event.key.code == Keyboard::Backspace)
+            {
+            }
+            if (event.key.code == Keyboard::Tab)
+            {
+            }
+
+            switch (event.key.code)
+            {
+            case Keyboard::Escape:
+                break;
+            case Keyboard::LShift:
+                m_bShiftPressed = false;
+                break;
+            case Keyboard::LControl:
+                m_bCtrlPressed = false;
+                break;
+            case Keyboard::LAlt:
+                m_altPressed = false;
+                break;
+            case Keyboard::Tab:
+                break;
+            case Keyboard::Return:
+                break;
+            case Keyboard::F12:
+                break;
+            case Keyboard::F5:
+                break;
+            }
+            break;
+        }
+        case sf::Event::Resized:
+            break;
+        case sf::Event::LostFocus:
+            window.setFramerateLimit(frame_limit_bg); //set to var
+            break;
+        case sf::Event::GainedFocus:
+            if (m_cGameMode != DEF_GAMEMODE_ONLOADING)
+                window.setFramerateLimit(frame_limit);
+            else
+                window.setFramerateLimit(0);
+            break;
+        case sf::Event::MouseWheelScrolled:
+            if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+            {
+                if (event.mouseWheelScroll.delta > 0.f)
+                    m_stMCursor.sZ++;
+                else if (event.mouseWheelScroll.delta < 0.f)
+                    m_stMCursor.sZ--;
+            }
+            else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
+            {
+                if (event.mouseWheelScroll.delta > 0.f)
+                    m_stMCursor.sZ2++;
+                else if (event.mouseWheelScroll.delta < 0.f)
+                    m_stMCursor.sZ2--;
             }
             else
             {
-                m_bEnterPressed = true;
             }
             break;
-        case Keyboard::F12:
-            CreateScreenShot();
-            break;
-
-        case Keyboard::F11:
-            scale_mouse_rendering = !scale_mouse_rendering;
-            if (scale_mouse_rendering)
+        case sf::Event::MouseButtonPressed:
+        {
+            if (wasinactive)
             {
-                for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
-                    m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+                wasinactive = false;
             }
-            else
-                for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
-                    m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(1, 1);
 
-            break;
+            //             for (auto & rect : dialogs)
+            //             {
+            //                 if (rect.contains(m_stMCursor.sX, m_stMCursor.sY))
+            //                 {
+            //                     break;
+            //                 }
+            //             }
 
-        case Keyboard::F6:
-            calcoldviewport = !calcoldviewport;
-            if (!calcoldviewport)
+            if (event.mouseButton.button == sf::Mouse::Right)
             {
-                AddEventList("Switched to new viewport code.");
+                m_stMCursor.RB = true;
             }
-            else
+            else if (event.mouseButton.button == sf::Mouse::Left)
             {
-                AddEventList("Switched to old viewport code.");
+                m_stMCursor.LB = true;
+            }
+            else if (event.mouseButton.button == sf::Mouse::Middle)
+            {
+                m_stMCursor.MB = true;
             }
             break;
         }
-        break;
-    }
-    case sf::Event::KeyReleased:
-    {
-        if (event.key.code == Keyboard::Backspace)
+        case sf::Event::MouseButtonReleased:
         {
+            if (event.mouseButton.button == sf::Mouse::Right)
+            {
+                m_stMCursor.RB = false;
+            }
+            else if (event.mouseButton.button == sf::Mouse::Left)
+            {
+                m_stMCursor.LB = false;
+            }
+            else if (event.mouseButton.button == sf::Mouse::Middle)
+            {
+                m_stMCursor.MB = false;
+            }
+            break;
         }
-        if (event.key.code == Keyboard::Tab)
+        case sf::Event::MouseMoved:
         {
-        }
+            float diffx = static_cast<float>(screenwidth_v) / screenwidth;
+            float diffy = static_cast<float>(screenheight_v) / screenheight;
+            uint16_t x = uint16_t(event.mouseMove.x * diffx);
+            uint16_t y = uint16_t(event.mouseMove.y * diffy);
 
-        switch (event.key.code)
-        {
-        case Keyboard::Escape:
-            break;
-        case Keyboard::LShift:
-            m_bShiftPressed = false;
-            break;
-        case Keyboard::LControl:
-            m_bCtrlPressed = false;
-            break;
-        case Keyboard::LAlt:
-            m_altPressed = false;
-            break;
-        case Keyboard::Tab:
-            break;
-        case Keyboard::Return:
-            break;
-        case Keyboard::F12:
-            break;
-        case Keyboard::F5:
-            break;
-        }
-        break;
-    }
-    case sf::Event::Resized:
-        break;
-    case sf::Event::LostFocus:
-        window.setFramerateLimit(frame_limit_bg); //set to var
-        break;
-    case sf::Event::GainedFocus:
-        if (m_cGameMode != DEF_GAMEMODE_ONLOADING)
-            window.setFramerateLimit(frame_limit);
-        else
-            window.setFramerateLimit(0);
-        break;
-    case sf::Event::MouseWheelScrolled:
-        if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
-        {
-            if (event.mouseWheelScroll.delta > 0.f)
-                m_stMCursor.sZ++;
-            else if (event.mouseWheelScroll.delta < 0.f)
-                m_stMCursor.sZ--;
-        }
-        else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel)
-        {
-            if (event.mouseWheelScroll.delta > 0.f)
-                m_stMCursor.sZ2++;
-            else if (event.mouseWheelScroll.delta < 0.f)
-                m_stMCursor.sZ2--;
-        }
-        else
-        {
-        }
-        break;
-    case sf::Event::MouseButtonPressed:
-    {
-        if (wasinactive)
-        {
-            wasinactive = false;
-        }
+            // if admin client
+            if (m_stMCursor.LB && m_bCtrlPressed)
+            {
+                // pan event
+                pan_x += event.mouseMove.x - m_stMCursor.sX;
+                pan_y += event.mouseMove.y - m_stMCursor.sY;
+            }
 
-        //             for (auto & rect : dialogs)
-        //             {
-        //                 if (rect.contains(m_stMCursor.sX, m_stMCursor.sY))
-        //                 {
-        //                     break;
-        //                 }
-        //             }
+            m_stMCursor.sX = x;
+            m_stMCursor.sY = y;
 
-        if (event.mouseButton.button == sf::Mouse::Right)
-        {
-            m_stMCursor.RB = true;
+            //std::cout << fmt::format("{:#4}, {:#4} || {:#4}, {:#4}\n", event.mouseMove.x, event.mouseMove.y, x, y);
+            break;
         }
-        else if (event.mouseButton.button == sf::Mouse::Left)
-        {
-            m_stMCursor.LB = true;
-        }
-        else if (event.mouseButton.button == sf::Mouse::Middle)
-        {
-            m_stMCursor.MB = true;
-        }
-        break;
-    }
-    case sf::Event::MouseButtonReleased:
-    {
-        if (event.mouseButton.button == sf::Mouse::Right)
-        {
-            m_stMCursor.RB = false;
-        }
-        else if (event.mouseButton.button == sf::Mouse::Left)
-        {
-            m_stMCursor.LB = false;
-        }
-        else if (event.mouseButton.button == sf::Mouse::Middle)
-        {
-            m_stMCursor.MB = false;
-        }
-        break;
-    }
-    case sf::Event::MouseMoved:
-    {
-        float diffx = static_cast<float>(screenwidth_v) / screenwidth;
-        float diffy = static_cast<float>(screenheight_v) / screenheight;
-        uint16_t x = uint16_t(event.mouseMove.x * diffx);
-        uint16_t y = uint16_t(event.mouseMove.y * diffy);
-
-        // if admin client
-        if (m_stMCursor.LB && m_bCtrlPressed)
-        {
-            // pan event
-            pan_x += event.mouseMove.x - m_stMCursor.sX;
-            pan_y += event.mouseMove.y - m_stMCursor.sY;
-        }
-
-        m_stMCursor.sX = x;
-        m_stMCursor.sY = y;
-
-        //std::cout << fmt::format("{:#4}, {:#4} || {:#4}, {:#4}\n", event.mouseMove.x, event.mouseMove.y, x, y);
-        break;
-    }
     }
 }
 
-bool CGame::CreateRenderer(bool fs)
+void CGame::create_surfaces()
 {
-    fullscreen = fs;
-
-    format_to_local(winName, "Helbreath Xtreme {}.{}.{} Renderer: {}", DEF_UPPERVERSION, DEF_LOWERVERSION, DEF_PATCHVERSION, _renderer);
-
-    sf::ContextSettings context;
-    // context.antialiasingLevel = 16;
-
-    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Close)), context);
-
-    handle = window.getSystemHandle();
-
-    if (vsync)
-        window.setVerticalSyncEnabled(true);
-    else
-        window.setVerticalSyncEnabled(false);
-
-    frame_limit = 0;
-
     visible.create(screenwidth_v, screenheight_v);
     bg.create(screenwidth_v + 300, screenheight_v + 300);
     dynamic_bg.create(screenwidth_v + 300, screenheight_v + 300);
     //bg.create(32768, 32768);
-    charselect.create(256, 256);
+    //charselect.create(256, 256);
+}
 
+void CGame::create_fonts()
+{
     sf::Font s;
     s.loadFromFile(workingdirectory + "fonts/Arya-Regular.ttf");
     _font.insert(std::pair<std::string, sf::Font>("arya", s));
@@ -595,13 +580,6 @@ bool CGame::CreateRenderer(bool fs)
 
     s.loadFromFile(workingdirectory + "fonts/PoetsenOne-Regular.ttf");
     _font.insert(std::pair<std::string, sf::Font>("test", s));
-
-    //     sf::Image img;
-    //     img.create(screenwidth_v, screenheight_v);
-    //     _html_tex.loadFromImage(img);
-    //     _html_spr.setTexture(_html_tex);
-
-    create_load_list();
 
     _text.setFont(_font.at("arya"));
 
@@ -617,14 +595,41 @@ bool CGame::CreateRenderer(bool fs)
     under_text.setCharacterSize(12);
     under_text.setOutlineColor(sf::Color::Black);
     under_text.setOutlineThickness(1);
+}
 
-    modx = GetVirtualWidth() / 2 - 640 / 2;
-    mody = GetVirtualHeight() / 2 - 480 / 2;
+bool CGame::create_renderer(bool fs)
+{
+    fullscreen = fs;
+
+    format_to_local(winName, "Helbreath Xtreme {}.{}.{} Renderer: {}", DEF_UPPERVERSION, DEF_LOWERVERSION, DEF_PATCHVERSION, _renderer);
+
+    sf::ContextSettings context;
+    context.antialiasingLevel = antialiasing;
+    context.majorVersion = 3;
+    context.minorVersion = 3;
+
+    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Close)), context);
+
+    handle = window.getSystemHandle();
+
+    if (vsync)
+        window.setVerticalSyncEnabled(true);
+    else
+        window.setVerticalSyncEnabled(false);
+
+    frame_limit = 0;
+
+    create_surfaces();
+    create_fonts();
+    create_load_list();
+
+    modx = get_virtual_width() / 2 - 640 / 2;
+    mody = get_virtual_height() / 2 - 480 / 2;
 
     return true;
 }
 
-int CGame::iSendMsg(char * cData, std::size_t dwSize, char cKey)
+int CGame::send_message(char * cData, std::size_t dwSize, char cKey)
 {
     return write(cData, dwSize);
 }
@@ -659,12 +664,12 @@ int16_t CGame::get_game_mode(std::string _gamemode)
     return DEF_GAMEMODE_NULL;
 }
 
-void CGame::DrawLine(int x0, int y0, int x1, int y1, Color color)
+void CGame::draw_line(int x0, int y0, int x1, int y1, Color color)
 { //TODO: replace all instances
-    DrawLine(x0, y0, x1, y1, color.r, color.g, color.b, color.a);
+    draw_line(x0, y0, x1, y1, color.r, color.g, color.b, color.a);
 }
 
-void CGame::DrawLine(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int iA)
+void CGame::draw_line(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int iA)
 {
     if ((x0 == x1) && (y0 == y1))
         return;
@@ -677,7 +682,7 @@ void CGame::DrawLine(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int
     visible.draw(line, 2, sf::Lines);
 }
 
-void CGame::UpdateMouseState(short & x, short & y, short & z, char & left_button, char & right_button)
+void CGame::update_mouse_state(short & x, short & y, short & z, char & left_button, char & right_button)
 {
     x = m_stMCursor.sX;
     y = m_stMCursor.sY;
@@ -686,7 +691,7 @@ void CGame::UpdateMouseState(short & x, short & y, short & z, char & left_button
     right_button = m_stMCursor.RB;
 }
 
-void CGame::DrawShadowBox(short sX, short sY, short dX, short dY, Color color)
+void CGame::draw_shadow_box(short sX, short sY, short dX, short dY, Color color)
 {
     if ((sX == dX) && (sY == dY))
         return;
@@ -697,7 +702,7 @@ void CGame::DrawShadowBox(short sX, short sY, short dX, short dY, Color color)
     visible.draw(rectangle);
 }
 
-void CGame::PutPixel(short sX, short sY, Color color)
+void CGame::put_pixel(short sX, short sY, Color color)
 {
     sf::Vertex line[] =
     {
@@ -706,7 +711,7 @@ void CGame::PutPixel(short sX, short sY, Color color)
     visible.draw(line, 1, sf::Points);
 }
 
-void CGame::ChangeDisplayMode()
+void CGame::change_display_mode()
 {
     window.close();
     sf::ContextSettings context;
@@ -718,14 +723,14 @@ void CGame::render_mouse(int mx, int my, bool scale_mouse_rendering)
 {
     if (m_bIsObserverMode == true)
     {
-        DrawLine(mx - 5, my, mx + 5, my, Color(255, 0, 0));
-        DrawLine(mx, my, mx, my + 5, Color(255, 0, 0));
+        draw_line(mx - 5, my, mx + 5, my, Color(255, 0, 0));
+        draw_line(mx, my, mx, my + 5, Color(255, 0, 0));
 
-        DrawLine(mx - 5, my - 1, mx + 5, my - 1, Color(255, 0, 0, 127));
-        DrawLine(mx - 1, my - 5, mx - 1, my + 5, Color(255, 0, 0, 127));
+        draw_line(mx - 5, my - 1, mx + 5, my - 1, Color(255, 0, 0, 127));
+        draw_line(mx - 1, my - 5, mx - 1, my + 5, Color(255, 0, 0, 127));
 
-        DrawLine(mx - 5, my + 1, mx + 5, my + 1, Color(255, 0, 0, 127));
-        DrawLine(mx + 1, my - 5, mx + 1, my + 5, Color(255, 0, 0, 127));
+        draw_line(mx - 5, my + 1, mx + 5, my + 1, Color(255, 0, 0, 127));
+        draw_line(mx + 1, my - 5, mx + 1, my + 5, Color(255, 0, 0, 127));
     }
     else
     {

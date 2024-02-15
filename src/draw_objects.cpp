@@ -63,16 +63,16 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     m_stMCursor.sCursorFrame = 0;
 
     indexY = sDivY + sPivotY - 7;
-    for (iy = -sModY - 224; iy <= GetVirtualHeight() + 352; iy += 32)
+    for (iy = -sModY - 224; iy <= get_virtual_height() + 352; iy += 32)
     {
         indexX = sDivX + sPivotX - 4;
-        for (ix = -sModX - 128; ix <= GetVirtualWidth() + 128; ix += 32)
+        for (ix = -sModX - 128; ix <= get_virtual_width() + 128; ix += 32)
         {
            
             sDynamicObject = NULL;
             bRet = FALSE;
 
-            if ((ix >= -sModX) && (ix <= GetVirtualHeight() + 16) && (iy >= -sModY) && (iy <= GetVirtualWidth() + 32 + 16))
+            if ((ix >= -sModX) && (ix <= get_virtual_height() + 16) && (iy >= -sModY) && (iy <= get_virtual_width() + 32 + 16))
             {
 
                 _tmp_wObjectID = _tmp_sOwnerType = _tmp_sAppr1 = _tmp_sAppr2 = _tmp_sAppr3 = _tmp_sAppr4 = _tmp_sStatus = NULL;
@@ -128,7 +128,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                 {
                     
                     if (cItemColor == 0)
-                        m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->PutSpriteFast(ix, iy, sItemSpriteFrame, dwTime);
+                        m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->put_sprite_fast(ix, iy, sItemSpriteFrame, dwTime);
                     else
                     {
                         
@@ -137,8 +137,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                         case 1:
                         case 2:
                         case 3:
-                        case 15: m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->PutSpriteColor(ix, iy, sItemSpriteFrame, m_wWR[cItemColor] - m_wR[0], m_wWG[cItemColor] - m_wG[0], m_wWB[cItemColor] - m_wB[0], dwTime); break;
-                        default: m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->PutSpriteColor(ix, iy, sItemSpriteFrame, m_wR[cItemColor] - m_wR[0], m_wG[cItemColor] - m_wG[0], m_wB[cItemColor] - m_wB[0], dwTime); break;
+                        case 15: m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->put_sprite_color(ix, iy, sItemSpriteFrame, m_wWR[cItemColor] - m_wR[0], m_wWG[cItemColor] - m_wG[0], m_wWB[cItemColor] - m_wB[0], dwTime); break;
+                        default: m_pSprite[DEF_SPRID_ITEMGROUND_PIVOTPOINT + sItemSprite]->put_sprite_color(ix, iy, sItemSpriteFrame, m_wR[cItemColor] - m_wR[0], m_wG[cItemColor] - m_wG[0], m_wB[cItemColor] - m_wB[0], dwTime); break;
                         }
                     }
 
@@ -349,7 +349,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     case 200:
                     case 223:
                         
-                        m_pTileSpr[sObjSpr]->PutShadowSprite(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        m_pTileSpr[sObjSpr]->put_shadow_sprite(ix - 16, iy - 16, sObjSprFrame, dwTime);
                         break;
 
                     case 224:
@@ -366,7 +366,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                             break;
 
                         default:
-                            m_pTileSpr[sObjSpr]->PutShadowSprite(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr]->put_shadow_sprite(ix - 16, iy - 16, sObjSprFrame, dwTime);
                             break;
                         }
                     }
@@ -374,11 +374,11 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     {
                         
                         if ((sObjSpr != 6) && (sObjSpr != 9))
-                            m_pTileSpr[sObjSpr]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
                     }
                     else
                     {
-                        m_pTileSpr[sObjSpr]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        m_pTileSpr[sObjSpr]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
                     }
 
                     switch (sObjSpr)
@@ -392,9 +392,9 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                                 int iDvalue1 = -1 * (rand() % 5);
                                 int iDvalue2 = -1 * (rand() % 5);
                                 int iDvalue3 = -1 * (rand() % 5);
-                                m_pEffectSpr[0]->PutTransSpriteColor(ix + 2 - 17, iy - 147 - 15, 1, iDvalue1, iDvalue1, iDvalue1, dwTime);
-                                m_pEffectSpr[0]->PutTransSpriteColor(ix + 16 - 17, iy - 96 - 15, 1, iDvalue2, iDvalue2, iDvalue2, dwTime);
-                                m_pEffectSpr[0]->PutTransSpriteColor(ix - 19 - 17, iy - 126 - 15, 1, iDvalue3, iDvalue3, iDvalue3, dwTime);
+                                m_pEffectSpr[0]->put_trans_sprite_color(ix + 2 - 17, iy - 147 - 15, 1, iDvalue1, iDvalue1, iDvalue1, dwTime);
+                                m_pEffectSpr[0]->put_trans_sprite_color(ix + 16 - 17, iy - 96 - 15, 1, iDvalue2, iDvalue2, iDvalue2, dwTime);
+                                m_pEffectSpr[0]->put_trans_sprite_color(ix - 19 - 17, iy - 126 - 15, 1, iDvalue3, iDvalue3, iDvalue3, dwTime);
                             }
                         }
                         break;
@@ -439,13 +439,13 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                 {
                     
                     
-                    m_pTileSpr[sObjSpr]->_GetSpriteRect(ix - 16, iy - 16, sObjSprFrame);
+                    m_pTileSpr[sObjSpr]->get_sprite_rect(ix - 16, iy - 16, sObjSprFrame);
                     if (m_cDetailLevel == 0)
                     {
-                        if (sObjSpr < 100 + 11) m_pTileSpr[100 + 4]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
-                        else if (sObjSpr < 100 + 23) m_pTileSpr[100 + 9]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
-                        else if (sObjSpr < 100 + 32) m_pTileSpr[100 + 23]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
-                        else m_pTileSpr[100 + 32]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        if (sObjSpr < 100 + 11) m_pTileSpr[100 + 4]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        else if (sObjSpr < 100 + 23) m_pTileSpr[100 + 9]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        else if (sObjSpr < 100 + 32) m_pTileSpr[100 + 23]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                        else m_pTileSpr[100 + 32]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
                     }
                     else
                     {
@@ -453,13 +453,13 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                             (m_cDetailLevel >= 2) && (m_pTileSpr[sObjSpr]->m_rcBound.left <= m_rcPlayerRect.left) && (m_pTileSpr[sObjSpr]->m_rcBound.right >= m_rcPlayerRect.right))
                         {
                             
-                            m_pTileSpr[sObjSpr + 50]->PutFadeSprite(ix, iy, sObjSprFrame, dwTime);
-                            m_pTileSpr[sObjSpr]->PutTransSprite2(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr + 50]->put_fade_sprite(ix, iy, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr]->put_trans_sprite2(ix - 16, iy - 16, sObjSprFrame, dwTime);
                         }
                         else
                         {
-                            m_pTileSpr[sObjSpr + 50]->PutSpriteFast(ix, iy, sObjSprFrame, dwTime);
-                            m_pTileSpr[sObjSpr]->PutSpriteFast(ix - 16, iy - 16, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr + 50]->put_sprite_fast(ix, iy, sObjSprFrame, dwTime);
+                            m_pTileSpr[sObjSpr]->put_sprite_fast(ix - 16, iy - 16, sObjSprFrame, dwTime);
                         }
 
 #ifdef DEF_XMAS	
@@ -486,9 +486,9 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                             
                             for (int j = 0; j < 100; j++)
                             {
-                                if (m_pTileSpr[sObjSpr]->_bCheckCollison(ix - 16, iy - 16, sObjSprFrame, ix + ix1[j], iy + iy2[j]))
+                                if (m_pTileSpr[sObjSpr]->check_collison(ix - 16, iy - 16, sObjSprFrame, ix + ix1[j], iy + iy2[j]))
                                 {
-                                    m_pEffectSpr[66 + (j % 6)]->PutTransSprite(ix + ix1[j], iy + iy2[j], (iXmasTreeBulbDelay >> 2), dwTime);
+                                    m_pEffectSpr[66 + (j % 6)]->put_trans_sprite(ix + ix1[j], iy + iy2[j], (iXmasTreeBulbDelay >> 2), dwTime);
                                 }
                             }
 
@@ -505,21 +505,21 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                 {
                 case DEF_DYNAMICOBJECT_PCLOUD_BEGIN:
                     if (sDynamicObjectFrame >= 0)
-                        m_pEffectSpr[23]->PutTransSprite50_NoColorKey(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame, dwTime);
+                        m_pEffectSpr[23]->put_trans_sprite50_no_color_key(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame, dwTime);
                     break;
 
                 case DEF_DYNAMICOBJECT_PCLOUD_LOOP:
-                    m_pEffectSpr[23]->PutTransSprite50_NoColorKey(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame + 8, dwTime);
+                    m_pEffectSpr[23]->put_trans_sprite50_no_color_key(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame + 8, dwTime);
                     break;
 
                 case DEF_DYNAMICOBJECT_PCLOUD_END:
-                    m_pEffectSpr[23]->PutTransSprite50_NoColorKey(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame + 16, dwTime);
+                    m_pEffectSpr[23]->put_trans_sprite50_no_color_key(ix + (rand() % 2), iy + (rand() % 2), sDynamicObjectFrame + 16, dwTime);
                     break;
 
                 case DEF_DYNAMICOBJECT_ICESTORM:
                     iDvalue = (rand() % 5) * (-1);
-                    m_pEffectSpr[0]->PutTransSpriteColor(ix, iy, 1, iDvalue, iDvalue, iDvalue, dwTime);
-                    m_pEffectSpr[13]->PutTransSprite70_NoColorKey(ix, iy, sDynamicObjectFrame, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite_color(ix, iy, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                    m_pEffectSpr[13]->put_trans_sprite70_no_color_key(ix, iy, sDynamicObjectFrame, dwTime);
                     break;
 
                 case DEF_DYNAMICOBJECT_FIRE:
@@ -527,19 +527,19 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     //m_pEffectSpr[0]->PutTransSpriteColor(ix, iy, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     switch (rand() % 3)
                     {
-                    case 0: m_pEffectSpr[0]->PutTransSprite25_NoColorKey(ix, iy, 1, dwTime); break;
-                    case 1: m_pEffectSpr[0]->PutTransSprite50_NoColorKey(ix, iy, 1, dwTime); break;
-                    case 2: m_pEffectSpr[0]->PutTransSprite70_NoColorKey(ix, iy, 1, dwTime); break;
+                    case 0: m_pEffectSpr[0]->put_trans_sprite25_no_color_key(ix, iy, 1, dwTime); break;
+                    case 1: m_pEffectSpr[0]->put_trans_sprite50_no_color_key(ix, iy, 1, dwTime); break;
+                    case 2: m_pEffectSpr[0]->put_trans_sprite70_no_color_key(ix, iy, 1, dwTime); break;
                     }
-                    m_pEffectSpr[8 + sDynamicObject]->PutTransSprite70_NoColorKey(ix, iy, sDynamicObjectFrame / 3, dwTime);
+                    m_pEffectSpr[8 + sDynamicObject]->put_trans_sprite70_no_color_key(ix, iy, sDynamicObjectFrame / 3, dwTime);
                     break;
 
                 case DEF_DYNAMICOBJECT_FIRE2:
                     switch (rand() % 3)
                     {
-                    case 0: m_pEffectSpr[0]->PutTransSprite25_NoColorKey(ix, iy, 1, dwTime); break;
-                    case 1: m_pEffectSpr[0]->PutTransSprite50_NoColorKey(ix, iy, 1, dwTime); break;
-                    case 2: m_pEffectSpr[0]->PutTransSprite70_NoColorKey(ix, iy, 1, dwTime); break;
+                    case 0: m_pEffectSpr[0]->put_trans_sprite25_no_color_key(ix, iy, 1, dwTime); break;
+                    case 1: m_pEffectSpr[0]->put_trans_sprite50_no_color_key(ix, iy, 1, dwTime); break;
+                    case 2: m_pEffectSpr[0]->put_trans_sprite70_no_color_key(ix, iy, 1, dwTime); break;
                     }
                     break;
 
@@ -548,13 +548,13 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     char cTmpDOdir, cTmpDOframe;
                     cTmpDOdir = m_Misc.cCalcDirection(cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData1 + cDynamicObjectData3, cDynamicObjectData2 + cDynamicObjectData4);
                     cTmpDOframe = ((cTmpDOdir - 1) * 4) + (rand() % 4);
-                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 0]->PutTransSprite2(ix + cDynamicObjectData1, iy + cDynamicObjectData2, cTmpDOframe, dwTime);
+                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 0]->put_trans_sprite2(ix + cDynamicObjectData1, iy + cDynamicObjectData2, cTmpDOframe, dwTime);
                 }
                 break;
 
                 case DEF_DYNAMICOBJECT_MINERAL1:
-                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->PutShadowSprite(ix, iy, 0, dwTime);
-                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->PutSpriteFast(ix, iy, 0, dwTime);
+                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->put_shadow_sprite(ix, iy, 0, dwTime);
+                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->put_sprite_fast(ix, iy, 0, dwTime);
                     
                     if ((m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->m_rcBound.top != -1) &&
                         (m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->m_rcBound.top < msY) &&
@@ -572,8 +572,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     break;
 
                 case DEF_DYNAMICOBJECT_MINERAL2:
-                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->PutShadowSprite(ix, iy, 1, dwTime);
-                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->PutSpriteFast(ix, iy, 1, dwTime);
+                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->put_shadow_sprite(ix, iy, 1, dwTime);
+                    m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->put_sprite_fast(ix, iy, 1, dwTime);
                     
                     if ((m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->m_rcBound.top != -1) &&
                         (m_pSprite[DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT + 1]->m_rcBound.top < msY) &&
@@ -591,7 +591,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     break;
 
                 case DEF_DYNAMICOBJECT_SPIKE:
-                    m_pEffectSpr[17]->PutTransSprite70_NoColorKey(ix, iy, sDynamicObjectFrame, dwTime);
+                    m_pEffectSpr[17]->put_trans_sprite70_no_color_key(ix, iy, sDynamicObjectFrame, dwTime);
                     break;
                 }
             }
@@ -748,20 +748,20 @@ void CGame::_Draw_CharacterBody(short sX, short sY, short sType)
 
     if (sType <= 3)
     {
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 0]->PutSpriteFast(sX, sY, sType - 1, dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 0]->put_sprite_fast(sX, sY, sType - 1, dwTime);
         _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18]->PutSpriteColor(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18]->put_sprite_color(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
 
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19]->PutSpriteFast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19]->put_sprite_fast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
     }
     else
     {
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 40]->PutSpriteFast(sX, sY, sType - 4, dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 40]->put_sprite_fast(sX, sY, sType - 4, dwTime);
 
         _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18 + 40]->PutSpriteColor(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18 + 40]->put_sprite_color(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
 
-        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19 + 40]->PutSpriteFast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19 + 40]->put_sprite_fast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
     }
 }
 
@@ -773,22 +773,22 @@ void CGame::_Draw_OnLogin(char * pAccount, char * pPassword, int msX, int msY, i
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_LOGIN, 0, 0, 0, TRUE);
     DrawVersion();
 
-    if ((iFrame >= 15) && (iFrame <= 20)) m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->PutTransSprite25(39, 121, 2, TRUE);
+    if ((iFrame >= 15) && (iFrame <= 20)) m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->put_trans_sprite25(39, 121, 2, TRUE);
     else if (iFrame > 20) DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_LOGIN, 39, 121, 2, TRUE);
 
     if (m_cCurFocus != 1)
     {
         if (m_Misc.bCheckValidName(pAccount) != FALSE)
-            PutString2(180, 162, pAccount, 200, 200, 200);
-        else PutString2(180, 162, pAccount, 200, 100, 100);
+            put_string2(180, 162, pAccount, 200, 200, 200);
+        else put_string2(180, 162, pAccount, 200, 100, 100);
     }
     if ((m_Misc.bCheckValidName(pAccount) == FALSE) || (strlen(pAccount) == 0)) bFlag = FALSE;
 
     if (m_cCurFocus != 2)
     {
         if ((m_Misc.bCheckValidString(pPassword) != FALSE))
-            PutString(180, 185, pPassword, Color(200, 200, 200), TRUE, 1);
-        else PutString(180, 185, pPassword, Color(200, 100, 100), TRUE, 1);
+            put_string(180, 185, pPassword, Color(200, 200, 200), TRUE, 1);
+        else put_string(180, 185, pPassword, Color(200, 100, 100), TRUE, 1);
     }
     if ((m_Misc.bCheckValidString(pPassword) == FALSE) || (strlen(pPassword) == 0)) bFlag = FALSE;
 
@@ -808,6 +808,6 @@ void CGame::_Draw_OnLogin(char * pAccount, char * pPassword, int msX, int msY, i
     
     if ((m_bIsHideLocalCursor != TRUE) && (msX != 0) && (msY != 0))
     {
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(msX, msY, 0, dwTime);
     }
 }

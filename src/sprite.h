@@ -33,7 +33,7 @@ using stBrush = struct stBrushtag
 class sprite
 {
 public:
-    bool _pMakeSpriteSurface();
+    bool make_sprite_surface_();
     sf::Texture _localimage;
     sf::Image _image;
     //sf::Texture * _localshadow;
@@ -41,54 +41,54 @@ public:
 
     sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true);
     ~sprite();
-    static sprite * CreateSprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect = true);
-    void DrawSubSprite(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void DrawSpriteNCK(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void DrawRGBNCK(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
-    void DrawSprite(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void DrawScaledSprite(int sX, int sY, int sFrame, int sWidth, int sHeight, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void DrawColor(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
+    static sprite * create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect = true);
+    void draw_sub_sprite(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
+    void draw_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
+    void draw_rgb_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
+    void draw_sprite(int sX, int sY, int sFrame, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
+    void draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, uint64_t dwTime = 0, Color color = Color(255, 255, 255));
+    void draw_sprite_colored(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
     void draw_to(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255), int draw_mode = DS_VISIBLE);
-    void DrawWidth(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, Color color = Color(255, 255, 255));
-    void DrawShadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
-    void CreateShadow();
+    void draw_sprite_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, Color color = Color(255, 255, 255));
+    void draw_shadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color = Color(255, 255, 255));
+    void create_shadow_sprite();
 
-    void PutSpriteColor(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
+    void put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
 
-    void PutSpriteFast(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutShiftSpriteFast(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime);
-    void PutShiftTransSprite2(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime);
-    void PutSpriteFastFrontBuffer(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutSpriteFastWidth(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime);
-    void PutSpriteFastNoColorKey(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_sprite_fast(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime);
+    void put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime);
+    void put_sprite_fast_front_buffer(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime);
+    void put_sprite_fast_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime);
 
-    void PutTransSprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 30);
-    void PutTransSprite2(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 0);
-    void PutTransSpriteRGB_NoColorKey(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
-    void PutTransSpriteColor(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
-    void PutTransSprite70(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite50(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite25(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite70_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite50_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutTransSprite25_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 30);
+    void put_trans_sprite2(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 0);
+    void put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
+    void put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime);
+    void put_trans_sprite70(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite50(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite25(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime);
 
-    void PutTransSpriteColor(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime);
-    void PutSpriteColor(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime);
+    void put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime);
+    void put_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime);
 
-    void PutShadowSpriteClip(int sX, int sY, int sFrame, uint64_t dwTime);
-    void PutShadowSprite(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_shadow_sprite_clip(int sX, int sY, int sFrame, uint64_t dwTime);
+    void put_shadow_sprite(int sX, int sY, int sFrame, uint64_t dwTime);
 
-    void PutRevTransSprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 0);
+    void put_reverse_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth = 0);
 
-    void PutFadeSprite(short sX, short sY, short sFrame, uint64_t dwTime);
-    void PutFadeSpriteDst(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, uint64_t dwTime);
+    void put_fade_sprite(short sX, short sY, short sFrame, uint64_t dwTime);
+    void put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, uint64_t dwTime);
 
-    bool _bCheckCollison(int sX, int sY, short sFrame, int msX, int msY);
-    void _GetSpriteRect(int sX, int sY, int sFrame);
-    bool _iOpenSprite() { return _pMakeSpriteSurface(); }
-    void _iCloseSprite() { /*OutputDebugStringW(("Unloaded image: " + m_cPakFileName + "\n").c_str()); if (_localimage) _localimage->drop(); m_bIsSurfaceEmpty = TRUE;*/ }
+    bool check_collison(int sX, int sY, short sFrame, int msX, int msY);
+    void get_sprite_rect(int sX, int sY, int sFrame);
+    bool open_sprite_() { return make_sprite_surface_(); }
+    void close_sprite_() { /*OutputDebugStringW(("Unloaded image: " + m_cPakFileName + "\n").c_str()); if (_localimage) _localimage->drop(); m_bIsSurfaceEmpty = TRUE;*/ }
 
     RECT m_rcBound;
     uint64_t m_dwRefTime = 0;

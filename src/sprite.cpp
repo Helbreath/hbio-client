@@ -81,7 +81,7 @@ sprite::~sprite()
         delete[] sprite_;
 }
 
-bool sprite::_pMakeSpriteSurface()
+bool sprite::make_sprite_surface_()
 {
     if (/*(m_stBrush == 0) || */ (!m_bIsSurfaceEmpty) || !isrunning)
     {
@@ -192,7 +192,7 @@ bool sprite::_pMakeSpriteSurface()
     return true;
 }
 
-sprite * sprite::CreateSprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect)
+sprite * sprite::create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect)
 {
     std::ifstream szfile(fmt::format("sprites\\{}.pak", cPakFileName), std::ios::in | std::ios::binary);
 
@@ -214,7 +214,7 @@ sprite * sprite::CreateSprite(std::string cPakFileName, short sNthFile, bool bAl
 // 	}
 // };
 
-void sprite::DrawShadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_shadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
     // 	if (m_bIsSurfaceEmpty) if (_iOpenSprite() == false) return;
    
@@ -232,9 +232,9 @@ void sprite::DrawShadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color
     // 		color, true);
 }
 
-void sprite::DrawSubSprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sub_sprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition((float)sX + brush[sFrame].pvx, (float)sY + brush[sFrame].pvy);
@@ -244,14 +244,14 @@ void sprite::DrawSubSprite(int sX, int sY, int sFrame, uint64_t dwTime, Color co
     // 		Color(255,255,255,255), true);
 }
 
-void sprite::DrawSpriteNCK(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
-    DrawRGBNCK(sX, sY, sFrame, dwTime, color);
+    draw_rgb_no_color_key(sX, sY, sFrame, dwTime, color);
 }
 
-void sprite::DrawRGBNCK(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     if ((uint32_t)sFrame >= m_iTotalFrame)
     {
@@ -284,12 +284,12 @@ void sprite::DrawRGBNCK(int sX, int sY, int sFrame, uint64_t dwTime, Color color
     m_rcBound.bottom = dY + szy;
 }
 
-void sprite::DrawSprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
-    DrawColor(sX, sY, sFrame, dwTime, color);
+    draw_sprite_colored(sX, sY, sFrame, dwTime, color);
 }
 
-void sprite::DrawColor(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite_colored(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 {
     if (this == nullptr)
     {
@@ -297,7 +297,7 @@ void sprite::DrawColor(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
         std::cout << "Sprite does not exist!";
         return;
     }
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     if (sFrame >= m_iTotalFrame)
     {
@@ -328,7 +328,7 @@ void sprite::DrawColor(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
 
 void sprite::draw_to(int sX, int sY, int sFrame, uint64_t dwTime, Color color, int draw_mode)
 {
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     if ((uint32_t)sFrame >= m_iTotalFrame || sFrame < 0)
     {
@@ -340,9 +340,9 @@ void sprite::draw_to(int sX, int sY, int sFrame, uint64_t dwTime, Color color, i
     game->draw_to(sprite_[sFrame], draw_mode);
 }
 
-void sprite::DrawScaledSprite(int sX, int sY, int sFrame, int sWidth, int sHeight, uint64_t dwTime, Color color)
+void sprite::draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, uint64_t dwTime, Color color)
 {
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     sf::FloatRect f = sprite_[sFrame].getLocalBounds();
     sprite_[sFrame].setScale((sWidth / f.width) * 100, (sHeight / f.height) * 100);
@@ -352,9 +352,9 @@ void sprite::DrawScaledSprite(int sX, int sY, int sFrame, int sWidth, int sHeigh
     sprite_[sFrame].setScale(1.0, 1.0);
 }
 
-void sprite::DrawWidth(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, Color color)
+void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, Color color)
 {
-    if (m_bIsSurfaceEmpty && _iOpenSprite() == false)
+    if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     sprite_[sFrame].setTextureRect(sf::IntRect(brush[sFrame].sx, brush[sFrame].sy, sWidth, brush[sFrame].szy));
     sprite_[sFrame].setColor(color);
@@ -363,122 +363,122 @@ void sprite::DrawWidth(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, 
     sprite_[sFrame].setTextureRect(sf::IntRect(brush[sFrame].sx, brush[sFrame].sy, brush[sFrame].szx, brush[sFrame].szy));
 }
 
-void sprite::PutSpriteFast(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutSpriteFastNoColorKey(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutSpriteFastFrontBuffer(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_front_buffer(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutSpriteFastWidth(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime)
 {
-    DrawWidth(sX, sY, sFrame, sWidth, dwTime, Color(255, 255, 255));
+    draw_sprite_width(sX, sY, sFrame, sWidth, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutShadowSprite(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shadow_sprite(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutShadowSpriteClip(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shadow_sprite_clip(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutTransSprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
+[[deprecated]] void sprite::put_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
 }
 
-void sprite::PutTransSprite_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
+[[deprecated]] void sprite::put_trans_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
 }
 
-void sprite::PutTransSprite70(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite70(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
 }
 
-void sprite::PutTransSprite70_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
 }
 
-void sprite::PutTransSprite50(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite50(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
 }
 
-void sprite::PutTransSprite50_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
 }
 
-void sprite::PutTransSprite25(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite25(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
 }
 
-void sprite::PutTransSprite25_NoColorKey(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
 }
 
-void sprite::PutTransSprite2(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite2(int sX, int sY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(180, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(180, 255, 255));
 }
 
-void sprite::PutShiftTransSprite2(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutFadeSprite(short sX, short sY, short sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_fade_sprite(short sX, short sY, short sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutFadeSpriteDst(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-void sprite::PutSpriteColor(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(color));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(color));
 }
 
-void sprite::PutSpriteColor(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 255));
 }
 
-void sprite::PutTransSpriteColor(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(color));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(color));
 }
 
-void sprite::PutTransSpriteColor(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
 }
 
-void sprite::PutTransSpriteRGB_NoColorKey(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
 }
 
-void sprite::_GetSpriteRect(int sX, int sY, int sFrame)
+void sprite::get_sprite_rect(int sX, int sY, int sFrame)
 {
     short dX, dY, sx, sy, szx, szy, pvx, pvy;
     if (this == nullptr || brush == nullptr)
@@ -512,9 +512,9 @@ void sprite::_GetSpriteRect(int sX, int sY, int sFrame)
         }
         dX = (short)0;
     }
-    else if (dX + szx > game->GetWidth())
+    else if (dX + szx > game->get_width())
     {
-        szx = szx - ((dX + szx) - (short)game->GetWidth());
+        szx = szx - ((dX + szx) - (short)game->get_width());
         if (szx < 0)
         {
             m_rcBound.top = -1;
@@ -533,9 +533,9 @@ void sprite::_GetSpriteRect(int sX, int sY, int sFrame)
         }
         dY = (short)0;
     }
-    else if (dY + szy > game->GetHeight())
+    else if (dY + szy > game->get_height())
     {
-        szy = szy - ((dY + szy) - (short)game->GetHeight());
+        szy = szy - ((dY + szy) - (short)game->get_height());
         if (szy < 0)
         {
             m_rcBound.top = -1;
@@ -548,11 +548,11 @@ void sprite::_GetSpriteRect(int sX, int sY, int sFrame)
     m_sPivotY = pvy;
 }
 
-bool sprite::_bCheckCollison(int sX, int sY, short sFrame, int msX, int msY)
+bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
 {
 	short dX,dY,sx,sy,szx,szy,pvx,pvy;
-	int  ix, iy;
-	uint16_t * pSrc;
+    int  ix{}, iy{};
+    uint16_t * pSrc{};
 	int  tX, tY;
 
 	if( this == 0 ) return false;
@@ -560,9 +560,9 @@ bool sprite::_bCheckCollison(int sX, int sY, short sFrame, int msX, int msY)
 	if ((m_iTotalFrame - 1 < sFrame) || (sFrame < 0)) return false;
 	if (m_bIsSurfaceEmpty == true) return false;
 	if (msX < 0 + 3) return false;
-	if (msX > game->GetWidth() - 3) return false;
+	if (msX > game->get_width() - 3) return false;
 	if (msY < 0 + 3) return false;
-	if (msY > game->GetHeight() - 3) return false;
+	if (msY > game->get_height() - 3) return false;
 
 	sx  = brush[sFrame].sx;
 	sy  = brush[sFrame].sy;
@@ -589,9 +589,9 @@ bool sprite::_bCheckCollison(int sX, int sY, short sFrame, int msX, int msY)
 		}
 		dX = (short)0+3;
 	}
-	else if (dX+szx > game->GetWidth()-3)
+	else if (dX+szx > game->get_width()-3)
 	{
-		szx = szx - ((dX+szx) - (short)game->GetWidth()-3);
+		szx = szx - ((dX+szx) - (short)game->get_width()-3);
 		if (szx < 0) {
 			m_rcBound.top = -1;
 			return false;
@@ -608,9 +608,9 @@ bool sprite::_bCheckCollison(int sX, int sY, short sFrame, int msX, int msY)
 		}
 		dY = (short)0+3;
 	}
-	else if (dY+szy > game->GetHeight()-3)
+	else if (dY+szy > game->get_height()-3)
 	{
-		szy = szy - ((dY+szy) - (short)game->GetHeight()-3);
+		szy = szy - ((dY+szy) - (short)game->get_height()-3);
 		if (szy < 0) {
 			m_rcBound.top = -1;
 			return false;
@@ -677,14 +677,17 @@ bool sprite::_bCheckCollison(int sX, int sY, short sFrame, int msX, int msY)
 //     return false;
 }
 
-void sprite::PutShiftSpriteFast(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
+void sprite::put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
     return;
 }
 
-void sprite::PutRevTransSprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
+void sprite::put_reverse_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
 {
-    DrawSprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    sf::Vector2f scale = sprite_[sFrame].getScale();
+    sprite_[sFrame].setScale({scale.x*-1.0f, scale.y});
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    sprite_[sFrame].setScale(scale);
     return;
 }

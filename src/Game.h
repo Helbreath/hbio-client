@@ -191,7 +191,9 @@ class CGame
 {
 public:
     fps fps_counter;
-    int iSendMsg(char * cData, std::size_t dwSize, char cKey = NULL);
+    int send_message(char * cData, std::size_t dwSize, char cKey = NULL);
+
+    int16_t antialiasing = 16;
 
     std::string account_name;
     std::string password;
@@ -215,9 +217,7 @@ public:
     int viewdstxcharvar = 0;
     int viewdstycharvar = 0;
 
-    void DrawStatusText(int sX, int sY);
-    void StartLogin();
-    void OnEvent(sf::Event event);
+    void on_input_event(sf::Event event);
     bool calcoldviewport = true;
 
     bool autologin = false;
@@ -227,25 +227,25 @@ public:
 
     std::vector<sf::Rect<int16_t>> dialogs;
 
-    struct MsgQueueEntry
+    struct msg_queue_entry
     {
-        MsgQueueEntry()
+        msg_queue_entry()
         {
             data = nullptr;
             size = 0;
         }
-        ~MsgQueueEntry() { delete[] data; }
+        ~msg_queue_entry() { delete[] data; }
         char * data;
         std::size_t size;
     };
-    using MsgQueue = std::list<std::shared_ptr<MsgQueueEntry>>;
-    MsgQueue socketpipe;
-    void PutMsgQueue(MsgQueue & q, char * data, std::size_t size);
-    void PutMsgQueue(std::shared_ptr<MsgQueueEntry>, MsgQueue & q);
-    std::shared_ptr<MsgQueueEntry> GetMsgQueue();
+    using msg_queue = std::list<std::shared_ptr<msg_queue_entry>>;
+    msg_queue socketpipe;
+    void put_msg_queue(msg_queue & q, char * data, std::size_t size);
+    void put_msg_queue(std::shared_ptr<msg_queue_entry>, msg_queue & q);
+    std::shared_ptr<msg_queue_entry> get_msg_queue();
 
-    MsgQueue loginpipe;
-    std::shared_ptr<MsgQueueEntry> GetLoginMsgQueue();
+    msg_queue loginpipe;
+    std::shared_ptr<msg_queue_entry> get_login_msg_queue();
 
     std::unique_ptr<ix::WebSocket> ws;
 
@@ -345,7 +345,7 @@ public:
         }
     }
 
-    uint8_t getRenderTarget()
+    uint8_t render_target()
     {
         return drawState;
     }
@@ -353,7 +353,7 @@ public:
     void render_mouse(int mx, int my, bool scale_mouse_rendering = false);
     bool scale_mouse_rendering = false;
 
-    void setRenderTarget(uint8_t s, bool clearbuffer = false, Color color = Color(0, 0, 0))
+    void render_target(uint8_t s, bool clearbuffer = false, Color color = Color(0, 0, 0))
     {
         drawState = s;
         if (s == DS_VISIBLE)
@@ -378,11 +378,11 @@ public:
         }
     };
 
-    void socketmode(bool _socketmode)
+    void socket_mode(bool _socketmode)
     {
         socketmode_ = _socketmode;
     }
-    bool socketmode()
+    bool socket_mode()
     {
         return socketmode_;
     }
@@ -419,7 +419,7 @@ public:
     uint32_t m_inputMaxLen;
 
 //     void ShowReceivedString(bool bIsHide = false);
-    void StartInputString(int left, int top, uint32_t len, char * pBuffer, bool bIsHide = false, int right = 0);
+    void start_input_string(int left, int top, uint32_t len, char * pBuffer, bool bIsHide = false, int right = 0);
 //     void EndInputString();
 //     void ReceiveString(char * pString);
 //     void ClearInputString();
@@ -447,39 +447,41 @@ public:
     void load_settings();
     void save_settings();
 
-    bool CreateRenderer(bool fs = false);
+    bool create_renderer(bool fs = false);
+    void create_surfaces();
+    void create_fonts();
     sf::WindowHandle handle;
 
-    void PutFontStringSize(std::string fontname, int iX, int iY, std::string text, Color color, int size);
-    void PutFontString(std::string fontname, int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
-    void PutOverheadString(int x, int y, std::string text, Color color = Color(255, 255, 255), int multiplier = 1, bool transparency = false, int size = 12);
-    void PutUnderEntityString(int x, int y, std::string text, Color color = Color(255, 255, 255), int size = 14);
-    void PutChatString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
-    void PutChatWindowString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
-    void PutString(int iX, int iY, std::string pString, Color color = Color(255, 255, 255), bool bHide = false, char cBGtype = 2);
-    void PutString2(int iX, int iY, std::string pString, int r = 255, int g = 255, int b = 255)
+    void put_font_string_size(std::string fontname, int iX, int iY, std::string text, Color color, int size);
+    void put_font_string(std::string fontname, int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
+    void put_overhead_string(int x, int y, std::string text, Color color = Color(255, 255, 255), int multiplier = 1, bool transparency = false, int size = 12);
+    void put_under_entity_string(int x, int y, std::string text, Color color = Color(255, 255, 255), int size = 14);
+    void put_chat_string(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
+    void put_chat_window_string(int iX, int iY, std::string pString, Color color = Color(255, 255, 255));
+    void put_string(int iX, int iY, std::string pString, Color color = Color(255, 255, 255), bool bHide = false, char cBGtype = 2);
+    void put_string2(int iX, int iY, std::string pString, int r = 255, int g = 255, int b = 255)
     { //TODO: remove
-        PutString(iX, iY, pString, Color(r, g, b, 255));
+        put_string(iX, iY, pString, Color(r, g, b, 255));
     }
-    void PutString3(int iX, int iY, std::string pString, Color color = Color(255, 255, 255))
+    void put_string3(int iX, int iY, std::string pString, Color color = Color(255, 255, 255))
     { //TODO: remove
-        PutString(iX, iY, pString, color);
+        put_string(iX, iY, pString, color);
     }
-    void PutAlignedString(int iX1, int iX2, int iY, std::string pString, bool highlight)
+    void put_aligned_string(int iX1, int iX2, int iY, std::string pString, bool highlight)
     {
-        PutAlignedString(iX1, iX2, iY, pString, Color(highlight ? 255 : 4, highlight ? 255 : 0, highlight ? 255 : 50));
+        put_aligned_string(iX1, iX2, iY, pString, Color(highlight ? 255 : 4, highlight ? 255 : 0, highlight ? 255 : 50));
     }
-    void PutAlignedString(int iX1, int iX2, int iY, std::string pString, bool wordWrap, Color color)
+    void put_aligned_string(int iX1, int iX2, int iY, std::string pString, bool wordWrap, Color color)
     {
         // todo - figure this out?
-        PutAlignedString(iX1, iX2, iY, pString, color);
+        put_aligned_string(iX1, iX2, iY, pString, color);
     }
-    void PutAlignedString(int iX1, int iX2, int iY, std::string text, Color color = Color(255, 255, 255));
-    void PutAlignedString(int iX1, int iX2, int iY, std::string text, int r, int g, int b, int a = 255)
+    void put_aligned_string(int iX1, int iX2, int iY, std::string text, Color color = Color(255, 255, 255));
+    void put_aligned_string(int iX1, int iX2, int iY, std::string text, int r, int g, int b, int a = 255)
     {
-        PutAlignedString(iX1, iX2, iY, text, Color(r, g, b, a));
+        put_aligned_string(iX1, iX2, iY, text, Color(r, g, b, a));
     }
-    __inline sf::Font & GetFont(std::string font = "default")
+    __inline sf::Font & get_font(std::string font = "default")
     {
         auto it = _font.find(font);
         if (it != _font.end())
@@ -491,10 +493,10 @@ public:
 
         throw std::out_of_range("Font not found");
     }
-    void PutString_SprFont(int iX, int iY, std::string_view pStr, short sR, short sG, short sB);
-    void PutString_SprFont2(int iX, int iY, std::string_view pStr, short sR, short sG, short sB);
-    void PutString_SprFont3(int iX, int iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans = false, int iType = 0);
-    void PutString_SprNum(int iX, int iY, char * pStr, short sR, short sG, short sB);
+    void put_string_sprite_font(int iX, int iY, std::string_view pStr, short sR, short sG, short sB);
+    void put_string_sprite_font2(int iX, int iY, std::string_view pStr, short sR, short sG, short sB);
+    void put_string_sprite_font3(int iX, int iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans = false, int iType = 0);
+    void put_string_sprite_number(int iX, int iY, char * pStr, short sR, short sG, short sB);
 
     void create_load_list();
 
@@ -519,28 +521,28 @@ public:
     uint16_t screenheight;
     uint16_t screenwidth_v;
     uint16_t screenheight_v;
-    void SetResolution(uint16_t width, uint16_t height)
+    void set_resolution(uint16_t width, uint16_t height)
     {
         screenwidth = width;
         screenheight = height;
     }
-    void SetVirtualResolution(uint16_t width, uint16_t height)
+    void set_virtual_resolution(uint16_t width, uint16_t height)
     {
         screenwidth_v = width;
         screenheight_v = height;
     }
 
-    __forceinline uint16_t GetWidth() { return screenwidth; }
-    __forceinline uint16_t GetHeight() { return screenheight; }
+    __forceinline uint16_t get_width() { return screenwidth; }
+    __forceinline uint16_t get_height() { return screenheight; }
 
-    __forceinline uint16_t GetVirtualWidth() { return screenwidth_v; }
-    __forceinline uint16_t GetVirtualHeight() { return screenheight_v; }
+    __forceinline uint16_t get_virtual_width() { return screenwidth_v; }
+    __forceinline uint16_t get_virtual_height() { return screenheight_v; }
 
     uint64_t mtime;
 
-    void MakeSprite(char * FileName, int iStart, short sCount, bool bAlphaEffect);
-    void MakeTileSpr(char * FileName, short sStart, short sCount, bool bAlphaEffect);
-    void MakeEffectSpr(char * FileName, short sStart, short sCount, bool bAlphaEffect);
+    void make_sprite(char * FileName, int iStart, short sCount, bool bAlphaEffect);
+    void make_tile_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect);
+    void make_effect_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect);
 
     sf::Text version_text;
     bool draw_version = false;
@@ -581,18 +583,18 @@ public:
     std::string bgm_override_name;
     std::string bgm_current;
 
-    void DrawLine(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int iA = 255);
-    void DrawLine(int x0, int y0, int x1, int y1, Color color = Color(255, 255, 255));
-    void DrawShadowBox(short sX, short sY, short dX, short dY, Color color = Color(0, 0, 0, 64));
-    void PutPixel(short sX, short sY, Color color = Color(255, 255, 255));
-    void PutPixel(short sX, short sY, uint8_t r = 255, uint8_t g = 255, uint8_t b = 255, uint8_t a = 255)
+    void draw_line(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int iA = 255);
+    void draw_line(int x0, int y0, int x1, int y1, Color color = Color(255, 255, 255));
+    void draw_shadow_box(short sX, short sY, short dX, short dY, Color color = Color(0, 0, 0, 64));
+    void put_pixel(short sX, short sY, Color color = Color(255, 255, 255));
+    void put_pixel(short sX, short sY, uint8_t r = 255, uint8_t g = 255, uint8_t b = 255, uint8_t a = 255)
     {
-        PutPixel(sX, sY, Color(r, g, b, a));
+        put_pixel(sX, sY, Color(r, g, b, a));
     }
 
-    void UpdateMouseState(short & x, short & y, short & z, char & left_button, char & right_button);
+    void update_mouse_state(short & x, short & y, short & z, char & left_button, char & right_button);
 
-    void ChangeDisplayMode();
+    void change_display_mode();
 
 
 

@@ -122,15 +122,15 @@ int main(int argc, char * argv[])
     }
     if (!cfg["xresolution"].is_null() && !cfg["yresolution"].is_null())
     {
-        game->SetResolution(cfg["xresolution"].get<uint16_t>(), cfg["yresolution"].get<uint16_t>());
+        game->set_resolution(cfg["xresolution"].get<uint16_t>(), cfg["yresolution"].get<uint16_t>());
     }
     if (!cfg["vxresolution"].is_null() && !cfg["vyresolution"].is_null())
     {
-        game->SetVirtualResolution(cfg["vxresolution"].get<uint16_t>(), cfg["vyresolution"].get<uint16_t>());
+        game->set_virtual_resolution(cfg["vxresolution"].get<uint16_t>(), cfg["vyresolution"].get<uint16_t>());
     }
 #endif
 
-    if (!game->CreateRenderer())
+    if (!game->create_renderer())
     {
         return 0;
     }
@@ -144,11 +144,11 @@ int main(int argc, char * argv[])
     game->window.setMouseCursorVisible(false);
 
     // Load interface sprites first to show sprites during loading
-    game->m_pSprite[DEF_SPRID_MOUSECURSOR] = sprite::CreateSprite("interface", 0, false);
-    game->m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS] = sprite::CreateSprite("interface", 1, false);
-    game->m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN] = sprite::CreateSprite("LoginDialog", 0, false);
-    game->m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU] = sprite::CreateSprite("New-Dialog", 1, false);
-    game->m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT] = sprite::CreateSprite("New-Dialog", 2, false);
+    game->m_pSprite[DEF_SPRID_MOUSECURSOR] = sprite::create_sprite("interface", 0, false);
+    game->m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS] = sprite::create_sprite("interface", 1, false);
+    game->m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN] = sprite::create_sprite("LoginDialog", 0, false);
+    game->m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU] = sprite::create_sprite("New-Dialog", 1, false);
+    game->m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT] = sprite::create_sprite("New-Dialog", 2, false);
 
     sf::Event event;
     sf::RenderWindow & window = game->window;
@@ -169,7 +169,7 @@ int main(int argc, char * argv[])
                 break;
             }
 
-            game->OnEvent(event);
+            game->on_input_event(event);
         }
 
         {

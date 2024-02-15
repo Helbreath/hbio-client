@@ -118,7 +118,7 @@ void CGame::UpdateScreen()
     }
 
 
-    setRenderTarget(DS_VISIBLE);
+    render_target(DS_VISIBLE);
 
     // Things rendered over the UI are here
 
@@ -148,12 +148,12 @@ void CGame::UpdateScreen()
     if (rendering_character)
     {
         {
-            uint8_t oldTarget = getRenderTarget();
-            m_pEffectSpr[0]->PutTransSprite(m_stMCursor.sX + 36, m_stMCursor.sY + 50 + 28, 1, G_dwGlobalTime);
-            setRenderTarget(DS_CS, true, Color(0, 0, 0, 0));
+            uint8_t oldTarget = render_target();
+            m_pEffectSpr[0]->put_trans_sprite(m_stMCursor.sX + 36, m_stMCursor.sY + 50 + 28, 1, G_dwGlobalTime);
+            render_target(DS_CS, true, Color(0, 0, 0, 0));
             DrawObject_OnMove_ForMenu(0, 0, m_stMCursor.sX + 36, m_stMCursor.sY + 50 + 28, false, G_dwGlobalTime, 0, 0);
             charselect.display();
-            setRenderTarget(oldTarget);
+            render_target(oldTarget);
         }
 
         auto size = charselect.getSize();
@@ -186,7 +186,7 @@ void CGame::UpdateScreen()
     std::string cfps;
     cfps = std::format("FPS: {}", fps_counter.getFPS());
 
-    sf::Font & f = GetFont("arya");
+    sf::Font & f = get_font("arya");
     _text.setFont(f);
     _text.setString(cfps);
     _text.setPosition(5, 5);
@@ -239,7 +239,7 @@ void CGame::UpdateScreen()
     int drawcursorx = mx;
     int drawcursory = my - 40;
 
-    if (mx > GetWidth() - 110)
+    if (mx > get_width() - 110)
         drawcursorx = mx - 120;
     if (my < 55)
         drawcursory = my + 50;
@@ -320,14 +320,14 @@ void CGame::UpdateScreen_OnMainMenu()
     {
 
     case 1:
-        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->PutSpriteFast(114, 159, 1, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->put_sprite_fast(114, 159, 1, dwTime);
         break;
     case 2:
-        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->PutSpriteFast(82, 197, 2, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->put_sprite_fast(82, 197, 2, dwTime);
         break;
 
     case 3:
-        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->PutSpriteFast(114, 236, 3, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->put_sprite_fast(114, 236, 3, dwTime);
         break;
     }
 
@@ -371,7 +371,7 @@ void CGame::UpdateScreen_OnMainMenu()
     DrawVersion();
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
 
     iMIbuttonNum = pMI->iGetStatus(msX, msY, cLB, &cMIresult);
@@ -400,8 +400,8 @@ void CGame::UpdateScreen_OnMainMenu()
     //	if ((msX >= 73) && (msY >= 192) && (msX <= 281) && (msY <= 230)) m_cCurFocus = 2;
     //	if ((msX >= 120) && (msY >= 231) && (msX <= 239) && (msY <= 262)) m_cCurFocus = 3;
 
-    if (m_cGameModeCount < 6) DrawShadowBox(0,0,639,479);
-    if (m_cGameModeCount < 2) DrawShadowBox(0,0,639,479);
+    if (m_cGameModeCount < 6) draw_shadow_box(0,0,639,479);
+    if (m_cGameModeCount < 2) draw_shadow_box(0,0,639,479);
 }
 
 struct load_data
@@ -1198,15 +1198,15 @@ void CGame::UpdateScreen_OnLoading()
             progress_label = item.label;
             if (item.sprite_type == SPRITETYPE_SPRITE)
             {
-                m_pSprite[item.id] = sprite::CreateSprite(item.name, item.num, item.alpha);
+                m_pSprite[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
             }
             else if (item.sprite_type == SPRITETYPE_TILE)
             {
-                m_pTileSpr[item.id] = sprite::CreateSprite(item.name, item.num, item.alpha);
+                m_pTileSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
             }
             else if (item.sprite_type == SPRITETYPE_EFFECT)
             {
-                m_pEffectSpr[item.id] = sprite::CreateSprite(item.name, item.num, item.alpha);
+                m_pEffectSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
             }
         }
     }
@@ -1218,13 +1218,13 @@ void CGame::UpdateScreen_OnLoading()
 
 void CGame::UpdateScreen_OnLoading_Progress()
 {
-    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->_iOpenSprite();
+    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->open_sprite_();
     int16_t bgx = screenwidth_v / 2 - m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->brush[0].szx / 2;
     int16_t bgy = screenheight_v / 2 - m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->brush[0].szy / 2;
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_LOADING, bgx, bgy, 0, true);
     int16_t fgx = screenwidth_v / 2 - m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->brush[1].szx / 2;
     int16_t fgy = screenheight_v / 2 - m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->brush[1].szy / 2;
-    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->PutSpriteFastWidth(fgx + 426 / 2, fgy + 424 / 2, 1, m_cLoading, G_dwGlobalTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING]->put_sprite_fast_width(fgx + 426 / 2, fgy + 424 / 2, 1, m_cLoading, G_dwGlobalTime);
     DrawVersion();
 }
 
@@ -1237,7 +1237,7 @@ void CGame::UpdateScreen_OnMsg()
     msX = m_stMCursor.sX; msY = m_stMCursor.sY; msZ = m_stMCursor.sZ;
     cLB = (m_stMCursor.LB == true) ? 1 : 0; cRB = (m_stMCursor.RB == true) ? 1 : 0; cMB = (m_stMCursor.MB == true) ? 1 : 0;
 
-    PutString(10, 10, m_cMsg, Color(255, 155, 155), false, 1);
+    put_string(10, 10, m_cMsg, Color(255, 155, 155), false, 1);
 
     DrawVersion();
 
@@ -1253,12 +1253,12 @@ void CGame::UpdateScreen_OnMsg()
 void CGame::_Draw_UpdateScreen_OnCreateNewAccount()
 {
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWACCOUNT, 0, 0, 0, TRUE);
-    PutString2(329, 110, m_cAccountName, 200, 200, 200);
-    PutString(329, 125, m_cAccountPassword, Color(200, 200, 200), TRUE, 1);
-    PutString(329, 140, m_cAccountPassword, Color(200, 200, 200), TRUE, 1);
-    PutString2(300, 202, m_cAccountCountry, 200, 200, 200);
-    PutString2(300, 218, m_cAccountSSN, 200, 200, 200);
-    PutString2(194, 257, m_cEmailAddr, 200, 200, 200);
+    put_string2(329, 110, m_cAccountName, 200, 200, 200);
+    put_string(329, 125, m_cAccountPassword, Color(200, 200, 200), TRUE, 1);
+    put_string(329, 140, m_cAccountPassword, Color(200, 200, 200), TRUE, 1);
+    put_string2(300, 202, m_cAccountCountry, 200, 200, 200);
+    put_string2(300, 218, m_cAccountSSN, 200, 200, 200);
+    put_string2(194, 257, m_cEmailAddr, 200, 200, 200);
 }
 
 void CGame::UpdateScreen_OnSelectCharacter()
@@ -1353,8 +1353,8 @@ void CGame::UpdateScreen_OnSelectCharacter()
 
                 if (m_Misc.bCheckValidString(m_cPlayerName) == TRUE)
                 {
-                    m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->_iCloseSprite();
-                    m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->_iCloseSprite();
+                    m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->close_sprite_();
+                    m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->close_sprite_();
                     
                     ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
                     m_dwConnectMode = MSGID_REQUEST_ENTERGAME;
@@ -1385,7 +1385,7 @@ void CGame::UpdateScreen_OnSelectCharacter()
         }
     }
 
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     UpdateScreen_OnSelectCharacter(sX + modx, sY + mody, msX, msY);
 
     if ((dwTime - dwCTime) > 100)
@@ -1436,8 +1436,8 @@ void CGame::UpdateScreen_OnSelectCharacter()
 
                         if (m_Misc.bCheckValidString(m_cPlayerName) == TRUE)
                         {
-                            m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->_iCloseSprite();
-                            m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->_iCloseSprite();
+                            m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->close_sprite_();
+                            m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->close_sprite_();
                             
                             ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
                             m_dwConnectMode = MSGID_REQUEST_ENTERGAME;
@@ -1482,8 +1482,8 @@ void CGame::UpdateScreen_OnSelectCharacter()
 
                     if (m_Misc.bCheckValidString(m_cPlayerName) == TRUE)
                     {
-                        m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->_iCloseSprite();
-                        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->_iCloseSprite();
+                        m_pSprite[DEF_SPRID_INTERFACE_ND_LOGIN]->close_sprite_();
+                        m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU]->close_sprite_();
                         
                         ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
                         m_dwConnectMode = MSGID_REQUEST_ENTERGAME;
@@ -1543,8 +1543,8 @@ void CGame::UpdateScreen_OnSelectCharacter()
         }
     }
 
-    if (m_cGameModeCount < 6) DrawShadowBox(0,0,639,479);
-    if (m_cGameModeCount < 2) DrawShadowBox(0,0,639,479);
+    if (m_cGameModeCount < 6) draw_shadow_box(0,0,639,479);
+    if (m_cGameModeCount < 2) draw_shadow_box(0,0,639,479);
 }
 
 void CGame::UpdateScreen_OnConnecting()
@@ -1635,22 +1635,22 @@ void CGame::UpdateScreen_OnConnecting()
     }
     m_bIsHideLocalCursor = FALSE;
 
-    DrawShadowBox(0, 0, 639, 479);
+    draw_shadow_box(0, 0, 639, 479);
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
     format_to_local(G_cTxt, "Connecting to Server... {}Sec", (dwTime - m_dwTime) / 1000);
-    PutString_SprFont(172 + 35, 190, G_cTxt, 7, 0, 0);
+    put_string_sprite_font(172 + 35, 190, G_cTxt, 7, 0, 0);
 
     if ((dwTime - m_dwTime) > 7000)
     {
-        PutAlignedString(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING1);
-        PutAlignedString(180, 463, 195 + 45, UPDATE_SCREEN_ON_CONNECTING2);
+        put_aligned_string(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING1);
+        put_aligned_string(180, 463, 195 + 45, UPDATE_SCREEN_ON_CONNECTING2);
     }
-    else PutAlignedString(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING3);
+    else put_aligned_string(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING3);
 
     DrawVersion();
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 8;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 8, dwTime);
 }
@@ -1683,18 +1683,18 @@ void CGame::UpdateScreen_OnWaitInitData()
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
 
     format_to_local(G_cTxt, "Waiting for response... {}sec", (dwTime - m_dwTime) / 1000);
-    PutString_SprFont(172 + 44, 190, G_cTxt, 7, 0, 0);
+    put_string_sprite_font(172 + 44, 190, G_cTxt, 7, 0, 0);
     if ((dwTime - m_dwTime) > 7000)
     {
-        PutAlignedString(174, 467, 190 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA1);
-        PutAlignedString(174, 467, 190 + 45, UPDATE_SCREEN_ON_WAIT_INIT_DATA2);
+        put_aligned_string(174, 467, 190 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA1);
+        put_aligned_string(174, 467, 190 + 45, UPDATE_SCREEN_ON_WAIT_INIT_DATA2);
     }
-    else PutAlignedString(174, 467, 195 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA3);
+    else put_aligned_string(174, 467, 195 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA3);
 
     DrawVersion();
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 8;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 8, dwTime);
 }
@@ -1717,13 +1717,13 @@ void CGame::UpdateScreen_OnConnectionLost()
     if (m_cGameModeCount > 100) m_cGameModeCount = 100;
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
-    PutString_SprFont(172 + 54, 180, "Connection Lost!", 7, 0, 0);
-    PutString(172 + 50, 180 + 30, UPDATE_SCREEN_ON_CONNECTION_LOST, Color(0, 0, 0));
+    put_string_sprite_font(172 + 54, 180, "Connection Lost!", 7, 0, 0);
+    put_string(172 + 50, 180 + 30, UPDATE_SCREEN_ON_CONNECTION_LOST, Color(0, 0, 0));
 
     DrawVersion();
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 0;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
 
@@ -1741,57 +1741,57 @@ BOOL CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWCHAR, 0, 0, 0, TRUE);
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 69, TRUE);
-    PutAlignedString(64, 282, 90, _BDRAW_ON_CREATE_NEW_CHARACTER1, Color(255, 255, 255));
-    PutAlignedString(57, 191, 110, DEF_MSG_CHARACTERNAME, Color(255, 255, 255));//"Character Name"
-    if (m_cCurFocus != 1) PutString(197, 112, pName, Color(255, 255, 255));
-    PutAlignedString(64, 282, 140, _BDRAW_ON_CREATE_NEW_CHARACTER2, Color(255, 255, 255));
-    PutString(100, 160, DEF_MSG_GENDER, Color(255, 255, 255));//"Gender"
-    PutString(100, 175, DEF_MSG_SKINCOLOR, Color(255, 255, 255));//"Skin Color"
-    PutString(100, 190, DEF_MSG_HAIRSTYLE, Color(255, 255, 255));//"Hair Style"
-    PutString(100, 205, DEF_MSG_HAIRCOLOR, Color(255, 255, 255));//"Hair Color"
-    PutString(100, 220, DEF_MSG_UNDERWEARCOLOR, Color(255, 255, 255));//"Underwear Color"
-    PutAlignedString(64, 282, 245, _BDRAW_ON_CREATE_NEW_CHARACTER3, Color(255, 255, 255));
+    put_aligned_string(64, 282, 90, _BDRAW_ON_CREATE_NEW_CHARACTER1, Color(255, 255, 255));
+    put_aligned_string(57, 191, 110, DEF_MSG_CHARACTERNAME, Color(255, 255, 255));//"Character Name"
+    if (m_cCurFocus != 1) put_string(197, 112, pName, Color(255, 255, 255));
+    put_aligned_string(64, 282, 140, _BDRAW_ON_CREATE_NEW_CHARACTER2, Color(255, 255, 255));
+    put_string(100, 160, DEF_MSG_GENDER, Color(255, 255, 255));//"Gender"
+    put_string(100, 175, DEF_MSG_SKINCOLOR, Color(255, 255, 255));//"Skin Color"
+    put_string(100, 190, DEF_MSG_HAIRSTYLE, Color(255, 255, 255));//"Hair Style"
+    put_string(100, 205, DEF_MSG_HAIRCOLOR, Color(255, 255, 255));//"Hair Color"
+    put_string(100, 220, DEF_MSG_UNDERWEARCOLOR, Color(255, 255, 255));//"Underwear Color"
+    put_aligned_string(64, 282, 245, _BDRAW_ON_CREATE_NEW_CHARACTER3, Color(255, 255, 255));
     format_to_local(G_cTxt, _BDRAW_ON_CREATE_NEW_CHARACTER4, iPoint);
-    PutAlignedString(64, 282, 260, G_cTxt, 15, 10, 10);
-    PutString(100, 275, DEF_MSG_STRENGTH, Color(255, 255, 255));//"Strength"
-    PutString(100, 292, DEF_MSG_VITALITY, Color(255, 255, 255));//"Vitality"
-    PutString(100, 309, DEF_MSG_DEXTERITY, Color(255, 255, 255));//"Dexterity"
-    PutString(100, 326, DEF_MSG_INTELLIGENCE, Color(255, 255, 255));//"Intelligence"
-    PutString(100, 343, DEF_MSG_MAGIC, Color(255, 255, 255));//"Magic"
-    PutString(100, 360, DEF_MSG_CHARISMA, Color(255, 255, 255));//"Charisma"
+    put_aligned_string(64, 282, 260, G_cTxt, 15, 10, 10);
+    put_string(100, 275, DEF_MSG_STRENGTH, Color(255, 255, 255));//"Strength"
+    put_string(100, 292, DEF_MSG_VITALITY, Color(255, 255, 255));//"Vitality"
+    put_string(100, 309, DEF_MSG_DEXTERITY, Color(255, 255, 255));//"Dexterity"
+    put_string(100, 326, DEF_MSG_INTELLIGENCE, Color(255, 255, 255));//"Intelligence"
+    put_string(100, 343, DEF_MSG_MAGIC, Color(255, 255, 255));//"Magic"
+    put_string(100, 360, DEF_MSG_CHARISMA, Color(255, 255, 255));//"Charisma"
 
     format_to_local(G_cTxt, "{}", m_ccStr);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
     format_to_local(G_cTxt, "{}", m_ccVit);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
     format_to_local(G_cTxt, "{}", m_ccDex);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
     format_to_local(G_cTxt, "{}", m_ccInt);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
     format_to_local(G_cTxt, "{}", m_ccMag);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
     format_to_local(G_cTxt, "{}", m_ccChr);
-    PutString(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
-    PutAlignedString(64, 295, 380, _BDRAW_ON_CREATE_NEW_CHARACTER5, Color(255, 255, 255));
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_aligned_string(64, 295, 380, _BDRAW_ON_CREATE_NEW_CHARACTER5, Color(255, 255, 255));
 
     if (strlen(pName) <= 0) bFlag = FALSE;
     if (iPoint > 0) bFlag = FALSE;
     if (m_Misc.bCheckValidName(pName) == FALSE) bFlag = FALSE;
 
-    if ((bFlag == TRUE) && (m_cCurFocus == 2)) m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(384, 445, 25, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(384, 445, 24, dwTime);
+    if ((bFlag == TRUE) && (m_cCurFocus == 2)) m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 25, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 24, dwTime);
     if (m_cCurFocus == 3)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(500, 445, 17, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(500, 445, 16, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 17, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 16, dwTime);
     if (m_cCurFocus == 4)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(60, 445, 68, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(60, 445, 67, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 68, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 67, dwTime);
     if (m_cCurFocus == 5)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(145, 445, 66, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(145, 445, 65, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 66, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 65, dwTime);
     if (m_cCurFocus == 6)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(230, 445, 64, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(230, 445, 63, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 64, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 63, dwTime);
 
     ShowReceivedString();
 
@@ -1820,17 +1820,17 @@ BOOL CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
 
     i = 0;
 
-    PutString(445, 192, DEF_MSG_HITPOINT, Color(255, 255, 255));//"Hit Point"
+    put_string(445, 192, DEF_MSG_HITPOINT, Color(255, 255, 255));//"Hit Point"
     format_to_local(G_cTxt, "{}", m_ccVit * 3 + 2 + m_ccStr / 2);
-    PutString(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
 
-    PutString(445, 208, DEF_MSG_MANAPOINT, Color(255, 255, 255));//"Mana Point"
+    put_string(445, 208, DEF_MSG_MANAPOINT, Color(255, 255, 255));//"Mana Point"
     format_to_local(G_cTxt, "{}", m_ccMag * 2 + 2 + m_ccInt / 2);
-    PutString(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
 
-    PutString(445, 224, DEF_MSG_STAMINARPOINT, Color(255, 255, 255));//"Staminar Point"
+    put_string(445, 224, DEF_MSG_STAMINARPOINT, Color(255, 255, 255));//"Staminar Point"
     format_to_local(G_cTxt, "{}", m_ccStr * 2 + 2);
-    PutString(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(255, 255, 255));
 
     return bFlag;
 }
@@ -1911,7 +1911,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
 
         dwMTime = unixtime();
 
-        StartInputString(193 + 4, 65 + 45, 11, cName);
+        start_input_string(193 + 4, 65 + 45, 11, cName);
         ClearInputString();
     }
 
@@ -1943,7 +1943,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         switch (m_cCurFocus)
         {
         case 1:
-            StartInputString(193 + 4, 65 + 45, 11, cName);
+            start_input_string(193 + 4, 65 + 45, 11, cName);
             break;
         }
         cPrevFocus = m_cCurFocus;
@@ -1957,7 +1957,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         return;
     }
 
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     bFlag = _bDraw_OnCreateNewCharacter(cName, msX, msY, iPoint);
 
     if ((dwTime - dwMTime) > 100)
@@ -2225,37 +2225,37 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
 
     if ((msX >= 65 + 4 - 127) && (msX <= 275 + 4) && (msY >= 65 + 45) && (msY <= 82 + 45))
     {
-        PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER1);
+        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER1);
         
     }
     else
         if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 111 + 45) && (msY <= 124 + 45))
         {
-            PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER2);
+            put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER2);
             
         }
         else
             if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 126 + 45) && (msY <= 139 + 45))
             {
-                PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER3);
+                put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER3);
                 
             }
             else
                 if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 141 + 45) && (msY <= 154 + 45))
                 {
-                    PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER4);
+                    put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER4);
                     
                 }
                 else
                     if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 156 + 45) && (msY <= 169 + 45))
                     {
-                        PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER5);
+                        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER5);
                         
                     }
                     else
                         if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 171 + 45) && (msY <= 184 + 45))
                         {
-                            PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER6);
+                            put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER6);
                             
                         }
                         else
@@ -2263,62 +2263,62 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
                             {
                                 // Str
                                 i = 0;
-                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER7);
-                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER8);
-                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER9);
-                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER10);
-                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER11);
+                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER7);
+                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER8);
+                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER9);
+                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER10);
+                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER11);
                             }
                             else
                                 if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 246 + 45) && (msY <= 259 + 45))
                                 {
                                     // Vit
                                     i = 0;
-                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER12);
-                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER13);
-                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER14);
-                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER15);
-                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER16);
+                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER12);
+                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER13);
+                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER14);
+                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER15);
+                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER16);
                                 }
                                 else
                                     if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 261 + 45) && (msY <= 274 + 45))
                                     {
                                         // Dex
                                         i = 0;
-                                        PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER17);
-                                        PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER18);
-                                        PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER19);
-                                        PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER20);
+                                        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER17);
+                                        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER18);
+                                        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER19);
+                                        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER20);
                                     }
                                     else
                                         if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 276 + 45) && (msY <= 289 + 45))
                                         {
                                             // Int
                                             i = 0;
-                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER21);
-                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER22);
-                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER23);
-                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER24);
+                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER21);
+                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER22);
+                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER23);
+                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER24);
                                         }
                                         else
                                             if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 291 + 45) && (msY <= 304 + 45))
                                             {
                                                 // Mag
                                                 i = 0;
-                                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER25);
-                                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER26);
-                                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER27);
-                                                PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER28);
+                                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER25);
+                                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER26);
+                                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER27);
+                                                put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER28);
                                             }
                                             else
                                                 if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 306 + 45) && (msY <= 319 + 45))
                                                 {
                                                     // Charisma
                                                     i = 0;
-                                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER29);
-                                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER30);
-                                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER31);
-                                                    PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER32);
+                                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER29);
+                                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER30);
+                                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER31);
+                                                    put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER32);
                                                 }
                                                 else
 
@@ -2329,36 +2329,36 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
                                                         if (strlen(cName) <= 0)
                                                         {
                                                             i = 0;
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER33);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER34);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER35);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER33);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER34);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER35);
                                                         }
                                                         else if (iPoint > 0)
                                                         {
                                                             i = 0;
 #if DEF_LANGUAGE == 5
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38_1);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38_1);
 #else
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
 #endif
                                                         }
                                                         else if (m_Misc.bCheckValidName(cName) == FALSE)
                                                         {
                                                             i = 0;
 #if DEF_LANGUAGE == 5
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41_1);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41_1);
 #else
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
 #endif
                                                         }
                                                         else
@@ -2366,18 +2366,18 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
                                                             i = 0;
                                                             
 #if DEF_LANGUAGE == 5			
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48_1);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48_1);
 #else			
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
-                                                            PutAlignedString(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
+                                                            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
 #endif
                                                         }
                                                     }
@@ -2386,29 +2386,29 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
                                                         if ((msX >= 500) && (msX <= 500 + 72) && (msY >= 445) && (msY <= 445 + 15))
                                                         {
                                                             m_cCurFocus = 3;
-                                                            PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER49);
+                                                            put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER49);
                                                         }
 
     if ((msX >= 60) && (msX <= 60 + 72) && (msY >= 445) && (msY <= 445 + 15))
     {
         m_cCurFocus = 4;
-        PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER50);
+        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER50);
     }
 
     if ((msX >= 145) && (msX <= 145 + 72) && (msY >= 445) && (msY <= 445 + 15))
     {
         m_cCurFocus = 5;
-        PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER51);
+        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER51);
     }
 
     if ((msX >= 230) && (msX <= 230 + 72) && (msY >= 445) && (msY <= 445 + 15))
     {
         m_cCurFocus = 6;
-        PutAlignedString(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER52);
+        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER52);
     }
 
-    if (m_cGameModeCount < 6) DrawShadowBox(0,0,639,479);
-    if (m_cGameModeCount < 2) DrawShadowBox(0,0,639,479);
+    if (m_cGameModeCount < 6) draw_shadow_box(0,0,639,479);
+    if (m_cGameModeCount < 2) draw_shadow_box(0,0,639,479);
 }
 
 void CGame::UpdateScreen_OnLogin()
@@ -2442,7 +2442,7 @@ void CGame::UpdateScreen_OnLogin()
 
         ZeroMemory(cName, sizeof(cName));
         ZeroMemory(cPassword, sizeof(cPassword));
-        StartInputString(180, 162, 11, cName);
+        start_input_string(180, 162, 11, cName);
         ClearInputString();
 
         
@@ -2539,16 +2539,16 @@ void CGame::UpdateScreen_OnLogin()
         {
         case 1:
 #ifdef DEF_ACCOUNTLONG
-            StartInputString(180, 162, DEF_ACCOUNTLEN + 1, cName);
+            start_input_string(180, 162, DEF_ACCOUNTLEN + 1, cName);
 #else
-            StartInputString(180, 162, 11, cName);
+            start_input_string(180, 162, 11, cName);
 #endif
             break;
         case 2:
 #ifdef DEF_ACCOUNTLONG
-            StartInputString(180, 185, 8 + 1, cPassword, TRUE);
+            start_input_string(180, 185, 8 + 1, cPassword, TRUE);
 #else
-            StartInputString(180, 185, 11, cPassword, TRUE);
+            start_input_string(180, 185, 11, cPassword, TRUE);
 #endif
             break;
         case 3:
@@ -2560,7 +2560,7 @@ void CGame::UpdateScreen_OnLogin()
 
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     iMIbuttonNum = pMI->iGetStatus(msX, msY, cLB, &cMIresult);
     if (cMIresult == DEF_MIRESULT_CLICK)
     {
@@ -2614,8 +2614,8 @@ void CGame::UpdateScreen_OnLogin()
     if (m_bIsCheckingGateway == TRUE)
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
-        PutAlignedString(175, 458, 160 + 30, UPDATE_SCREEN_ON_LOGIN1);
-        PutAlignedString(175, 458, 160 + 45, UPDATE_SCREEN_ON_LOGIN2);
+        put_aligned_string(175, 458, 160 + 30, UPDATE_SCREEN_ON_LOGIN1);
+        put_aligned_string(175, 458, 160 + 45, UPDATE_SCREEN_ON_LOGIN2);
     }
 }
 
@@ -2654,7 +2654,7 @@ void CGame::UpdateScreen_OnQuit()
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_QUIT, 0, 0, 0, TRUE);
     if (m_cGameModeCount > 20) DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_QUIT, 255, 123, 1, TRUE);
-    else if ((m_cGameModeCount >= 15) && (m_cGameModeCount <= 20)) m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT]->PutTransSprite25(255, 123, 1, TRUE);
+    else if ((m_cGameModeCount >= 15) && (m_cGameModeCount <= 20)) m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT]->put_trans_sprite25(255, 123, 1, TRUE);
 
     DrawVersion();
 
@@ -2671,7 +2671,7 @@ void CGame::UpdateScreen_OnQuit()
 
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 0;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
 
@@ -2685,8 +2685,8 @@ void CGame::UpdateScreen_OnQuit()
         return;
     }
 
-    if (m_cGameModeCount < 6) DrawShadowBox(0,0,639,479);
-    if (m_cGameModeCount < 2) DrawShadowBox(0,0,639,479);
+    if (m_cGameModeCount < 6) draw_shadow_box(0,0,639,479);
+    if (m_cGameModeCount < 2) draw_shadow_box(0,0,639,479);
 }
 
 void CGame::UpdateScreen_OnQueryForceLogin()
@@ -2724,23 +2724,23 @@ void CGame::UpdateScreen_OnQueryForceLogin()
         return;
     }
 
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     UpdateScreen_OnSelectCharacter(modx, mody, 0, 0);
     if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6))
     {
-        DrawShadowBox(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
     }
     else if (m_cGameModeCount >= 6)
     {
-        DrawShadowBox(0, 0, 639, 479);
-        DrawShadowBox(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
     }
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 130, 2);
 
-    PutString_SprFont(172 + 86, 160, "Character on Use", 7, 0, 0);
-    PutAlignedString(178, 453, 195, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN1);
-    PutAlignedString(178, 453, 215, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN2);
+    put_string_sprite_font(172 + 86, 160, "Character on Use", 7, 0, 0);
+    put_aligned_string(178, 453, 195, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN1);
+    put_aligned_string(178, 453, 215, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN2);
 
     if ((msX >= 200) && (msX <= 200 + DEF_BTNSZX) && (msY >= 244) && (msY <= 244 + DEF_BTNSZY))
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 200, 244, 19);
@@ -2822,8 +2822,8 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
     {
 
         if ((m_cCurFocus - 1 == i) && (bIgnoreFocus == FALSE))
-            m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, sY + 63 - 9, 62, dwTime);
-        else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->PutSpriteFast(sX + 110 + i * 109 - 7, sY + 63 - 9, 61, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(sX + 110 + i * 109 - 7, sY + 63 - 9, 62, dwTime);
+        else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(sX + 110 + i * 109 - 7, sY + 63 - 9, 61, dwTime);
 
         if (m_pCharList[i] != NULL)
         {
@@ -2854,16 +2854,16 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
                 if (m_Misc.bCheckValidString(m_pCharList[i]->m_cName) == TRUE)
                 {
 
-                    m_pEffectSpr[0]->PutTransSprite(sX + 157 + i * 109, sY + 138 + 10, 1, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite(sX + 157 + i * 109, sY + 138 + 10, 1, dwTime);
                     DrawObject_OnMove_ForMenu(0, 0, sX + 157 + i * 109, sY + 138 + 10, FALSE, dwTime, 0, 0);
 
-                    PutString(sX + 112 + i * 109, sY + 179, m_pCharList[i]->m_cName, Color::White, false, 1);//25,35,25);
+                    put_string(sX + 112 + i * 109, sY + 179, m_pCharList[i]->m_cName, Color::White, false, 1);//25,35,25);
                     int	_sLevel = m_pCharList[i]->m_sLevel;
                     format_to_local(G_cTxt, "{}", _sLevel);
-                    PutString(sX + 138 + i * 109, sY + 196, G_cTxt, Color::White, false, 1); //25,35,25);
+                    put_string(sX + 138 + i * 109, sY + 196, G_cTxt, Color::White, false, 1); //25,35,25);
 
                     format_to_local(G_cTxt, "{}", m_pCharList[i]->m_iExp);
-                    PutString(sX + 138 + i * 109, sY + 211, G_cTxt, Color::White, false, 1); //25,35,25);
+                    put_string(sX + 138 + i * 109, sY + 211, G_cTxt, Color::White, false, 1); //25,35,25);
                 }
                 else
                 {
@@ -2901,36 +2901,36 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
     if ((msX > sX + 360) && (msY >= sY + 283) && (msX < sX + 545) && (msY <= sY + 315))
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 56);
-        PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER1);
-        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER2);
-        PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER3);
-        PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER4);
+        put_aligned_string(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER1);
+        put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER2);
+        put_aligned_string(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER3);
+        put_aligned_string(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER4);
     }
     else if ((msX > sX + 360) && (msY >= sY + 316) && (msX < sX + 545) && (msY <= sY + 345))
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 57);
-        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER5);
+        put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER5);
     }
     else if ((msX > sX + 360) && (msY >= sY + 346) && (msX < sX + 545) && (msY <= sY + 375))
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 58);
-        PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER6);
-        PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER7);
-        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER8);
-        PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER9);
-        PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER10);
-        PutAlignedString(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER11);
+        put_aligned_string(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER6);
+        put_aligned_string(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER7);
+        put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER8);
+        put_aligned_string(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER9);
+        put_aligned_string(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER10);
+        put_aligned_string(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER11);
 
     }
     else if ((msX > sX + 360) && (msY >= sY + 376) && (msX < sX + 545) && (msY <= sY + 405))
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 59);
-        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER12);
+        put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER12);
     }
     else if ((msX > sX + 360) && (msY >= sY + 406) && (msX < sX + 545) && (+ msY <= sY + 435))
     {
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 0, sY + 0, 60);
-        PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER13);
+        put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER13);
     }
     else
     {
@@ -2941,27 +2941,27 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 
         if (cTotalChar == 0)
         {
-            PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER14);
-            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER15);
-            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER16);
-            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER17);
-            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER18);
+            put_aligned_string(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER14);
+            put_aligned_string(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER15);
+            put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER16);
+            put_aligned_string(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER17);
+            put_aligned_string(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER18);
         }
         else if (cTotalChar < 4)
         {
-            PutAlignedString(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER19);
-            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER20);
-            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER21);
-            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER22);
-            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER23);
-            PutAlignedString(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER24);
+            put_aligned_string(sX + 98, sX + 357, sY + 275 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER19);
+            put_aligned_string(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER20);
+            put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER21);
+            put_aligned_string(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER22);
+            put_aligned_string(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER23);
+            put_aligned_string(sX + 98, sX + 357, sY + 350 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER24);
         }
         if (cTotalChar == 4)
         {
-            PutAlignedString(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER25);
-            PutAlignedString(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER26);
-            PutAlignedString(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER27);
-            PutAlignedString(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER28);
+            put_aligned_string(sX + 98, sX + 357, sY + 290 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER25);
+            put_aligned_string(sX + 98, sX + 357, sY + 305 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER26);
+            put_aligned_string(sX + 98, sX + 357, sY + 320 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER27);
+            put_aligned_string(sX + 98, sX + 357, sY + 335 + 15, UPDATE_SCREEN_ON_SELECT_CHARACTER28);
         }
     }
 
@@ -2986,7 +2986,7 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
         else strcpy(G_cTxt, UPDATE_SCREEN_ON_SELECT_CHARACTER39);
 
     }
-    PutAlignedString(sX + 98, sX + 357, sY + 385 + 10, G_cTxt);
+    put_aligned_string(sX + 98, sX + 357, sY + 385 + 10, G_cTxt);
 
     if (m_iIpYear != 0)
     {
@@ -3008,15 +3008,15 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 
     }
 
-    PutAlignedString(sX + 98, sX + 357, sY + 400 + 10, G_cTxt);
+    put_aligned_string(sX + 98, sX + 357, sY + 400 + 10, G_cTxt);
 
     if (iYear != 0)
     {
         format_to_local(G_cTxt, UPDATE_SCREEN_ON_SELECT_CHARACTER43, iYear, iMonth, iDay, iHour, iMinute);
-        PutAlignedString(sX + 98, sX + 357, sY + 415 + 10, G_cTxt);
+        put_aligned_string(sX + 98, sX + 357, sY + 415 + 10, G_cTxt);
     }
 
-    PutAlignedString(sX + 129, sX + 321, sY + 456, MSG_WORLDNAME1);
+    put_aligned_string(sX + 129, sX + 321, sY + 456, MSG_WORLDNAME1);
 }
 
 void CGame::UpdateScreen_OnWaitingResponse()
@@ -3095,23 +3095,23 @@ void CGame::UpdateScreen_OnWaitingResponse()
     }
     m_bIsHideLocalCursor = FALSE;
 
-    DrawShadowBox(0, 0, 639, 479);
+    draw_shadow_box(0, 0, 639, 479);
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
-    PutString_SprFont(modx + 172 + 44 - 17, mody + 190, "Connected. Waiting for response...", 7, 0, 0);
+    put_string_sprite_font(modx + 172 + 44 - 17, mody + 190, "Connected. Waiting for response...", 7, 0, 0);
 
     if ((dwTime - m_dwTime) > 7000)
     {
-        PutAlignedString(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE1);
+        put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE1);
         
-        PutAlignedString(modx + 180, modx + 463, mody + 195 + 45, UPDATE_SCREEN_ON_WATING_RESPONSE2);
+        put_aligned_string(modx + 180, modx + 463, mody + 195 + 45, UPDATE_SCREEN_ON_WATING_RESPONSE2);
         
     }
-    else PutAlignedString(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
+    else put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
     
 
     DrawVersion();
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 8;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 8, dwTime);
 }
@@ -3152,26 +3152,26 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
         return;
     }
 
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     UpdateScreen_OnSelectCharacter(modx, mody, 500, 70);
     if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6))
     {
-        DrawShadowBox(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
     }
     else if (m_cGameModeCount >= 6)
     {
-        DrawShadowBox(0, 0, 639, 479);
-        DrawShadowBox(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
+        draw_shadow_box(0, 0, 639, 479);
     }
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
 
-    PutString_SprFont(modx + 172 + 86, mody + 160, "Delete Character", 7, 0, 0);
-    PutString(modx + 215, mody + 195, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER1, Color(5, 5, 5));
+    put_string_sprite_font(modx + 172 + 86, mody + 160, "Delete Character", 7, 0, 0);
+    put_string(modx + 215, mody + 195, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER1, Color(5, 5, 5));
     //"Character Name"
-    PutString(modx + 335, mody + 199, "__________", Color(5, 5, 5));
-    PutString(modx + 335, mody + 195, m_pCharList[m_wEnterGameType - 1]->m_cName, Color(25, 35, 25));
-    PutAlignedString(modx + 178, modx + 453, mody + 220, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER2);
+    put_string(modx + 335, mody + 199, "__________", Color(5, 5, 5));
+    put_string(modx + 335, mody + 195, m_pCharList[m_wEnterGameType - 1]->m_cName, Color(25, 35, 25));
+    put_aligned_string(modx + 178, modx + 453, mody + 220, UPDATE_SCREEN_ON_QUERY_DELETE_CHARACTER2);
     
 
 // v2.05
@@ -3301,7 +3301,7 @@ void CGame::UpdateScreen_OnLogResMsg()
         return;
     }
 
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
 
     switch (m_cMsg[0])
     {
@@ -3326,21 +3326,21 @@ void CGame::UpdateScreen_OnLogResMsg()
     case '3':
         sX = 0;
         sY = 0;
-        UpdateScreen_OnSelectCharacter(GetVirtualWidth() / 2 - 640 / 2, GetVirtualHeight() / 2 - 480 / 2, 0, 0);
+        UpdateScreen_OnSelectCharacter(get_virtual_width() / 2 - 640 / 2, get_virtual_height() / 2 - 480 / 2, 0, 0);
         break;
 
     case '6':
         sX = 146;
         sY = 114;
 
-        UpdateScreen_OnSelectCharacter(GetVirtualWidth() / 2 - 640 / 2, GetVirtualHeight() / 2 - 480 / 2, 0, 0, TRUE);
+        UpdateScreen_OnSelectCharacter(get_virtual_width() / 2 - 640 / 2, get_virtual_height() / 2 - 480 / 2, 0, 0, TRUE);
         break;
     case '8':
         DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_MAINMENU, -1, -1, 0, TRUE);
         break;
     }
 
-    DrawShadowBox(0, 0, 639, 479);
+    draw_shadow_box(0, 0, 639, 479);
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
 
@@ -3351,165 +3351,165 @@ void CGame::UpdateScreen_OnLogResMsg()
     switch (m_cMsg[1])
     {
     case '1':
-        PutString_SprFont(172 + 70, 165, "Password is not correct!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG5);
+        put_string_sprite_font(172 + 70, 165, "Password is not correct!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG5);
         break;
 
     case '2':
-        PutString_SprFont(172 + 70, 165, "Not existing account!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG6);
-        PutAlignedString(198, 453, 215, UPDATE_SCREEN_ON_LOG_MSG7);
+        put_string_sprite_font(172 + 70, 165, "Not existing account!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG6);
+        put_aligned_string(198, 453, 215, UPDATE_SCREEN_ON_LOG_MSG7);
         break;
 
     case '3':
-        PutString_SprFont(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG8);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG9);
-        PutAlignedString(198, 453, 225, UPDATE_SCREEN_ON_LOG_MSG10);
+        put_string_sprite_font(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG8);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG9);
+        put_aligned_string(198, 453, 225, UPDATE_SCREEN_ON_LOG_MSG10);
         break;
 
     case '4':
-        PutString_SprFont(172 + 58, 165, "New account created.", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG11);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG12);
+        put_string_sprite_font(172 + 58, 165, "New account created.", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG11);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG12);
         break;
 
     case '5':
-        PutString_SprFont(172 + 58, 165, "Can not create new account!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG13);
+        put_string_sprite_font(172 + 58, 165, "Can not create new account!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG13);
         break;
 
     case '6':
-        PutString_SprFont(172 + 36, 165, "Can not create new account!", 7, 0, 0);
-        PutString_SprFont(172 + 24, 180, "Already existing account name.", 7, 0, 0);
-        PutAlignedString(198, 453, 205, UPDATE_SCREEN_ON_LOG_MSG14);
-        PutAlignedString(198, 453, 220, UPDATE_SCREEN_ON_LOG_MSG15);
+        put_string_sprite_font(172 + 36, 165, "Can not create new account!", 7, 0, 0);
+        put_string_sprite_font(172 + 24, 180, "Already existing account name.", 7, 0, 0);
+        put_aligned_string(198, 453, 205, UPDATE_SCREEN_ON_LOG_MSG14);
+        put_aligned_string(198, 453, 220, UPDATE_SCREEN_ON_LOG_MSG15);
         break;
 
     case '7':
-        PutString_SprFont(172 + 58, 165, "New character created.", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG16);
+        put_string_sprite_font(172 + 58, 165, "New character created.", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG16);
         break;
 
     case '8':
-        PutString_SprFont(172 + 58, 165, "Can not create new character!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG17);
+        put_string_sprite_font(172 + 58, 165, "Can not create new character!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG17);
         break;
 
     case '9':
-        PutString_SprFont(172 + 36, 165, "Can not create new character!", 7, 0, 0);
-        PutString_SprFont(172 + 24, 180, "Already existing character name.", 7, 0, 0);
-        PutAlignedString(198, 453, 205, UPDATE_SCREEN_ON_LOG_MSG18);
-        PutAlignedString(198, 453, 220, UPDATE_SCREEN_ON_LOG_MSG19);
+        put_string_sprite_font(172 + 36, 165, "Can not create new character!", 7, 0, 0);
+        put_string_sprite_font(172 + 24, 180, "Already existing character name.", 7, 0, 0);
+        put_aligned_string(198, 453, 205, UPDATE_SCREEN_ON_LOG_MSG18);
+        put_aligned_string(198, 453, 220, UPDATE_SCREEN_ON_LOG_MSG19);
         break;
 
     case 'A':
-        PutString_SprFont(172 + 36 + 45, 165, "Character deleted.", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG20);
+        put_string_sprite_font(172 + 36 + 45, 165, "Character deleted.", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG20);
 
         break;
     case 'B':
-        PutString_SprFont(172 + 36 + 45, 165, "Password changed.", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG21);
+        put_string_sprite_font(172 + 36 + 45, 165, "Password changed.", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG21);
         break;
     case 'C':
-        PutString_SprFont(172 + 36, 165, "Can not change password!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG22);
+        put_string_sprite_font(172 + 36, 165, "Can not change password!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG22);
         break;
 
     case 'D':
-        PutString_SprFont(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG23);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG24);
+        put_string_sprite_font(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG23);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG24);
         break;
 
     case 'E':
-        PutString_SprFont(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG25);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG26);
-        PutAlignedString(198, 453, 225, UPDATE_SCREEN_ON_LOG_MSG27);
+        put_string_sprite_font(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG25);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG26);
+        put_aligned_string(198, 453, 225, UPDATE_SCREEN_ON_LOG_MSG27);
         break;
 
     case 'F':
-        PutString_SprFont(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG28);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG29);
+        put_string_sprite_font(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG28);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG29);
         break;
 
     case 'G':
-        PutString_SprFont(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG30);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG31);
+        put_string_sprite_font(172 + 10 + 34, 165, "Can not connect to game server!", 7, 0, 0);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG30);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG31);
         break;
 
     case 'H':
-        PutString_SprFont(172 + 68, 165, "Connection Rejected!", 7, 0, 0);
+        put_string_sprite_font(172 + 68, 165, "Connection Rejected!", 7, 0, 0);
         if (m_iBlockYear == 0)
         {
-            PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG32);
-            PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG33);
+            put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG32);
+            put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG33);
         }
         else
         {
-            PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG34);
+            put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG34);
             format_to_local(G_cTxt, UPDATE_SCREEN_ON_LOG_MSG35, m_iBlockYear, m_iBlockMonth, m_iBlockDay);
-            PutAlignedString(198, 453, 210, G_cTxt);
+            put_aligned_string(198, 453, 210, G_cTxt);
         }
 
         break;
 
     case 'I': 
-        PutString_SprFont(172 + 68, 165, "Not Enough Point!", 7, 0, 0);
-        PutAlignedString(198, 453, 210, "ÂI¼Æ¨Ï¥Î´Á­­¤wµ²§ô, ½Ð¦ÜGD2S.gamania.com©µªø¨Ï¥Î´Á­­");
+        put_string_sprite_font(172 + 68, 165, "Not Enough Point!", 7, 0, 0);
+        put_aligned_string(198, 453, 210, "ÂI¼Æ¨Ï¥Î´Á­­¤wµ²§ô, ½Ð¦ÜGD2S.gamania.com©µªø¨Ï¥Î´Á­­");
 
         break;
 
     case 'J':
-        PutString_SprFont(172 + 68, 165, "World Server Full", 7, 0, 0);
-        PutAlignedString(198, 453, 210, "Please ! Try Other World Server");
+        put_string_sprite_font(172 + 68, 165, "World Server Full", 7, 0, 0);
+        put_aligned_string(198, 453, 210, "Please ! Try Other World Server");
         break;
 
     case 'M': 	
-        PutString_SprFont(172 + 68, 165, "Your password expired", 7, 0, 0);
-        PutAlignedString(198, 453, 210, "Please! Change password");
+        put_string_sprite_font(172 + 68, 165, "Your password expired", 7, 0, 0);
+        put_aligned_string(198, 453, 210, "Please! Change password");
         break;
 
 
     case 'U': 
-        PutString_SprFont(172 + 68, 165, "Keycode input Success!", 7, 0, 0);
-        PutAlignedString(198, 453, 210, "Keycode Registration successed.");
+        put_string_sprite_font(172 + 68, 165, "Keycode input Success!", 7, 0, 0);
+        put_aligned_string(198, 453, 210, "Keycode Registration successed.");
 
         break;
 
     case 'X':
-        PutAlignedString(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG38);
-        PutAlignedString(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG39);
+        put_aligned_string(198, 453, 195, UPDATE_SCREEN_ON_LOG_MSG38);
+        put_aligned_string(198, 453, 210, UPDATE_SCREEN_ON_LOG_MSG39);
         break;
 
     case 'Y':
-        PutAlignedString(178, 453, 195, UPDATE_SCREEN_ON_LOG_MSG40);
-        PutAlignedString(178, 453, 210, UPDATE_SCREEN_ON_LOG_MSG41);
+        put_aligned_string(178, 453, 195, UPDATE_SCREEN_ON_LOG_MSG40);
+        put_aligned_string(178, 453, 210, UPDATE_SCREEN_ON_LOG_MSG41);
         break;
 
     case 'Z':
-        PutAlignedString(178, 453, 195, UPDATE_SCREEN_ON_LOG_MSG42);
-        PutAlignedString(178, 453, 210, UPDATE_SCREEN_ON_LOG_MSG41);
+        put_aligned_string(178, 453, 195, UPDATE_SCREEN_ON_LOG_MSG42);
+        put_aligned_string(178, 453, 210, UPDATE_SCREEN_ON_LOG_MSG41);
         break;
 
 #if DEF_LANGUAGE == 3
     case 'a':
-        PutAlignedString(190, 460, 165, UPDATE_SCREEN_ON_LOG_MSG43, 200, 200, 45);
-        PutAlignedString(190, 460, 195, UPDATE_SCREEN_ON_LOG_MSG44, 200, 200, 45);
-        PutAlignedString(190, 460, 210, UPDATE_SCREEN_ON_LOG_MSG45, 200, 200, 45);
-        PutAlignedString(190, 460, 225, UPDATE_SCREEN_ON_LOG_MSG46, 200, 200, 45);//"(02-3424-4582~3)"
+        put_aligned_string(190, 460, 165, UPDATE_SCREEN_ON_LOG_MSG43, 200, 200, 45);
+        put_aligned_string(190, 460, 195, UPDATE_SCREEN_ON_LOG_MSG44, 200, 200, 45);
+        put_aligned_string(190, 460, 210, UPDATE_SCREEN_ON_LOG_MSG45, 200, 200, 45);
+        put_aligned_string(190, 460, 225, UPDATE_SCREEN_ON_LOG_MSG46, 200, 200, 45);//"(02-3424-4582~3)"
         break;
 
     case 'b':
-        PutAlignedString(190, 460, 165, UPDATE_SCREEN_ON_LOG_MSG47, 200, 200, 45);
-        PutAlignedString(190, 460, 185, UPDATE_SCREEN_ON_LOG_MSG48, 200, 200, 45);
-        PutAlignedString(190, 460, 200, UPDATE_SCREEN_ON_LOG_MSG49, 200, 200, 45);
-        PutAlignedString(190, 460, 215, UPDATE_SCREEN_ON_LOG_MSG50, 200, 200, 45);
-        PutAlignedString(190, 460, 230, UPDATE_SCREEN_ON_LOG_MSG51, 200, 200, 45);
+        put_aligned_string(190, 460, 165, UPDATE_SCREEN_ON_LOG_MSG47, 200, 200, 45);
+        put_aligned_string(190, 460, 185, UPDATE_SCREEN_ON_LOG_MSG48, 200, 200, 45);
+        put_aligned_string(190, 460, 200, UPDATE_SCREEN_ON_LOG_MSG49, 200, 200, 45);
+        put_aligned_string(190, 460, 215, UPDATE_SCREEN_ON_LOG_MSG50, 200, 200, 45);
+        put_aligned_string(190, 460, 230, UPDATE_SCREEN_ON_LOG_MSG51, 200, 200, 45);
         break;
 #endif
 
@@ -3620,21 +3620,21 @@ void CGame::UpdateScreen_OnVersionNotMatch()
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
 
 #if DEF_LANGUAGE == 5
-    PutAlignedString(168, 474, 160, UPDATE_SCREEN_ON_VERSION_NO_MATCH1);
-    PutAlignedString(168, 474, 180, UPDATE_SCREEN_ON_VERSION_NO_MATCH2);
-    PutAlignedString(168, 474, 200, UPDATE_SCREEN_ON_VERSION_NO_MATCH3);
-    PutAlignedString(168, 474, 220, UPDATE_SCREEN_ON_VERSION_NO_MATCH4);
+    put_aligned_string(168, 474, 160, UPDATE_SCREEN_ON_VERSION_NO_MATCH1);
+    put_aligned_string(168, 474, 180, UPDATE_SCREEN_ON_VERSION_NO_MATCH2);
+    put_aligned_string(168, 474, 200, UPDATE_SCREEN_ON_VERSION_NO_MATCH3);
+    put_aligned_string(168, 474, 220, UPDATE_SCREEN_ON_VERSION_NO_MATCH4);
 #else
-    PutAlignedString(168, 474, 160, UPDATE_SCREEN_ON_VERSION_NO_MATCH1);
-    PutAlignedString(168, 474, 180, UPDATE_SCREEN_ON_VERSION_NO_MATCH2);
+    put_aligned_string(168, 474, 160, UPDATE_SCREEN_ON_VERSION_NO_MATCH1);
+    put_aligned_string(168, 474, 180, UPDATE_SCREEN_ON_VERSION_NO_MATCH2);
 #endif
 
 
-    PutAlignedString(168, 474, 250, "www.helbreathx.net");
+    put_aligned_string(168, 474, 250, "www.helbreathx.net");
 
     DrawVersion();
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_stMCursor.sCursorFrame = 0;
     //m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
 
@@ -3675,7 +3675,7 @@ void CGame::UpdateScreen_OnGame()
     // ----------------------------------------------------
 
     
-    UpdateMouseState(msX, msY, msZ, cLB, cRB);
+    update_mouse_state(msX, msY, msZ, cLB, cRB);
     m_dwCurTime = unixtime();
 
     if (m_bEnterPressed == TRUE)
@@ -3904,10 +3904,10 @@ void CGame::UpdateScreen_OnGame()
                 case '^':
                     ZeroMemory(m_cChatMsg, sizeof(m_cChatMsg));
                     m_cChatMsg[0] = m_cBackupChatMsg[0];
-                    StartInputString(10, 414, sizeof(m_cChatMsg), m_cChatMsg);
+                    start_input_string(10, 414, sizeof(m_cChatMsg), m_cChatMsg);
                     break;
                 default:
-                    StartInputString(10, 414, sizeof(m_cChatMsg), m_cChatMsg);
+                    start_input_string(10, 414, sizeof(m_cChatMsg), m_cChatMsg);
                     ClearInputString();
                     break;
                 }
@@ -3965,14 +3965,14 @@ void CGame::UpdateScreen_OnGame()
     sDivY = sVal / 32;
     sModY = sVal % 32;
 
-    float bgdx = (float(GetWidth()) / 2) - ((float(GetVirtualWidth()) * (zoom / 100)) / 2) - sModX + pan_x;
-    float bgdy = (float(GetHeight()) / 2) - ((float(GetVirtualHeight()) * (zoom / 100)) / 2) - sModY + pan_y;
+    float bgdx = (float(get_width()) / 2) - ((float(get_virtual_width()) * (zoom / 100)) / 2) - sModX + pan_x;
+    float bgdy = (float(get_height()) / 2) - ((float(get_virtual_height()) * (zoom / 100)) / 2) - sModY + pan_y;
 
-    uint8_t oldTarget = getRenderTarget();
+    uint8_t oldTarget = render_target();
 
     if (iUpdateRet != 0)
     {
-        setRenderTarget(DS_BG, true, Color(0, 0, 0, 0));
+        render_target(DS_BG, true, Color(0, 0, 0, 0));
         DrawBackground(sDivX, sModX, sDivY, sModY);
         bg.display();
         bg_sprite = sf::Sprite(bg.getTexture());
@@ -3982,7 +3982,7 @@ void CGame::UpdateScreen_OnGame()
 
     if (iUpdateRet != 0)
     {
-        setRenderTarget(DS_DYNBG, true, Color(0, 0, 0, 0));
+        render_target(DS_DYNBG, true, Color(0, 0, 0, 0));
         DrawEffectLights();
         DrawObjects(sPivotX, sPivotY, sDivX, sDivY, sModX, sModY, msX, msY);
         DrawEffects();
@@ -3992,14 +3992,14 @@ void CGame::UpdateScreen_OnGame()
         //dynbg_sprite.setPosition({ (float)-sModX, (float)-sModY });
     }
 
-    setRenderTarget(oldTarget);
+    render_target(oldTarget);
     DrawWhetherEffects();
     visible.draw(bg_sprite);
     visible.draw(dynbg_sprite);
 
     if (iUpdateRet != 0)
     {
-        DrawChatMsgs(-100, 0, GetWidth(), GetHeight());
+        DrawChatMsgs(-100, 0, get_width(), get_height());
         WhetherObjectFrameCounter();
         DrawDialogBoxs(msX, msY, msZ, cLB);
 
@@ -4009,7 +4009,7 @@ void CGame::UpdateScreen_OnGame()
                 ((m_bIsDialogEnabled[17] == TRUE) && (m_stDialogBoxInfo[17].cMode == 1)))
             {
             }
-            else DrawShadowBox(0, 413, 639, 429);
+            else draw_shadow_box(0, 413, 639, 429);
             ShowReceivedString();
         }
 
@@ -4029,20 +4029,20 @@ void CGame::UpdateScreen_OnGame()
             {
 
                 
-                m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->PutSpriteColor(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
+                m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->put_sprite_color(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
                     m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSpriteFrame,
                     m_wWR[cItemColor] - m_wR[0], m_wWG[cItemColor] - m_wG[0], m_wWB[cItemColor] - m_wB[0],
                     dwTime);
             }
             else
             {
-                m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->PutSpriteColor(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
+                m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->put_sprite_color(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
                     m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSpriteFrame,
                     m_wR[cItemColor] - m_wR[0], m_wG[cItemColor] - m_wG[0], m_wB[cItemColor] - m_wB[0],
                     dwTime);
             }
         }
-        else m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->PutSpriteFast(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
+        else m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->put_sprite_fast(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
             m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSpriteFrame, dwTime);
 
         
@@ -4054,28 +4054,28 @@ void CGame::UpdateScreen_OnGame()
         if (strlen(cStr1) != 0)
         {
             if (m_bIsSpecial)
-                PutString(msX, msY + 25, cStr1, Color(0, 255, 50), FALSE, 1); 
+                put_string(msX, msY + 25, cStr1, Color(0, 255, 50), FALSE, 1); 
             else
-                PutString(msX, msY + 25, cStr1, Color(255, 255, 255), FALSE, 1); 
+                put_string(msX, msY + 25, cStr1, Color(255, 255, 255), FALSE, 1); 
             iLoc += 15;
         }
 
         if (strlen(cStr2) != 0)
         {
-            PutString(msX, msY + 25 + iLoc, cStr2, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, cStr2, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 
         if (strlen(cStr3) != 0)
         {
-            PutString(msX, msY + 25 + iLoc, cStr3, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, cStr3, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 
         if ((m_pItemList[m_stMCursor.sSelectedObjectID]->m_sLevelLimit != 0) && ((m_pItemList[m_stMCursor.sSelectedObjectID]->m_dwAttribute & 0x00000001) == 0))
         {
             format_to_local(G_cTxt, "{}: {}", DRAW_DIALOGBOX_SHOP24, m_pItemList[m_stMCursor.sSelectedObjectID]->m_sLevelLimit);
-            PutString(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 
@@ -4088,14 +4088,14 @@ void CGame::UpdateScreen_OnGame()
             if (m_pItemList[m_stMCursor.sSelectedObjectID]->m_wWeight % 100)				_wWeight = 1;
             format_to_local(G_cTxt, DRAW_DIALOGBOX_SHOP15, m_pItemList[m_stMCursor.sSelectedObjectID]->m_wWeight / 100 + _wWeight);
 
-            PutString(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 
         if (m_pItemList[m_stMCursor.sSelectedObjectID]->m_cEquipPos != DEF_EQUIPPOS_NONE)
         {
             format_to_local(G_cTxt, UPDATE_SCREEN_ONGAME10, m_pItemList[m_stMCursor.sSelectedObjectID]->m_wCurLifeSpan);
-            PutString(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 
@@ -4103,7 +4103,7 @@ void CGame::UpdateScreen_OnGame()
         if (!strcmp(m_pItemList[m_stMCursor.sSelectedObjectID]->m_cName, "½ºÅæ¿Àºê»õÅ©¸®ÆÄÀÌ½º"))
         {
             format_to_local(G_cTxt, UPDATE_SCREEN_ONGAME10, m_pItemList[m_stMCursor.sSelectedObjectID]->m_wCurLifeSpan);
-            PutString(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 #endif
@@ -4112,7 +4112,7 @@ void CGame::UpdateScreen_OnGame()
         if (m_pItemList[m_stMCursor.sSelectedObjectID]->m_sItemSpecEffectValue2 == 113)
         {
             format_to_local(G_cTxt, "3ÁÖ³â ÀÌº¥Æ®¿ë");
-            PutString(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
+            put_string(msX, msY + 25 + iLoc, G_cTxt, Color(150, 150, 150), FALSE, 1);
             iLoc += 15;
         }
 #endif
@@ -4130,7 +4130,7 @@ void CGame::UpdateScreen_OnGame()
             if (iLoc > 1)
             {
                 format_to_local(G_cTxt, DEF_MSG_TOTAL_NUMBER, iLoc); 
-                PutString(msX, msY + 40, G_cTxt, Color(150, 150, 150), FALSE, 1);
+                put_string(msX, msY + 40, G_cTxt, Color(150, 150, 150), FALSE, 1);
             }
         }
     }
@@ -4140,7 +4140,7 @@ void CGame::UpdateScreen_OnGame()
 
 #ifdef DEF_SHOWCURSORPOS
     format_to_local(G_cTxt, "M({},{}) T({},{})", msX, msY, (m_sViewPointX + msX) / 32, (m_sViewPointY + msY) / 32);
-    PutString(msX, msY + 30, G_cTxt, Color(255, 255, 255));
+    put_string(msX, msY + 30, G_cTxt, Color(255, 255, 255));
 #endif
 
     //	if (m_cGameModeCount <= 15) {
@@ -4193,8 +4193,8 @@ void CGame::UpdateScreen_OnGame()
         return;
     }
 
-    if (m_cGameModeCount < 6) DrawShadowBox(0, 0, 639, 479);
-    if (m_cGameModeCount < 2) DrawShadowBox(0, 0, 639, 479);
+    if (m_cGameModeCount < 6) draw_shadow_box(0, 0, 639, 479);
+    if (m_cGameModeCount < 2) draw_shadow_box(0, 0, 639, 479);
 
 //     if (m_bIsObserverMode == TRUE)
 //     {
@@ -4222,7 +4222,7 @@ void CGame::UpdateScreen_OnGame()
         if (m_bShowFPS)
         {
             format_to_local(G_cTxt, "fps : {}", m_sFPS);
-            PutString(10, 100, G_cTxt, Color(255, 255, 255));
+            put_string(10, 100, G_cTxt, Color(255, 255, 255));
         }
     }
 
@@ -4283,19 +4283,19 @@ void CGame::UpdateScreen_OnGame()
     
 }
 
-void CGame::MakeSprite(char * FileName, int iStart, short sCount, bool bAlphaEffect)
+void CGame::make_sprite(char * FileName, int iStart, short sCount, bool bAlphaEffect)
 {
     for (short i = 0; i < sCount; i++)
-        m_pSprite[i + iStart] = sprite::CreateSprite(FileName, i, bAlphaEffect);
+        m_pSprite[i + iStart] = sprite::create_sprite(FileName, i, bAlphaEffect);
 }
-void CGame::MakeTileSpr(char * FileName, short sStart, short sCount, bool bAlphaEffect)
+void CGame::make_tile_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect)
 {
     for (short i = 0; i < sCount; i++)
-        m_pTileSpr[i + sStart] = sprite::CreateSprite(FileName, i, bAlphaEffect);
+        m_pTileSpr[i + sStart] = sprite::create_sprite(FileName, i, bAlphaEffect);
 }
-void CGame::MakeEffectSpr(char * FileName, short sStart, short sCount, bool bAlphaEffect)
+void CGame::make_effect_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect)
 {
     for (short i = 0; i < sCount; i++)
-        m_pEffectSpr[i + sStart] = sprite::CreateSprite(FileName, i, bAlphaEffect);
+        m_pEffectSpr[i + sStart] = sprite::create_sprite(FileName, i, bAlphaEffect);
 }
 

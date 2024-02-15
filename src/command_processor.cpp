@@ -225,7 +225,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     
                     sX = m_stDialogBoxInfo[7].sX;
                     sY = m_stDialogBoxInfo[7].sY;
-                    StartInputString(sX + 75, sY + 140, 21, m_cGuildName);
+                    start_input_string(sX + 75, sY + 140, 21, m_cGuildName);
                     m_stDialogBoxInfo[7].cMode = 1;
                 }
 
@@ -235,7 +235,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     
                     sX = m_stDialogBoxInfo[17].sX;
                     sY = m_stDialogBoxInfo[17].sY;
-                    StartInputString(sX + 40, sY + 57, 11, m_cAmountString);
+                    start_input_string(sX + 40, sY + 57, 11, m_cAmountString);
                     m_stDialogBoxInfo[17].cMode = 1;
                 }
 

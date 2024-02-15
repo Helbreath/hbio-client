@@ -53,7 +53,7 @@ CGame::CGame()
     ix::initNetSystem();
 #endif
 
-    socketmode(0);
+    socket_mode(0);
     oldmode = 0;
 
     int i;
@@ -78,12 +78,12 @@ CGame::CGame()
 
         //SetVirtualResolution(5120, 2160);
         //SetResolution(800, 600);
-        SetResolution(1024, 768);
+        set_resolution(1024, 768);
     }
     if (!autovresolution)
     {
         //SetVirtualResolution(800, 600);
-        SetVirtualResolution(1024, 768);
+        set_virtual_resolution(1024, 768);
     }
 
 #ifdef _DEBUG
@@ -486,13 +486,13 @@ bool CGame::bInit()
         return FALSE;
     }
 
-    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING] = sprite::CreateSprite("New-Dialog", 0, false);
-    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE] = sprite::CreateSprite("interface2", 0, false);
+    m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING] = sprite::create_sprite("New-Dialog", 0, false);
+    m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE] = sprite::create_sprite("interface2", 0, false);
     //m_pSprite[DEF_SPRID_INTERFACE_CRAFTING] = sprite::CreateSprite("interface2", 3, false);
-    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2] = sprite::CreateSprite("interface2", 1, false);
-    m_pSprite[DEF_SPRID_INTERFACE_F1HELPWINDOWS] = sprite::CreateSprite("interface2", 2, false);
-    m_pSprite[DEF_SPRID_INTERFACE_FONT1] = sprite::CreateSprite("sprfonts", 0, false);
-    m_pSprite[DEF_SPRID_INTERFACE_FONT2] = sprite::CreateSprite("sprfonts", 1, false);
+    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2] = sprite::create_sprite("interface2", 1, false);
+    m_pSprite[DEF_SPRID_INTERFACE_F1HELPWINDOWS] = sprite::create_sprite("interface2", 2, false);
+    m_pSprite[DEF_SPRID_INTERFACE_FONT1] = sprite::create_sprite("sprfonts", 0, false);
+    m_pSprite[DEF_SPRID_INTERFACE_FONT2] = sprite::create_sprite("sprfonts", 1, false);
 
     m_stMCursor.sX = 0;
     m_stMCursor.sY = 0;
@@ -805,7 +805,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             cp = (char *)(cMsg + 6);
             memset(cp, 0, 20);
             memcpy(cp, "William", 20);
-            iRet = iSendMsg(cMsg, 26, cKey);
+            iRet = send_message(cMsg, 26, cKey);
             break;
 
         case MSGID_REQUEST_CHARGED_TELEPORT:
@@ -815,7 +815,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *wp = NULL;
             ip = (int *)(cMsg + DEF_INDEX2_MSGTYPE + 2);
             *ip = iV1;
-            iRet = iSendMsg(cMsg, 10, cKey);
+            iRet = send_message(cMsg, 10, cKey);
             break;
 
         case MSGID_REQUEST_SELLITEMLIST:
@@ -834,7 +834,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                 cp += 4;
             }
 
-            iRet = iSendMsg(cMsg, 70, cKey);
+            iRet = send_message(cMsg, 70, cKey);
             break;
 
         case MSGID_REQUEST_RESTART:
@@ -843,7 +843,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             wp = (WORD *)(cMsg + DEF_INDEX2_MSGTYPE);
             *wp = NULL;
 
-            iRet = iSendMsg(cMsg, 6, cKey);
+            iRet = send_message(cMsg, 6, cKey);
             break;
 
         case MSGID_REQUEST_PANNING:
@@ -856,7 +856,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *cp = cDir;
             cp++;
 
-            iRet = iSendMsg(cMsg, 7, cKey);
+            iRet = send_message(cMsg, 7, cKey);
             break;
 
         case MSGID_REQUEST_LOGIN:
@@ -925,7 +925,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *cp = m_ccChr;
             cp++;
 
-            iRet = iSendMsg(cMsg, 77, cKey);
+            iRet = send_message(cMsg, 77, cKey);
             break;
 
         case MSGID_REQUEST_ENTERGAME:
@@ -960,7 +960,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             memcpy(cp, m_cWorldServerName, 30);
             cp += 30;
 
-            iRet = iSendMsg(cMsg, 66, cKey);
+            iRet = send_message(cMsg, 66, cKey);
             break;
 
         case MSGID_REQUEST_SETITEMPOS:
@@ -984,7 +984,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *sp = (short)iV2;
             cp += 2;
 
-            iRet = iSendMsg(cMsg, 11);
+            iRet = send_message(cMsg, 11);
             break;
 
         case MSGID_COMMAND_CHECKCONNECTION:
@@ -998,7 +998,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *dwp = dwTime;
             cp += 4;
 
-            iRet = iSendMsg(cMsg, 10, cKey);
+            iRet = send_message(cMsg, 10, cKey);
 
             break;
 
@@ -1044,7 +1044,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *sp = m_cLU_Char;
             cp += 2;
 
-            iRet = iSendMsg(cMsg, 18);
+            iRet = send_message(cMsg, 18);
             break;
 
         case MSGID_COMMAND_CHATMSG:
@@ -1077,7 +1077,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             if (bCheckLocalChatCommand(pString) == TRUE) return FALSE;
             memcpy((char *)cp, pString, strlen(pString) + 1);
 
-            iRet = iSendMsg(cMsg, 22 + strlen(pString));
+            iRet = send_message(cMsg, 22 + strlen(pString));
             break;
 
         case MSGID_COMMAND_COMMON:
@@ -1123,7 +1123,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                     *cp = (char)m_stDialogBoxInfo[26].sV6;
                     cp++;
 
-                    iRet = iSendMsg(cMsg, 37);
+                    iRet = send_message(cMsg, 37);
                     break;
 
                 case DEF_COMMONTYPE_REQ_CREATEPORTION:
@@ -1141,7 +1141,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                     *cp = (char)m_stDialogBoxInfo[26].sV6;
                     cp++;
 
-                    iRet = iSendMsg(cMsg, 18);
+                    iRet = send_message(cMsg, 18);
                     break;
 
                 default:
@@ -1164,7 +1164,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                         *dwp = dwTime;
                         cp += 4;
 
-                        iRet = iSendMsg(cMsg, 23 + 4);
+                        iRet = send_message(cMsg, 23 + 4);
                     }
                     else
                     {
@@ -1187,7 +1187,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                         *ip = iV4;
                         cp += 4;
 
-                        iRet = iSendMsg(cMsg, 23 + 34);
+                        iRet = send_message(cMsg, 23 + 34);
                     }
                     break;
             }
@@ -1227,7 +1227,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             memcpy(cp, cTemp, 20);
             cp += 20;
 
-            iRet = iSendMsg(cMsg, 56, cKey);
+            iRet = send_message(cMsg, 56, cKey);
             break;
 
         case MSGID_REQUEST_TELEPORT:
@@ -1237,7 +1237,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             wp = (WORD *)(cMsg + DEF_INDEX2_MSGTYPE);
             *wp = DEF_MSGTYPE_CONFIRM;
 
-            iRet = iSendMsg(cMsg, 6);
+            iRet = send_message(cMsg, 6);
 
             m_bIsTeleportRequested = TRUE;
             break;
@@ -1249,7 +1249,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             wp = (WORD *)(cMsg + DEF_INDEX2_MSGTYPE);
             *wp = DEF_MSGTYPE_CONFIRM;
 
-            iRet = iSendMsg(cMsg, 6);
+            iRet = send_message(cMsg, 6);
             break;
 
         case MSGID_REQUEST_RETRIEVEITEM:
@@ -1262,7 +1262,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             cp = (char *)(cMsg + DEF_INDEX2_MSGTYPE + 2);
             *cp = (char)iV1;
 
-            iRet = iSendMsg(cMsg, 7);
+            iRet = send_message(cMsg, 7);
             break;
 
         case MSGID_REQUEST_NOTICEMENT:
@@ -1276,7 +1276,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *ip = iV1;
             cp += 4;
 
-            iRet = iSendMsg(cMsg, 10, cKey);
+            iRet = send_message(cMsg, 10, cKey);
             break;
 
             
@@ -1291,7 +1291,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
             *fightzonenum = iV1;
             cp += 4;
 
-            iRet = iSendMsg(cMsg, 10);
+            iRet = send_message(cMsg, 10);
             break;
 
         default:
@@ -1338,7 +1338,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                 *dwp = dwTime;
                 cp += 4;
 
-                iRet = iSendMsg(cMsg, 19 + 4);
+                iRet = send_message(cMsg, 19 + 4);
             }
             else
             {
@@ -1347,7 +1347,7 @@ BOOL CGame::bSendCommand(DWORD dwMsgID, WORD wCommand, char cDir, int iV1, int i
                 *dwp = dwTime;
                 cp += 4;
 
-                iRet = iSendMsg(cMsg, 17 + 4);
+                iRet = send_message(cMsg, 17 + 4);
             }
             m_cCommandCount++;
             break;
@@ -1378,7 +1378,7 @@ void CGame::OnTimer()
         std::lock_guard<std::mutex> lock(socket_mut);
         while (!loginpipe.empty())
         {
-            std::shared_ptr<CGame::MsgQueueEntry> entry = GetLoginMsgQueue();
+            std::shared_ptr<CGame::msg_queue_entry> entry = get_login_msg_queue();
             LogResponseHandler(entry->data, entry->size);
         }
     }
@@ -3248,7 +3248,7 @@ void CGame::DrawEffects()
                     if (m_pEffectList[i]->m_cFrame < 0) break;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[8]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[8]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 2:
@@ -3256,7 +3256,7 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 2;
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[7]->PutSpriteFast(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[7]->put_sprite_fast(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 20:
@@ -3269,7 +3269,7 @@ void CGame::DrawEffects()
                 case 27:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[8]->PutTransSprite_NoColorKey(dX, dY, 1, dwTime);
+                    m_pEffectSpr[8]->put_trans_sprite_no_color_key(dX, dY, 1, dwTime);
                     break;
 
                 case 4:
@@ -3293,8 +3293,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 8) * (-5);
 
                     if (cTempFrame < 7)
-                        m_pEffectSpr[3]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
-                    else m_pEffectSpr[3]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);
+                        m_pEffectSpr[3]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
+                    else m_pEffectSpr[3]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);
                     break;
 
                 case 6:	 // Energy Bolt 
@@ -3307,8 +3307,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 7) * (-6);
 
                     if (cTempFrame < 6)
-                        m_pEffectSpr[6]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
-                    else m_pEffectSpr[6]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[6]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
+                    else m_pEffectSpr[6]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 7:
@@ -3320,8 +3320,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 4) * (-3);
 
                     if (cTempFrame < 4)
-                        m_pEffectSpr[6]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
-                    else m_pEffectSpr[6]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[6]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
+                    else m_pEffectSpr[6]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 8:
@@ -3332,7 +3332,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 9:
@@ -3342,7 +3342,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 11: 
@@ -3353,7 +3353,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite2(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite2(dX, dY, cTempFrame, dwTime);
 #endif
                     break;
 
@@ -3367,8 +3367,8 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
                     if (cTempFrame < 4)
-                        m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
-                    else m_pEffectSpr[11]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
+                    else m_pEffectSpr[11]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     //m_pEffectSpr[11]->PutTransSprite(dX, dY, cTempFrame, dwTime);
                     break;
 
@@ -3382,12 +3382,12 @@ void CGame::DrawEffects()
                     if (cTempFrame < 13)
                     {
                         
-                        m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, 25 + (cTempFrame / 5), dwTime);
+                        m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, 25 + (cTempFrame / 5), dwTime);
                     }
                     else
                     {
                         
-                        m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, (8 + cTempFrame), dwTime);
+                        m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, (8 + cTempFrame), dwTime);
                     }
                     break;
 
@@ -3397,7 +3397,7 @@ void CGame::DrawEffects()
                     dX = m_pEffectList[i]->m_mX - m_sViewPointX;
                     dY = m_pEffectList[i]->m_mY - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite50_NoColorKey(dX, dY, (28 + m_pEffectList[i]->m_cFrame), dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite50_no_color_key(dX, dY, (28 + m_pEffectList[i]->m_cFrame), dwTime);
                     break;
 
                 case 15:
@@ -3407,14 +3407,14 @@ void CGame::DrawEffects()
                     dX = m_pEffectList[i]->m_mX - m_sViewPointX;
                     dY = m_pEffectList[i]->m_mY - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite50_NoColorKey(dX, dY, (33 + cTempFrame), dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite50_no_color_key(dX, dY, (33 + cTempFrame), dwTime);
                     break;
 
                 case 16: 
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY, 0, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY, 0, dwTime);
                     break;
 
                 case 17:
@@ -3424,12 +3424,12 @@ void CGame::DrawEffects()
                     cTempFrame = 39 + (rand() % 3) * 3 + (rand() % 3);
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
 
                     dX = (m_pEffectList[i]->m_mX2) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY2) - m_sViewPointY;
 
-                    m_pEffectSpr[11]->PutTransSprite50_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite50_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 18:
@@ -3438,7 +3438,7 @@ void CGame::DrawEffects()
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[18]->PutTransSprite70_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[18]->put_trans_sprite70_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 30:
@@ -3447,7 +3447,7 @@ void CGame::DrawEffects()
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[14]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[14]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 31:
@@ -3456,7 +3456,7 @@ void CGame::DrawEffects()
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[15]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[15]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 32:
@@ -3465,7 +3465,7 @@ void CGame::DrawEffects()
                     cTempFrame = m_pEffectList[i]->m_cFrame + 20;
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[11]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 33:
@@ -3475,7 +3475,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) break;
 
                     iDvalue = 0;
-                    m_pEffectSpr[19]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                    m_pEffectSpr[19]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 40:
@@ -3484,7 +3484,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[20]->PutTransSprite50_NoColorKey(dX, dY, cTempFrame, dwTime); // 20
+                    m_pEffectSpr[20]->put_trans_sprite50_no_color_key(dX, dY, cTempFrame, dwTime); // 20
                     break;
 
                 case 41:
@@ -3497,7 +3497,7 @@ void CGame::DrawEffects()
                     
                     dX = (m_pEffectList[i]->m_sX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_sY) - m_sViewPointY;
-                    m_pEffectSpr[21]->PutFadeSprite(dX, dY, 48, dwTime);
+                    m_pEffectSpr[21]->put_fade_sprite(dX, dY, 48, dwTime);
 
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     if (cTempFrame < 0) break;
@@ -3507,12 +3507,12 @@ void CGame::DrawEffects()
                     if ((8 * (m_pEffectList[i]->m_sType - 41) + cTempFrame) < (8 * (m_pEffectList[i]->m_sType - 41) + 7))
                     {
                         iDvalue = -8 * (6 - cTempFrame);
-                        m_pEffectSpr[21]->PutTransSpriteColor(dX, dY, 8 * (m_pEffectList[i]->m_sType - 41) + cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[21]->put_trans_sprite_color(dX, dY, 8 * (m_pEffectList[i]->m_sType - 41) + cTempFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     }
                     else
                     {
                         if ((cTempFrame - 5) >= 8) cTempFrame = ((cTempFrame - 5) - 8) + 5;
-                        m_pEffectSpr[21]->PutSpriteFast(dX, dY, 8 * (m_pEffectList[i]->m_sType - 41) + (cTempFrame - 5), dwTime);
+                        m_pEffectSpr[21]->put_sprite_fast(dX, dY, 8 * (m_pEffectList[i]->m_sType - 41) + (cTempFrame - 5), dwTime);
                     }
                     break;
 
@@ -3523,7 +3523,7 @@ void CGame::DrawEffects()
                     
                     dX = (m_pEffectList[i]->m_sX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_sY) - m_sViewPointY;
-                    m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->PutRevTransSprite(dX, dY, 0, dwTime);
+                    m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->put_reverse_trans_sprite(dX, dY, 0, dwTime);
 
                     cTempFrame = m_pEffectList[i]->m_cFrame;
 
@@ -3535,12 +3535,12 @@ void CGame::DrawEffects()
                     if (cTempFrame < 7)
                     {
                         iDvalue = -8 * (6 - cTempFrame);
-                        m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->PutTransSpriteColor(dX, dY, cTempFrame + 1, iDvalue, iDvalue, iDvalue, dwTime);
+                        m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->put_trans_sprite_color(dX, dY, cTempFrame + 1, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     else
                     {
                         if (cTempFrame >= 8) cTempFrame = cTempFrame % 8;
-                        m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->PutSpriteFast(dX, dY, cTempFrame + 1, dwTime);
+                        m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->put_sprite_fast(dX, dY, cTempFrame + 1, dwTime);
                     }
                     break;
 
@@ -3553,12 +3553,12 @@ void CGame::DrawEffects()
                     if (cTempFrame <= 6)
                     {
                         iDvalue = 0;
-                        m_pEffectSpr[22]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);	// RGB2			
+                        m_pEffectSpr[22]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);	// RGB2			
                     }
                     else
                     {
                         iDvalue = -5 * (cTempFrame - 6);
-                        m_pEffectSpr[22]->PutTransSpriteColor(dX, dY, 6, iDvalue, iDvalue, iDvalue, dwTime); // RGB2				
+                        m_pEffectSpr[22]->put_trans_sprite_color(dX, dY, 6, iDvalue, iDvalue, iDvalue, dwTime); // RGB2				
                     }
                     break;
 
@@ -3568,7 +3568,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[28]->PutTransSprite25(dX, dY, cTempFrame, dwTime); //20
+                    m_pEffectSpr[28]->put_trans_sprite25(dX, dY, cTempFrame, dwTime); //20
                     break;
 
                 case 52:
@@ -3588,7 +3588,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) cTempFrame = 0;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[25]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime); //25
+                    m_pEffectSpr[25]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime); //25
                     break;
 
                 case 54: 
@@ -3596,7 +3596,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) cTempFrame = 0;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[28]->PutTransSprite(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[28]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 55: 
@@ -3604,7 +3604,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) cTempFrame = 0;
                     dX = (m_pEffectList[i]->m_mX);
                     dY = (m_pEffectList[i]->m_mY);
-                    m_pEffectSpr[28]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[28]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 56: 
@@ -3613,7 +3613,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[29]->PutTransSprite50_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[29]->put_trans_sprite50_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 181:
@@ -3631,9 +3631,9 @@ void CGame::DrawEffects()
                         dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
                         
-                        m_pEffectSpr[31]->PutSpriteFast(dX, dY, 15 + cTempFrame, dwTime);
+                        m_pEffectSpr[31]->put_sprite_fast(dX, dY, 15 + cTempFrame, dwTime);
                         
-                        m_pEffectSpr[31]->PutTransSprite(dX, dY, cTempFrame, dwTime);
+                        m_pEffectSpr[31]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                     }
                     break;
 
@@ -3643,7 +3643,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) break;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[32]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[32]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 62:
@@ -3655,7 +3655,7 @@ void CGame::DrawEffects()
                         dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                         dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
                         
-                        m_pEffectSpr[31]->PutRevTransSprite(dX, dY, 20 + cTempFrame, dwTime, cTempFrame / 3);
+                        m_pEffectSpr[31]->put_reverse_trans_sprite(dX, dY, 20 + cTempFrame, dwTime, cTempFrame / 3);
                     }
                     break;
 
@@ -3665,7 +3665,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) break;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[33]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[33]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 64: 
@@ -3673,7 +3673,7 @@ void CGame::DrawEffects()
                     if (cTempFrame < 0) break;
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[34]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[34]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 65:
@@ -3684,7 +3684,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[31]->PutRevTransSprite(dX, dY, 20 + cTempFrame, dwTime, cTempFrame >> 2);
+                    m_pEffectSpr[31]->put_reverse_trans_sprite(dX, dY, 20 + cTempFrame, dwTime, cTempFrame >> 2);
                     break;
 
                 case 66:
@@ -3694,8 +3694,8 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[39]->PutRevTransSprite(dX, dY, cTempFrame, dwTime);
-                    m_pEffectSpr[39]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[39]->put_reverse_trans_sprite(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[39]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 67:
@@ -3707,12 +3707,12 @@ void CGame::DrawEffects()
 
                     switch (rand() % 3)
                     {
-                        case 0: m_pEffectSpr[0]->PutTransSprite25_NoColorKey(dX, dY + 20, 1, dwTime); break;
-                        case 1: m_pEffectSpr[0]->PutTransSprite50_NoColorKey(dX, dY + 20, 1, dwTime); break;
-                        case 2: m_pEffectSpr[0]->PutTransSprite70_NoColorKey(dX, dY + 20, 1, dwTime); break;
+                        case 0: m_pEffectSpr[0]->put_trans_sprite25_no_color_key(dX, dY + 20, 1, dwTime); break;
+                        case 1: m_pEffectSpr[0]->put_trans_sprite50_no_color_key(dX, dY + 20, 1, dwTime); break;
+                        case 2: m_pEffectSpr[0]->put_trans_sprite70_no_color_key(dX, dY + 20, 1, dwTime); break;
                     }
 
-                    m_pEffectSpr[35]->PutTransSprite70_NoColorKey(dX, dY, cTempFrame / 3, dwTime);
+                    m_pEffectSpr[35]->put_trans_sprite70_no_color_key(dX, dY, cTempFrame / 3, dwTime);
                     break;
 
                 case 68:
@@ -3723,10 +3723,10 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
                     if (cTempFrame <= 11)
                     {
-                        m_pEffectSpr[40]->PutSpriteFast(dX, dY, cTempFrame, dwTime);
-                        m_pEffectSpr[41]->PutTransSprite50_NoColorKey(dX, dY, cTempFrame, dwTime);
-                        m_pEffectSpr[44]->PutRevTransSprite(dX - 2, dY - 3, cTempFrame, dwTime);
-                        m_pEffectSpr[44]->PutTransSprite_NoColorKey(dX - 4, dY - 3, cTempFrame, dwTime);
+                        m_pEffectSpr[40]->put_sprite_fast(dX, dY, cTempFrame, dwTime);
+                        m_pEffectSpr[41]->put_trans_sprite50_no_color_key(dX, dY, cTempFrame, dwTime);
+                        m_pEffectSpr[44]->put_reverse_trans_sprite(dX - 2, dY - 3, cTempFrame, dwTime);
+                        m_pEffectSpr[44]->put_trans_sprite_no_color_key(dX - 4, dY - 3, cTempFrame, dwTime);
                     }
                     else
                     {
@@ -3734,10 +3734,10 @@ void CGame::DrawEffects()
                         {
                             case 12:
                             case 13:
-                            case 14: m_pEffectSpr[40]->PutSpriteFast(dX, dY, 11, dwTime); break;
-                            case 15: m_pEffectSpr[40]->PutTransSprite70_NoColorKey(dX, dY, 11, dwTime); break;
-                            case 16: m_pEffectSpr[40]->PutTransSprite50_NoColorKey(dX, dY, 11, dwTime); break;
-                            case 17: m_pEffectSpr[40]->PutTransSprite25_NoColorKey(dX, dY, 11, dwTime); break;
+                            case 14: m_pEffectSpr[40]->put_sprite_fast(dX, dY, 11, dwTime); break;
+                            case 15: m_pEffectSpr[40]->put_trans_sprite70_no_color_key(dX, dY, 11, dwTime); break;
+                            case 16: m_pEffectSpr[40]->put_trans_sprite50_no_color_key(dX, dY, 11, dwTime); break;
+                            case 17: m_pEffectSpr[40]->put_trans_sprite25_no_color_key(dX, dY, 11, dwTime); break;
                         }
                     }
                     break;
@@ -3749,7 +3749,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[42]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[42]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 70:
@@ -3759,7 +3759,7 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[43]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[43]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                    
@@ -3772,12 +3772,12 @@ void CGame::DrawEffects()
                     if (cTempFrame <= 8)
                     {
                         iDvalue = 0;
-                        m_pEffectSpr[51]->PutTransSpriteColor(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);
+                        m_pEffectSpr[51]->put_trans_sprite_color(dX, dY, cTempFrame, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     else
                     {
                         iDvalue = -1 * (cTempFrame - 8);
-                        m_pEffectSpr[51]->PutTransSpriteColor(dX, dY, 8, iDvalue, iDvalue, iDvalue, dwTime);	// RGB2			
+                        m_pEffectSpr[51]->put_trans_sprite_color(dX, dY, 8, iDvalue, iDvalue, iDvalue, dwTime);	// RGB2			
                     }
                     break;
 
@@ -3785,14 +3785,14 @@ void CGame::DrawEffects()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY, 0, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY, 0, dwTime);
                     break;
 
                 case 110: // Energy-Bolt
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
-                    m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY, 2 + (rand() % 4), dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY, 2 + (rand() % 4), dwTime);
                     break;
 
                    
@@ -3820,8 +3820,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 5) * (-5);
 
                     if (cTempFrame < 5)
-                        m_pEffectSpr[4]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
-                    else m_pEffectSpr[4]->PutTransSpriteColor(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[4]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    else m_pEffectSpr[4]->put_trans_sprite_color(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 180: // Illusion
@@ -3833,8 +3833,8 @@ void CGame::DrawEffects()
 
                     iDvalue = (cTempFrame - 5) * (-3);
 
-                    if (cTempFrame < 9)	m_pEffectSpr[60]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
-                    else m_pEffectSpr[60]->PutTransSpriteColor(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                    if (cTempFrame < 9)	m_pEffectSpr[60]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    else m_pEffectSpr[60]->put_trans_sprite_color(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 190: // Mass-Illusion
@@ -3846,8 +3846,8 @@ void CGame::DrawEffects()
 
                     iDvalue = (cTempFrame - 5) * (-3);
 
-                    if (cTempFrame < 9) m_pEffectSpr[61]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
-                    else m_pEffectSpr[61]->PutTransSpriteColor(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                    if (cTempFrame < 9) m_pEffectSpr[61]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    else m_pEffectSpr[61]->put_trans_sprite_color(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 113: // Defense Shield
@@ -3860,8 +3860,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 5) * (-5);
 
                     if (cTempFrame < 6)
-                        m_pEffectSpr[62]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
-                    else m_pEffectSpr[62]->PutTransSpriteColor(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[62]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    else m_pEffectSpr[62]->put_trans_sprite_color(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                 case 144: // Great-Defense-Shield
@@ -3874,8 +3874,8 @@ void CGame::DrawEffects()
                     iDvalue = (cTempFrame - 5) * (-5);
 
                     if (cTempFrame < 9)
-                        m_pEffectSpr[63]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
-                    else m_pEffectSpr[63]->PutTransSpriteColor(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
+                        m_pEffectSpr[63]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    else m_pEffectSpr[63]->put_trans_sprite_color(dX, dY, m_pEffectList[i]->m_cFrame, iDvalue, iDvalue, iDvalue, dwTime); // RGB2
                     break;
 
                     
@@ -3887,7 +3887,7 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
 
                     iDvalue = (cTempFrame - 5) * (-5);
-                    m_pEffectSpr[49]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[49]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 101: // Heal
@@ -3899,7 +3899,7 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
 
                     iDvalue = (cTempFrame - 5) * (-5);
-                    m_pEffectSpr[50]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[50]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 123: // Staminar-Recovery
@@ -3911,7 +3911,7 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
 
                     iDvalue = (cTempFrame - 5) * (-5);
-                    m_pEffectSpr[56]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[56]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 132: // Invisibility
@@ -3924,7 +3924,7 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
 
                     iDvalue = (cTempFrame - 5) * (-5);
-                    m_pEffectSpr[52]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[52]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
 
@@ -3934,7 +3934,7 @@ void CGame::DrawEffects()
 
                     dX = (m_pEffectList[i]->m_dX * 32) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
-                    m_pEffectSpr[53]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[53]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
                     
 
@@ -3944,8 +3944,8 @@ void CGame::DrawEffects()
 
                     dX = (m_pEffectList[i]->m_dX * 32) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
-                    m_pEffectSpr[55]->PutRevTransSprite(dX, dY + 35, m_pEffectList[i]->m_cFrame, dwTime);
-                    m_pEffectSpr[54]->PutTransSprite50(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[55]->put_reverse_trans_sprite(dX, dY + 35, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[54]->put_trans_sprite50(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 120: // Fire Ball
@@ -3956,7 +3956,7 @@ void CGame::DrawEffects()
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[5]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[5]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 137: // Lightning Arrow
@@ -3976,27 +3976,27 @@ void CGame::DrawEffects()
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite25_NoColorKey(rX5, rY5, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite25_no_color_key(rX5, rY5, cTempFrame, dwTime);
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite25_NoColorKey(rX4, rY4, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite25_no_color_key(rX4, rY4, cTempFrame, dwTime);
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite50_NoColorKey(rX3, rY3, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite50_no_color_key(rX3, rY3, cTempFrame, dwTime);
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite50_NoColorKey(rX2, rY2, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite50_no_color_key(rX2, rY2, cTempFrame, dwTime);
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite70_NoColorKey(rX, rY, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite70_no_color_key(rX, rY, cTempFrame, dwTime);
 
                     cTempFrame = (m_pEffectList[i]->m_cDir - 1) * 4 + (rand() % 4);
                     if (cTempFrame < 0) break;
-                    m_pEffectSpr[10]->PutTransSprite(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[10]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 143: // Lightning
@@ -4089,8 +4089,8 @@ void CGame::DrawEffectLights()
                         iDvalue = (m_pEffectList[i]->m_cFrame - 7) * (-1);
 
                         if (m_pEffectList[i]->m_cFrame < 6)
-                            m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY + 30, 1, dwTime);
-                        else m_pEffectSpr[0]->PutTransSpriteColor(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                            m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY + 30, 1, dwTime);
+                        else m_pEffectSpr[0]->put_trans_sprite_color(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     break;
 
@@ -4104,8 +4104,8 @@ void CGame::DrawEffectLights()
                         iDvalue = (m_pEffectList[i]->m_cFrame - 2) * (-1);
 
                         if (m_pEffectList[i]->m_cFrame < 2)
-                            m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY + 30, 1, dwTime);
-                        else m_pEffectSpr[0]->PutTransSpriteColor(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                            m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY + 30, 1, dwTime);
+                        else m_pEffectSpr[0]->put_trans_sprite_color(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     break;
 
@@ -4113,7 +4113,7 @@ void CGame::DrawEffectLights()
                 case 70:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[0]->PutTransSprite25(dX, dY + 30, 1, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite25(dX, dY + 30, 1, dwTime);
                     break;
 
                 case 16:
@@ -4128,7 +4128,7 @@ void CGame::DrawEffectLights()
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
                     iDvalue = -5;
-                    m_pEffectSpr[0]->PutTransSpriteColor(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                    m_pEffectSpr[0]->put_trans_sprite_color(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     break;
 
                 case 6:	 // Energy Bolt
@@ -4141,8 +4141,8 @@ void CGame::DrawEffectLights()
                         iDvalue = (m_pEffectList[i]->m_cFrame - 9) * (-1);
 
                         if (m_pEffectList[i]->m_cFrame < 8)
-                            m_pEffectSpr[0]->PutTransSprite_NoColorKey(dX, dY + 30, 1, dwTime);
-                        else m_pEffectSpr[0]->PutTransSpriteColor(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                            m_pEffectSpr[0]->put_trans_sprite_no_color_key(dX, dY + 30, 1, dwTime);
+                        else m_pEffectSpr[0]->put_trans_sprite_color(dX, dY + 30, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     break;
 
@@ -4171,8 +4171,8 @@ void CGame::DrawEffectLights()
                         iDvalue = (m_pEffectList[i]->m_cFrame - 7) * (-1);
 
                         if (m_pEffectList[i]->m_cFrame < 6)
-                            m_pEffectSpr[0]->PutTransSprite(dX, dY, 1, dwTime);
-                        else m_pEffectSpr[0]->PutTransSpriteColor(dX, dY, 1, iDvalue, iDvalue, iDvalue, dwTime);
+                            m_pEffectSpr[0]->put_trans_sprite(dX, dY, 1, dwTime);
+                        else m_pEffectSpr[0]->put_trans_sprite_color(dX, dY, 1, iDvalue, iDvalue, iDvalue, dwTime);
                     }
                     break;
 
@@ -4181,7 +4181,7 @@ void CGame::DrawEffectLights()
                     {
                         dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                         dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                        m_pEffectSpr[24]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                        m_pEffectSpr[24]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     }
                     break;
 
@@ -4190,44 +4190,44 @@ void CGame::DrawEffectLights()
                     {
                         dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                         dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                        m_pEffectSpr[30]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                        m_pEffectSpr[30]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     }
                     break;
 
                 case 73:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[74]->PutTransSprite(dX, dY - 34, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[74]->put_trans_sprite(dX, dY - 34, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 74:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[75]->PutTransSprite(dX, dY + 35, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[75]->put_trans_sprite(dX, dY + 35, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 75:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[76]->PutTransSprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[76]->put_trans_sprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 76:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[77]->PutTransSprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[77]->put_trans_sprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 77:
                     dX = (m_pEffectList[i]->m_mX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
-                    m_pEffectSpr[78]->PutTransSprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[78]->put_trans_sprite25(dX + m_pEffectList[i]->m_dX * m_pEffectList[i]->m_cFrame, dY + m_pEffectList[i]->m_dY * m_pEffectList[i]->m_cFrame, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 150: // Berserk : Circle 6 magic 
                     dX = (m_pEffectList[i]->m_dX * 32) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
-                    m_pEffectSpr[58]->PutTransSprite_NoColorKey(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
+                    m_pEffectSpr[58]->put_trans_sprite_no_color_key(dX, dY, m_pEffectList[i]->m_cFrame, dwTime);
                     break;
 
                 case 180:
@@ -4235,7 +4235,7 @@ void CGame::DrawEffectLights()
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     dX = (m_pEffectList[i]->m_dX * 32) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_dY * 32) - m_sViewPointY;
-                    m_pEffectSpr[59]->PutTransSprite_NoColorKey(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[59]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     //if( cTempFrame < 9 ) m_pEffectSpr[59]->PutTransSprite_NoColorKey( dX, dY, cTempFrame, dwTime );
                     //else m_pEffectSpr[59]->PutSpriteFast( dX, dY, cTempFrame, dwTime );
                     break;
@@ -4266,7 +4266,7 @@ void CGame::RequestFullObjectData(WORD wObjectID)
     wp = (WORD *)(cMsg + DEF_INDEX2_MSGTYPE);
     *wp = wObjectID;
 
-    iRet = iSendMsg((char *)cMsg, 6);
+    iRet = send_message((char *)cMsg, 6);
 
     switch (iRet)
     {
@@ -4612,19 +4612,19 @@ void CGame::ReleaseUnusedSprites()
         if ((m_pSprite[i] != nullptr))
             if ((m_pSprite[i]->m_bIsSurfaceEmpty == FALSE) && (m_pSprite[i]->m_bOnCriticalSection == FALSE))
                 if ((G_dwGlobalTime - m_pSprite[i]->m_dwRefTime) > 60000)
-                    m_pSprite[i]->_iCloseSprite();
+                    m_pSprite[i]->close_sprite_();
 
     for (i = 0; i < DEF_MAXTILES; i++)
         if ((m_pTileSpr[i] != nullptr))
             if ((m_pTileSpr[i]->m_bIsSurfaceEmpty == FALSE) && (m_pTileSpr[i]->m_bOnCriticalSection == FALSE))
                 if ((G_dwGlobalTime - m_pTileSpr[i]->m_dwRefTime) > 60000)
-                    m_pTileSpr[i]->_iCloseSprite();
+                    m_pTileSpr[i]->close_sprite_();
 
     for (i = 0; i < DEF_MAXEFFECTSPR; i++)
         if ((m_pEffectSpr[i] != nullptr))
             if ((m_pEffectSpr[i]->m_bIsSurfaceEmpty == FALSE) && (m_pEffectSpr[i]->m_bOnCriticalSection == FALSE))
                 if ((G_dwGlobalTime - m_pEffectSpr[i]->m_dwRefTime) > 60000)
-                    m_pEffectSpr[i]->_iCloseSprite();
+                    m_pEffectSpr[i]->close_sprite_();
 }
 
 void CGame::PutChatScrollList(const char * pMsg, char cType)
@@ -5841,7 +5841,7 @@ void CGame::EnableDialogBox(int iBoxID, int cType, int sV1, int sV2, char * pStr
                 sX = m_stDialogBoxInfo[7].sX;
                 sY = m_stDialogBoxInfo[7].sY;
                 EndInputString();
-                StartInputString(sX + 75, sY + 140, 21, m_cGuildName);
+                start_input_string(sX + 75, sY + 140, 21, m_cGuildName);
             }
             break;
 
@@ -5857,7 +5857,7 @@ void CGame::EnableDialogBox(int iBoxID, int cType, int sV1, int sV2, char * pStr
 
                 sX = m_stDialogBoxInfo[17].sX;
                 sY = m_stDialogBoxInfo[17].sY;
-                StartInputString(sX + 40, sY + 57, 11, m_cAmountString, FALSE);
+                start_input_string(sX + 40, sY + 57, 11, m_cAmountString, FALSE);
             }
             else
             {
@@ -5868,7 +5868,7 @@ void CGame::EnableDialogBox(int iBoxID, int cType, int sV1, int sV2, char * pStr
                     sX = m_stDialogBoxInfo[17].sX;
                     sY = m_stDialogBoxInfo[17].sY;
                     EndInputString();
-                    StartInputString(sX + 40, sY + 57, 11, m_cAmountString, FALSE);
+                    start_input_string(sX + 40, sY + 57, 11, m_cAmountString, FALSE);
                 }
             }
             break;
@@ -6478,17 +6478,17 @@ void CGame::ShowReceivedString(BOOL bIsHide)
 
     if (m_iInputX2 == 0)
     {
-        PutString(m_iInputX + 1, m_iInputY + 1, G_cTxt, Color(0, 0, 0));
-        PutString(m_iInputX, m_iInputY + 1, G_cTxt, Color(0, 0, 0));
-        PutString(m_iInputX + 1, m_iInputY, G_cTxt, Color(0, 0, 0));
-        PutString(m_iInputX, m_iInputY, G_cTxt, Color(255, 255, 255));
+        put_string(m_iInputX + 1, m_iInputY + 1, G_cTxt, Color(0, 0, 0));
+        put_string(m_iInputX, m_iInputY + 1, G_cTxt, Color(0, 0, 0));
+        put_string(m_iInputX + 1, m_iInputY, G_cTxt, Color(0, 0, 0));
+        put_string(m_iInputX, m_iInputY, G_cTxt, Color(255, 255, 255));
     }
     else
     {
-        PutAlignedString(m_iInputX + 1, m_iInputX2 + 1, m_iInputY + 1, G_cTxt, Color(255, 0, 0, 0));
-        PutAlignedString(m_iInputX, m_iInputX2, m_iInputY + 1, G_cTxt, Color(255, 0, 0, 0));
-        PutAlignedString(m_iInputX + 1, m_iInputX2 + 1, m_iInputY, G_cTxt, Color(255, 0, 0, 0));
-        PutAlignedString(m_iInputX, m_iInputX2, m_iInputY, G_cTxt, Color(255, 255, 255, 255));
+        put_aligned_string(m_iInputX + 1, m_iInputX2 + 1, m_iInputY + 1, G_cTxt, Color(255, 0, 0, 0));
+        put_aligned_string(m_iInputX, m_iInputX2, m_iInputY + 1, G_cTxt, Color(255, 0, 0, 0));
+        put_aligned_string(m_iInputX + 1, m_iInputX2 + 1, m_iInputY, G_cTxt, Color(255, 0, 0, 0));
+        put_aligned_string(m_iInputX, m_iInputX2, m_iInputY, G_cTxt, Color(255, 255, 255, 255));
     }
 }
 
@@ -6501,7 +6501,7 @@ void CGame::ClearInputString()
 #endif
 }
 
-void CGame::StartInputString(int left, int top, uint32_t len, char * pBuffer, bool bIsHide, int right)
+void CGame::start_input_string(int left, int top, uint32_t len, char * pBuffer, bool bIsHide, int right)
 {
     m_bInputStatus = TRUE;
     m_iInputX = left;
@@ -6554,10 +6554,10 @@ void CGame::DrawNewDialogBox(char cType, int sX, int sY, int iFrame, BOOL bIsNoC
     if (bIsNoColorKey == FALSE)
     {
         if (bIsTrans == TRUE)
-            m_pSprite[cType]->PutTransSprite2(sX, sY, iFrame, dwTime);
-        else m_pSprite[cType]->PutSpriteFast(sX, sY, iFrame, dwTime);
+            m_pSprite[cType]->put_trans_sprite2(sX, sY, iFrame, dwTime);
+        else m_pSprite[cType]->put_sprite_fast(sX, sY, iFrame, dwTime);
     }
-    else m_pSprite[cType]->PutSpriteFastNoColorKey(sX, sY, iFrame, dwTime);
+    else m_pSprite[cType]->put_sprite_fast_no_color_key(sX, sY, iFrame, dwTime);
 }
 
 void CGame::SetCameraShakingEffect(short sDist, int iMul)
@@ -6606,10 +6606,10 @@ void CGame::SetTopMsg(std::string pString, unsigned char iLastSec)
 void CGame::DrawTopMsg()
 {
     if (strlen(m_cTopMsg) == 0) return;
-    DrawShadowBox(0, 0, 639, 30);
+    draw_shadow_box(0, 0, 639, 30);
 
     if ((((G_dwGlobalTime - m_dwTopMsgTime) / 250) % 2) == 0)
-        PutAlignedString(0, 639, 10, m_cTopMsg, 255, 255, 255);
+        put_aligned_string(0, 639, 10, m_cTopMsg, 255, 255, 255);
 
     if (G_dwGlobalTime > (m_iTopMsgLastSec * 1000 + m_dwTopMsgTime))
     {
@@ -7002,11 +7002,11 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, BOOL bIsPreDC)
             {
 //                 PutString(sX - iSize2, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
 //                 PutString(sX - iSize2 + 1, sY - 65 - iLoc, cMsg, Color(180, 30, 30));
-                PutString3(sX - iSize2, sY - 65 - iLoc, str, Color(180, 30, 30));
+                put_string3(sX - iSize2, sY - 65 - iLoc, str, Color(180, 30, 30));
             }
             else
             {
-                PutOverheadString(sX - iSize2, sY - 65 - iLoc, str, overhead_magic_color, 4, false, 16);
+                put_overhead_string(sX - iSize2, sY - 65 - iLoc, str, overhead_magic_color, 4, false, 16);
                 //PutString_SprFont3(sX - iSize2, sY - 65 - iLoc, str, m_wR[14] * 4, m_wG[14] * 4, m_wB[14] * 4, false, 0);
             }
             break;
@@ -7026,19 +7026,19 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, BOOL bIsPreDC)
             switch (iLines)
             {
                 case 1:
-                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 65 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
                     //PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
                     break;
                 case 2:
-                    PutOverheadString(sX - iSize, sY - 81 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
-                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 81 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 65 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
 //                     PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
 //                     PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
                     break;
                 case 3:
-                    PutOverheadString(sX - iSize, sY - 97 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
-                    PutOverheadString(sX - iSize, sY - 81 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
-                    PutOverheadString(sX - iSize, sY - 65 - iLoc, cMsgC, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 97 - iLoc, cMsgA, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 81 - iLoc, cMsgB, overhead_damage_color, 2, bIsTrans, iFontSize);
+                    put_overhead_string(sX - iSize, sY - 65 - iLoc, cMsgC, overhead_damage_color, 2, bIsTrans, iFontSize);
 //                     PutString_SprFont3(sX - iSize, sY - 97 - iLoc, cMsgA, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
 //                     PutString_SprFont3(sX - iSize, sY - 81 - iLoc, cMsgB, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
 //                     PutString_SprFont3(sX - iSize, sY - 65 - iLoc, cMsgC, m_wR[13] * 2, m_wG[13] * 2, m_wB[13] * 2, bIsTrans, iFontSize);
@@ -7206,14 +7206,14 @@ void CGame::_DrawBlackRect(int iSize)
 
     for (ix = 0; ix < dcx; ix++)
     {
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(ix * 16 + sx, iSize * 16, 12, dwTime);
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(ix * 16 + sx, 464 - iSize * 16, 12, dwTime);
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(ix * 16 + sx, iSize * 16, 12, dwTime);
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(ix * 16 + sx, 464 - iSize * 16, 12, dwTime);
     }
 
     for (iy = 0; iy < dcy; iy++)
     {
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(iSize * 16, iy * 16 + sy, 12, dwTime);
-        m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(624 - iSize * 16, iy * 16 + sy, 12, dwTime);
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(iSize * 16, iy * 16 + sy, 12, dwTime);
+        m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(624 - iSize * 16, iy * 16 + sy, 12, dwTime);
     }
 }
 
@@ -7340,14 +7340,14 @@ void CGame::DrawWhetherEffects()
                     dY = m_stWhetherObject[i].sY - m_sViewPointY;
                     cTempFrame = 16 + (m_stWhetherObject[i].cStep / 6);
 
-                    m_pEffectSpr[11]->PutTransSprite(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                 }
                 else if ((m_stWhetherObject[i].cStep >= 20) && (m_stWhetherObject[i].cStep < 25) && (m_stWhetherObject[i].sX != 0))
                 {
                     
                     dX = m_stWhetherObject[i].sX - m_sViewPointX;
                     dY = m_stWhetherObject[i].sY - m_sViewPointY;
-                    m_pEffectSpr[11]->PutTransSprite(dX, dY, m_stWhetherObject[i].cStep, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite(dX, dY, m_stWhetherObject[i].cStep, dwTime);
                 }
             }
             break;
@@ -7379,7 +7379,7 @@ void CGame::DrawWhetherEffects()
                     dY = m_stWhetherObject[i].sY - m_sViewPointY;
                     cTempFrame = 39 + (m_stWhetherObject[i].cStep / 20) * 3 + (rand() % 3);
 
-                    m_pEffectSpr[11]->PutTransSprite(dX, dY, cTempFrame, dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
 
 #ifdef DEF_XMAS	
                     if (dY == 478 - 53)
@@ -7402,7 +7402,7 @@ void CGame::DrawWhetherEffects()
             for (i = 0; i <= MAXNUM; i++)
             {
                 if (iy2[i] > 10)	
-                    m_pEffectSpr[11]->PutTransSprite(ix1[i], iy2[i], iFrame[i], dwTime);
+                    m_pEffectSpr[11]->put_trans_sprite(ix1[i], iy2[i], iFrame[i], dwTime);
             }
 #endif
 
@@ -7538,7 +7538,7 @@ void CGame::SetWhetherStatus(BOOL bStart, char cType)
 
 void CGame::DrawLine2(int x0, int y0, int x1, int y1, int iR, int iG, int iB)
 {
-    DrawLine(x0, y0, x1, y1, iR, iG, iB);
+    draw_line(x0, y0, x1, y1, iR, iG, iB);
     //     int dx, dy, x_inc, y_inc, error, index, dstR, dstG, dstB;
     //     int iResultX, iResultY;
     //     WORD * pDst;
@@ -7670,21 +7670,21 @@ void CGame::_DrawThunderEffect(int sX, int sY, int dX, int dY, int rX, int rY, c
         switch (cType)
         {
             case 1:
-                DrawLine(pX1, pY1, iX1, iY1, 15, 15, 20);
-                DrawLine(pX1 - 1, pY1, iX1 - 1, iY1, wR1, wG1, wB1);
-                DrawLine(pX1 + 1, pY1, iX1 + 1, iY1, wR1, wG1, wB1);
-                DrawLine(pX1, pY1 - 1, iX1, iY1 - 1, wR1, wG1, wB1);
-                DrawLine(pX1, pY1 + 1, iX1, iY1 + 1, wR1, wG1, wB1);
+                draw_line(pX1, pY1, iX1, iY1, 15, 15, 20);
+                draw_line(pX1 - 1, pY1, iX1 - 1, iY1, wR1, wG1, wB1);
+                draw_line(pX1 + 1, pY1, iX1 + 1, iY1, wR1, wG1, wB1);
+                draw_line(pX1, pY1 - 1, iX1, iY1 - 1, wR1, wG1, wB1);
+                draw_line(pX1, pY1 + 1, iX1, iY1 + 1, wR1, wG1, wB1);
 
-                DrawLine(pX1 - 2, pY1, iX1 - 2, iY1, wR2, wG2, wB2);
-                DrawLine(pX1 + 2, pY1, iX1 + 2, iY1, wR2, wG2, wB2);
-                DrawLine(pX1, pY1 - 2, iX1, iY1 - 2, wR2, wG2, wB2);
-                DrawLine(pX1, pY1 + 2, iX1, iY1 + 2, wR2, wG2, wB2);
+                draw_line(pX1 - 2, pY1, iX1 - 2, iY1, wR2, wG2, wB2);
+                draw_line(pX1 + 2, pY1, iX1 + 2, iY1, wR2, wG2, wB2);
+                draw_line(pX1, pY1 - 2, iX1, iY1 - 2, wR2, wG2, wB2);
+                draw_line(pX1, pY1 + 2, iX1, iY1 + 2, wR2, wG2, wB2);
 
-                DrawLine(pX1 - 1, pY1 - 1, iX1 - 1, iY1 - 1, wR3, wG3, wB3);
-                DrawLine(pX1 + 1, pY1 - 1, iX1 + 1, iY1 - 1, wR3, wG3, wB3);
-                DrawLine(pX1 + 1, pY1 - 1, iX1 + 1, iY1 - 1, wR3, wG3, wB3);
-                DrawLine(pX1 - 1, pY1 + 1, iX1 - 1, iY1 + 1, wR3, wG3, wB3);
+                draw_line(pX1 - 1, pY1 - 1, iX1 - 1, iY1 - 1, wR3, wG3, wB3);
+                draw_line(pX1 + 1, pY1 - 1, iX1 + 1, iY1 - 1, wR3, wG3, wB3);
+                draw_line(pX1 + 1, pY1 - 1, iX1 + 1, iY1 - 1, wR3, wG3, wB3);
+                draw_line(pX1 - 1, pY1 + 1, iX1 - 1, iY1 + 1, wR3, wG3, wB3);
                 break;
 
             case 2:
@@ -7725,7 +7725,7 @@ void CGame::_DrawThunderEffect(int sX, int sY, int dX, int dY, int rX, int rY, c
     switch (cType)
     {
         case 1:
-            m_pEffectSpr[6]->PutTransSprite(iX1, iY1, (rand() % 2), dwTime);
+            m_pEffectSpr[6]->put_trans_sprite(iX1, iY1, (rand() % 2), dwTime);
             break;
     }
 }
@@ -8409,7 +8409,7 @@ void CGame::CreateScreenShot()
     _text.setString("Helbreath Xtreme");
     _text.setFillColor(sf::Color::White);
     sf::FloatRect bounds = _text.getLocalBounds();
-    _text.setPosition(float(GetWidth() - 180), 10);
+    _text.setPosition(float(get_width() - 180), 10);
     _text.setCharacterSize(12);
 
     sf::Texture tex;
@@ -8424,7 +8424,7 @@ void CGame::CreateScreenShot()
     rtex.draw(sprite);
     rtex.draw(_text);
     _text.setString(std::format("%F %T"));
-    _text.setPosition(float(GetWidth() - 180), 30);
+    _text.setPosition(float(get_width() - 180), 30);
     rtex.draw(_text);
 
     _mkdir("screenshots");
@@ -8531,7 +8531,7 @@ BOOL CGame::FindGuildName(char * pName, int * ipIndex)
 void CGame::DrawVersion()
 {
     format_to_local(G_cTxt, "Version: {}.{}.{}", DEF_UPPERVERSION, DEF_LOWERVERSION, DEF_PATCHVERSION);
-    PutString(GetVirtualWidth() - 100, 10, G_cTxt, Color(128, 128, 128, 128));
+    put_string(get_virtual_width() - 100, 10, G_cTxt, Color(128, 128, 128, 128));
 }
 
 char CGame::GetOfficialMapName(char * pMapName, char * pName)
@@ -10001,25 +10001,25 @@ void CGame::ShowEventList(DWORD dwTime)
             switch (m_stEventHistory[i].cColor)
             {
                 case 0:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(225, 225, 225), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(225, 225, 225), FALSE, 1);
                     break;
                 case 1:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(130, 255, 130), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(130, 255, 130), FALSE, 1);
                     break;
                 case 2:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(255, 130, 130), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(255, 130, 130), FALSE, 1);
                     break;
                 case 3:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(130, 130, 255), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(130, 130, 255), FALSE, 1);
                     break;
                 case 4:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(230, 230, 130), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(230, 230, 130), FALSE, 1);
                     break;
                 case 10:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(180, 255, 180), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(180, 255, 180), FALSE, 1);
                     break;
                 case 20:
-                    PutString(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(150, 150, 170), FALSE, 1);
+                    put_string(10, 10 + i * 15, m_stEventHistory[i].cTxt, Color(150, 150, 170), FALSE, 1);
                     break;
             }
         }
@@ -10031,32 +10031,32 @@ void CGame::ShowEventList(DWORD dwTime)
             switch (m_stEventHistory2[i].cColor)
             {
                 case 0:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(225, 225, 225), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(225, 225, 225), FALSE, 1);
                     break;
                 case 1:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(130, 255, 130), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(130, 255, 130), FALSE, 1);
                     break;
                 case 2:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(255, 130, 130), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(255, 130, 130), FALSE, 1);
                     break;
                 case 3:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(130, 130, 255), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(130, 130, 255), FALSE, 1);
                     break;
                 case 4:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(230, 230, 130), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(230, 230, 130), FALSE, 1);
                     break;
                 case 10:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(180, 255, 180), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(180, 255, 180), FALSE, 1);
                     break;
                 case 20:
-                    PutString(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(150, 150, 170), FALSE, 1);
+                    put_string(10, 322 + i * 15, m_stEventHistory2[i].cTxt, Color(150, 150, 170), FALSE, 1);
                     break;
             }
         }
 
     if (m_bSkillUsingStatus == TRUE)
     {
-        PutString(280 - 29, 280 - 52, SHOW_EVENT_LIST1, Color(235, 235, 235), FALSE, 1);
+        put_string(280 - 29, 280 - 52, SHOW_EVENT_LIST1, Color(235, 235, 235), FALSE, 1);
         
     }
 }

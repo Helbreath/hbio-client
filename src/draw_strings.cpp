@@ -45,7 +45,7 @@ static char __cSpace[] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8,
                           15, 16, 12, 17, 14, 15, 14, 16, 10, 13, 19, 10, 17, 17, 15, 14, 15, 16, 13, 17, 16, 16, 20, 17, 16, 14,
                           8, 8, 8, 8, 8, 8, 8, 6, 7, 8, 7, 7, 7, 7, 4, 7, 7, 4, 11, 7, 8, 8, 7, 8, 6, 5, 8, 9, 14, 8, 9, 8, 8, 8, 8, 8,
                           8, 8, 8, 8, 8, 8, 8 };
-void CGame::PutString_SprFont(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_font(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
 {
     int iXpos;
     uint32_t iCnt;
@@ -59,11 +59,11 @@ void CGame::PutString_SprFont(int iX, int iY, std::string_view pStr, short sR, s
     {
         if ((cTmpStr[iCnt] >= 33) && (cTmpStr[iCnt] <= 122))
         {
-            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteColor(iXpos + 1, iY, cTmpStr[iCnt] - 33, sR + 11, sG + 7, sB + 6, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_color(iXpos + 1, iY, cTmpStr[iCnt] - 33, sR + 11, sG + 7, sB + 6, dwTime);
             if ((sR == 0) && (sG == 0) && (sB == 0))
-                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteFast(iXpos, iY, cTmpStr[iCnt] - 33, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_fast(iXpos, iY, cTmpStr[iCnt] - 33, dwTime);
             else
-                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteColor(iXpos, iY, cTmpStr[iCnt] - 33, sR, sG, sB, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_color(iXpos, iY, cTmpStr[iCnt] - 33, sR, sG, sB, dwTime);
             iXpos += __cSpace[cTmpStr[iCnt] - 33];
         }
         else
@@ -71,7 +71,7 @@ void CGame::PutString_SprFont(int iX, int iY, std::string_view pStr, short sR, s
     }
 }
 
-void CGame::PutString_SprFont2(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_font2(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
 {
     int iXpos;
     uint32_t iCnt;
@@ -86,12 +86,12 @@ void CGame::PutString_SprFont2(int iX, int iY, std::string_view pStr, short sR, 
     {
         if ((cTmpStr[iCnt] >= 33) && (cTmpStr[iCnt] <= 122))
         {
-            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteFast(iXpos + 1, iY, cTmpStr[iCnt] - 33, dwTime);
-            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteFast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 33, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_fast(iXpos + 1, iY, cTmpStr[iCnt] - 33, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_fast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 33, dwTime);
             if ((sR == 0) && (sG == 0) && (sB == 0))
-                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteFast(iXpos, iY, cTmpStr[iCnt] - 33, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_fast(iXpos, iY, cTmpStr[iCnt] - 33, dwTime);
             else
-                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->PutSpriteColor(iXpos, iY, cTmpStr[iCnt] - 33, sR, sG, sB, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_FONT1]->put_sprite_color(iXpos, iY, cTmpStr[iCnt] - 33, sR, sG, sB, dwTime);
             iXpos += __cSpace[cTmpStr[iCnt] - 33];
         }
         else
@@ -99,7 +99,7 @@ void CGame::PutString_SprFont2(int iX, int iY, std::string_view pStr, short sR, 
     }
 }
 
-void CGame::PutString_SprFont3(int iX, int iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans, int iType)
+void CGame::put_string_sprite_font3(int iX, int iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans, int iType)
 {
     int iXpos, iAdd;
     uint32_t iCnt;
@@ -120,15 +120,15 @@ void CGame::PutString_SprFont3(int iX, int iY, std::string_view pStr, short sR, 
 
                 if (bTrans == false)
                 {
-                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->PutSpriteFast(iXpos, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
-                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->PutSpriteFast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->put_sprite_fast(iXpos, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->put_sprite_fast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
                     if ((sR == 0) && (sG == 0) && (sB == 0))
-                        m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->PutSpriteFast(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                        m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->put_sprite_fast(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, dwTime);
                     else
-                        m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->PutSpriteColor(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
+                        m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->put_sprite_color(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
                 }
                 else
-                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->PutTransSpriteColor(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->put_trans_sprite_color(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
 
                 iXpos += (m_pSprite[DEF_SPRID_INTERFACE_SPRFONTS2]->brush[cTmpStr[iCnt] - 32 + iAdd].szx);
             }
@@ -147,15 +147,15 @@ void CGame::PutString_SprFont3(int iX, int iY, std::string_view pStr, short sR, 
 
                 if (bTrans == false)
                 {
-                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->PutSpriteFast(iXpos, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
-                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->PutSpriteFast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->put_sprite_fast(iXpos, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->put_sprite_fast(iXpos + 1, iY + 1, cTmpStr[iCnt] - 32 + iAdd, dwTime);
                     if ((sR == 0) && (sG == 0) && (sB == 0))
-                        m_pSprite[DEF_SPRID_INTERFACE_FONT2]->PutSpriteFast(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, dwTime);
+                        m_pSprite[DEF_SPRID_INTERFACE_FONT2]->put_sprite_fast(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, dwTime);
                     else
-                        m_pSprite[DEF_SPRID_INTERFACE_FONT2]->PutSpriteColor(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
+                        m_pSprite[DEF_SPRID_INTERFACE_FONT2]->put_sprite_color(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
                 }
                 else
-                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->PutTransSpriteColor(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
+                    m_pSprite[DEF_SPRID_INTERFACE_FONT2]->put_trans_sprite_color(iXpos, iY, cTmpStr[iCnt] - 32 + iAdd, sR, sG, sB, dwTime);
 
                 iXpos += (m_pSprite[DEF_SPRID_INTERFACE_FONT2]->brush[cTmpStr[iCnt] - 32 + iAdd].szx);
             }
@@ -166,7 +166,7 @@ void CGame::PutString_SprFont3(int iX, int iY, std::string_view pStr, short sR, 
 }
 
 static char __cSpace2[] = { 6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6 }; //{8,6,9,8,8,9,8,8,8,8};
-void CGame::PutString_SprNum(int iX, int iY, char * pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_number(int iX, int iY, char * pStr, short sR, short sG, short sB)
 {
     int iXpos;
     unsigned char iCnt;
@@ -179,18 +179,18 @@ void CGame::PutString_SprNum(int iX, int iY, char * pStr, short sR, short sG, sh
     {
         if ((cTmpStr[iCnt] >= 0x30) && (cTmpStr[iCnt] <= 0x39))
         {
-            m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSprite(iXpos + 2, iY, cTmpStr[iCnt] - 0x30 + 6, dwTime);
-            m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSprite(iXpos + 1, iY + 1, cTmpStr[iCnt] - 0x30 + 6, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->put_trans_sprite(iXpos + 2, iY, cTmpStr[iCnt] - 0x30 + 6, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->put_trans_sprite(iXpos + 1, iY + 1, cTmpStr[iCnt] - 0x30 + 6, dwTime);
             if ((sR == 0) && (sG == 0) && (sB == 0))
-                m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSprite(iXpos, iY, cTmpStr[iCnt] - 0x30 + 6, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->put_trans_sprite(iXpos, iY, cTmpStr[iCnt] - 0x30 + 6, dwTime);
             else
-                m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->PutTransSpriteColor(iXpos, iY, cTmpStr[iCnt] - 0x30 + 6, sR, sG, sB, dwTime);
+                m_pSprite[DEF_SPRID_INTERFACE_ADDINTERFACE]->put_trans_sprite_color(iXpos, iY, cTmpStr[iCnt] - 0x30 + 6, sR, sG, sB, dwTime);
             iXpos += __cSpace2[cTmpStr[iCnt] - 0x30];
         }
     }
 }
 
-void CGame::PutString(int iX, int iY, std::string pString, Color color, bool bHide, char cBGtype)
+void CGame::put_string(int iX, int iY, std::string pString, Color color, bool bHide, char cBGtype)
 {
     int i;
     if (pString.length() == 0)
@@ -200,15 +200,15 @@ void CGame::PutString(int iX, int iY, std::string pString, Color color, bool bHi
         switch (cBGtype)
         {
         case 0:
-            PutFontString("default", iX + 1, iY, pString, color);
+            put_font_string("default", iX + 1, iY, pString, color);
             break;
         case 1:
-            PutFontString("default", iX, iY + 1, pString, Color(5, 5, 5));
-            PutFontString("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
-            PutFontString("default", iX + 1, iY, pString, Color(5, 5, 5));
+            put_font_string("default", iX, iY + 1, pString, Color(5, 5, 5));
+            put_font_string("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
+            put_font_string("default", iX + 1, iY, pString, Color(5, 5, 5));
             break;
         }
-        PutFontString("default", iX, iY, pString, color);
+        put_font_string("default", iX, iY, pString, color);
     }
     else
     {
@@ -219,22 +219,22 @@ void CGame::PutString(int iX, int iY, std::string pString, Color color, bool bHi
         switch (cBGtype)
         {
         case 0:
-            PutFontString("default", iX + 1, iY, pString, color);
+            put_font_string("default", iX + 1, iY, pString, color);
             break;
         case 1:
-            PutFontString("default", iX, iY + 1, pString, Color(5, 5, 5));
-            PutFontString("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
-            PutFontString("default", iX + 1, iY, pString, Color(5, 5, 5));
+            put_font_string("default", iX, iY + 1, pString, Color(5, 5, 5));
+            put_font_string("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
+            put_font_string("default", iX + 1, iY, pString, Color(5, 5, 5));
             break;
         }
-        PutFontString("default", iX, iY, pString, color);
+        put_font_string("default", iX, iY, pString, color);
     }
 }
-void CGame::PutChatString(int iX, int iY, std::string pString, Color color)
+void CGame::put_chat_string(int iX, int iY, std::string pString, Color color)
 {
-    PutFontString("default", iX, iY, pString, color); //TODO: make 'chat' font?
+    put_font_string("default", iX, iY, pString, color); //TODO: make 'chat' font?
 }
-void CGame::PutChatWindowString(int iX, int iY, std::string pString, Color color)
+void CGame::put_chat_window_string(int iX, int iY, std::string pString, Color color)
 {
     try
     {
@@ -250,7 +250,7 @@ void CGame::PutChatWindowString(int iX, int iY, std::string pString, Color color
         __debugbreak();
     }
 }
-void CGame::PutFontStringSize(std::string fontname, int iX, int iY, std::string text, Color color, int size)
+void CGame::put_font_string_size(std::string fontname, int iX, int iY, std::string text, Color color, int size)
 {
     try
     {
@@ -269,7 +269,7 @@ void CGame::PutFontStringSize(std::string fontname, int iX, int iY, std::string 
     }
 }
 
-void CGame::PutFontString(std::string fontname, int iX, int iY, std::string text, Color color)
+void CGame::put_font_string(std::string fontname, int iX, int iY, std::string text, Color color)
 {
     try
     {
@@ -288,7 +288,7 @@ void CGame::PutFontString(std::string fontname, int iX, int iY, std::string text
     }
 }
 
-void CGame::PutAlignedString(int iX1, int iX2, int iY, std::string text, Color color)
+void CGame::put_aligned_string(int iX1, int iX2, int iY, std::string text, Color color)
 {
     try
     {
@@ -311,7 +311,7 @@ void CGame::PutAlignedString(int iX1, int iX2, int iY, std::string text, Color c
     }
 }
 
-void CGame::PutOverheadString(int x, int y, std::string text, Color color, int multiplier, bool transparency, int size)
+void CGame::put_overhead_string(int x, int y, std::string text, Color color, int multiplier, bool transparency, int size)
 {
     overhead_text.setString(text);
     overhead_text.setFillColor(Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, transparency ? 200 : 255));
@@ -320,7 +320,7 @@ void CGame::PutOverheadString(int x, int y, std::string text, Color color, int m
     draw(overhead_text);
 }
 
-void CGame::PutUnderEntityString(int x, int y, std::string text, Color color, int size)
+void CGame::put_under_entity_string(int x, int y, std::string text, Color color, int size)
 {
     under_text.setString(text);
     under_text.setFillColor(color);
