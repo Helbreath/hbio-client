@@ -386,8 +386,7 @@ void CGame::on_input_event(sf::Event event)
                 {
                     // todo: recreate surfaces to resize to recenter area
                     fullscreen = !fullscreen;
-                    window.close();
-                    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
+                    create_renderer();
                     captured = true;
                     window.setMouseCursorGrabbed(clipmousegame);
                     window.setMouseCursorVisible(false);
@@ -597,28 +596,42 @@ void CGame::create_fonts()
     under_text.setOutlineThickness(1);
 }
 
-bool CGame::create_renderer(bool fs)
+void CGame::create_window()
 {
-    fullscreen = fs;
+    if (window.isOpen()) window.close();
 
     format_to_local(winName, "Helbreath Xtreme {}.{}.{} Renderer: {}", DEF_UPPERVERSION, DEF_LOWERVERSION, DEF_PATCHVERSION, _renderer);
-
     sf::ContextSettings context;
     context.antialiasingLevel = antialiasing;
     context.majorVersion = 3;
     context.minorVersion = 3;
 
-    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Close)), context);
+    if (fullscreen)
+    {
+        screenwidth_windowed = screenwidth;
+        screenheight_windowed = screenheight;
+        auto mode = sf::VideoMode::getDesktopMode();
+        screenwidth = mode.width;
+        screenheight = mode.height;
+        window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Close)), context);
+    }
+    else
+    {
+        screenwidth = screenwidth_windowed;
+        screenheight = screenheight_windowed;
+        window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Close)), context);
+    }
 
     handle = window.getSystemHandle();
 
-    if (vsync)
-        window.setVerticalSyncEnabled(true);
-    else
-        window.setVerticalSyncEnabled(false);
+    window.setVerticalSyncEnabled(vsync);
 
     frame_limit = 0;
+}
 
+bool CGame::create_renderer()
+{
+    create_window();
     create_surfaces();
     create_fonts();
     create_load_list();
@@ -713,10 +726,8 @@ void CGame::put_pixel(short sX, short sY, Color color)
 
 void CGame::change_display_mode()
 {
-    window.close();
-    sf::ContextSettings context;
     fullscreen = !fullscreen;
-    window.create(sf::VideoMode(screenwidth, screenheight), winName, (fullscreen ? sf::Style::Fullscreen : (sf::Style::Resize | sf::Style::Close)));
+    create_renderer();
 }
 
 void CGame::render_mouse(int mx, int my, bool scale_mouse_rendering)

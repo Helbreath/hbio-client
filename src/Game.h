@@ -447,9 +447,10 @@ public:
     void load_settings();
     void save_settings();
 
-    bool create_renderer(bool fs = false);
+    bool create_renderer();
     void create_surfaces();
     void create_fonts();
+    void create_window();
     sf::WindowHandle handle;
 
     void put_font_string_size(std::string fontname, int iX, int iY, std::string text, Color color, int size);
@@ -519,12 +520,19 @@ public:
     bool isactive;
     uint16_t screenwidth;
     uint16_t screenheight;
+    uint16_t screenwidth_windowed;
+    uint16_t screenheight_windowed;
     uint16_t screenwidth_v;
     uint16_t screenheight_v;
     void set_resolution(uint16_t width, uint16_t height)
     {
         screenwidth = width;
         screenheight = height;
+        if (!fullscreen)
+        {
+            screenwidth_windowed = width;
+            screenheight_windowed = height;
+        }
     }
     void set_virtual_resolution(uint16_t width, uint16_t height)
     {
@@ -534,6 +542,9 @@ public:
 
     __forceinline uint16_t get_width() { return screenwidth; }
     __forceinline uint16_t get_height() { return screenheight; }
+
+    __forceinline uint16_t get_windowed_width() { return screenwidth_windowed; }
+    __forceinline uint16_t get_windowed_height() { return screenheight_windowed; }
 
     __forceinline uint16_t get_virtual_width() { return screenwidth_v; }
     __forceinline uint16_t get_virtual_height() { return screenheight_v; }
