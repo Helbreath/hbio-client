@@ -6,7 +6,6 @@
 
 #pragma once 
 
-#include <windows.h>
 #include <cstdint>
 
 class CCharInfo
@@ -14,7 +13,7 @@ class CCharInfo
 public:
     CCharInfo() = default;
     ~CCharInfo() = default;
-    char m_cName[12], m_cMapName[12];
+    char m_cName[12]{}, m_cMapName[12]{};
     //std::string m_cName, m_cMapName;
     int64_t id = 0;
     uint16_t m_sSkinCol = 0;

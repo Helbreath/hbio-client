@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <windows.h>
-
 #define DEF_MAGICTYPE_DAMAGE_SPOT		1
 #define DEF_MAGICTYPE_HPUP_SPOT			2
 #define DEF_MAGICTYPE_DAMAGE_AREA		3
@@ -31,12 +29,12 @@
 #define DEF_MAGICTYPE_TREMOR				22 
 #define DEF_MAGICTYPE_ICE					23 
 
-class CMagic  
+class CMagic
 {
 public:
-	CMagic();
-	~CMagic();
-	char m_cName[31];
-	int  m_sValue1, m_sValue2, m_sValue3;
-	bool m_bIsVisible;
+    CMagic();
+    ~CMagic();
+    char m_cName[31];
+    int  m_sValue1, m_sValue2, m_sValue3;
+    bool m_bIsVisible;
 };

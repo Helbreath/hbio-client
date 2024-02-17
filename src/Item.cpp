@@ -5,16 +5,19 @@
 //
 
 #include "Item.h"
+#include <memory>
 
 CItem::CItem()
 {
-	ZeroMemory(m_cName, sizeof(m_cName));
-	m_sSprite = 0;
-	m_sSpriteFrame = 0;
-	m_dwAttribute = NULL;
+    memset(m_cName, 0, sizeof(m_cName));
+    m_sSprite = 0;
+    m_sSpriteFrame = 0;
+    m_dwAttribute = 0;
+    m_cItemColor = 0;
+    m_cItemType = 0;
 }
 
 CItem::~CItem()
 {
-	
+
 }

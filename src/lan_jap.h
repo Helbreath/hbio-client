@@ -1832,7 +1832,7 @@
 #define DEF_MSG_CHARISMA		"Charisma"
 #define DEF_MSG_HITPOINT		"Hit Point"
 #define DEF_MSG_MANAPOINT		"Mana Point"
-#define DEF_MSG_STAMINARPOINT	"Staminar Point"
+#define DEF_MSG_STAMINAPOINT	"Stamina Point"
 
 #define DEF_MSG_GETNEXTMOVEDIR	"ˆê”Êl‚ÍŠëŒ¯’nˆæ‚És‚­‚±‚Æ‚ª‚Å‚«‚È‚¢‚Å‚·.Žs–ðŠ‚ÅƒvƒŒ[ƒ‚[ƒh‚ð•Ï‚¦‚È‚¯‚ê‚Î‚È‚è‚Ü‚¹‚ñ."
 #define DEF_MSG_GUIDEMAP_MIN	"(-) : ‘S‘Ìƒ}ƒbƒv@k¬ƒ‚[ƒh"

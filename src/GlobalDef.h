@@ -38,27 +38,28 @@
 #define DS_CS 2
 #define DS_WIN 3
 #define DS_DYNBG 4
+#define DS_DIALOGS 5
 
 #define DEF_SNOW_POSITION_Y		430
 
 #if DEF_LANGUAGE == 1	// Taiwan
-	#define DEF_UPPERVERSION		2
-	#define DEF_LOWERVERSION		19
+#define DEF_UPPERVERSION		2
+#define DEF_LOWERVERSION		19
 #elif DEF_LANGUAGE == 2	// China
-	#define DEF_UPPERVERSION		2
-	#define DEF_LOWERVERSION		19
+#define DEF_UPPERVERSION		2
+#define DEF_LOWERVERSION		19
 #elif DEF_LANGUAGE == 3	// Korea
-	#define DEF_UPPERVERSION		2
-	#define DEF_LOWERVERSION		20
+#define DEF_UPPERVERSION		2
+#define DEF_LOWERVERSION		20
 #elif DEF_LANGUAGE == 4	// English
-	#define DEF_UPPERVERSION		0
-	#define DEF_LOWERVERSION		0
-	#define DEF_PATCHVERSION		1
-	// Fuck USA : 2.20     International : 2.20
+#define DEF_UPPERVERSION		0
+#define DEF_LOWERVERSION		0
+#define DEF_PATCHVERSION		1
+// Fuck USA : 2.20     International : 2.20
 #elif DEF_LANGUAGE == 5	// Japan
-	#define DEF_UPPERVERSION		2
-	#define DEF_LOWERVERSION		20
-	// Terra : 2.185     Inter Japan : 2.20
+#define DEF_UPPERVERSION		2
+#define DEF_LOWERVERSION		20
+// Terra : 2.185     Inter Japan : 2.20
 #endif
 
 

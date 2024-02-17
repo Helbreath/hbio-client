@@ -20,6 +20,9 @@
 #include <fmt/format.h>
 #include <ixwebsocket/IXWebSocket.h>
 
+#include "sprite.h"
+#include "SpriteID.h"
+
 char G_cSpriteAlphaDegree;
 CGame * game;
 
@@ -39,12 +42,12 @@ std::condition_variable cv2;
 
 uint64_t unixtime()
 {
-    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 int32_t unixseconds()
 {
-    return (int32_t)duration_cast<seconds>(steady_clock::now().time_since_epoch()).count();
+    return (int32_t)std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 bool isvm()
@@ -103,7 +106,7 @@ int main(int argc, char * argv[])
         }
     }
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) || defined(HBX_CONFIG)
     std::ifstream config_file("config.json");
     json cfg;
     config_file >> cfg;
@@ -189,6 +192,7 @@ int main(int argc, char * argv[])
         window.close();
 
     game->ws->stop();
+
     delete game;
 
 #if !defined(_DEBUG) && !defined(UNLIMITED_CLIENTS)

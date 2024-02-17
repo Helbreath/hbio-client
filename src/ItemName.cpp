@@ -5,16 +5,15 @@
 //
 
 #include "ItemName.h"
+#include <memory>
 
 CItemName::CItemName()
 {
-	ZeroMemory(m_cOriginName, sizeof(m_cOriginName));
-	ZeroMemory(m_cName, sizeof(m_cName));
+    memset(m_cOriginName, 0, sizeof(m_cOriginName));
+    memset(m_cName, 0, sizeof(m_cName));
 }
 
 CItemName::~CItemName()
 {
 
 }
-
-

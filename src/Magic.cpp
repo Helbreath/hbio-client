@@ -5,10 +5,15 @@
 //
 
 #include "Magic.h"
+#include <memory>
 
 CMagic::CMagic()
 {
-	ZeroMemory(m_cName, sizeof(m_cName));
+    memset(m_cName, 0, sizeof(m_cName));
+    m_sValue1 = 0;
+    m_sValue2 = 0;
+    m_sValue3 = 0;
+    m_bIsVisible = true;
 }
 
 CMagic::~CMagic()

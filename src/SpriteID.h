@@ -88,13 +88,13 @@
 /*
 #define SPRID_MOB			17000 // -> 17000
 
-#define SPRID_UNDIES_M		1400	// 4580 
+#define SPRID_UNDIES_M		1400	// 4580
 #define SPRID_UNDIES_W		11400
 #define SPRID_HAIR_M		1600	// 4820 (240 pour 120)
 #define SPRID_HAIR_W		11600
 #define SPRID_BODYARMOR_M	1800	// 5060 (240 pour 120)
 #define SPRID_BODYARMOR_W	11800
-#define SPRID_BERK_M		2200	// 5300 (240 pour 180) 
+#define SPRID_BERK_M		2200	// 5300 (240 pour 180)
 #define SPRID_BERK_W		12100
 #define SPRID_LEGG_M		2300	// 5540
 #define SPRID_LEGG_W		12300
@@ -105,7 +105,7 @@
 #define SPRID_HEAD_M		2800	// 9300
 #define SPRID_HEAD_W		12800
 
-#define SPRID_WEAPON_M		3000	// 6020 
+#define SPRID_WEAPON_M		3000	// 6020
 #define SPRID_WEAPON_W		13000
 
 #define SPRID_SHIELD_M		6500	// 9100

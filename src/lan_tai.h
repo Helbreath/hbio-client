@@ -1639,7 +1639,7 @@
 #define DEF_MSG_CHARISMA		"¾y¤O"
 #define DEF_MSG_HITPOINT		"¥Í©R­È"
 #define DEF_MSG_MANAPOINT		"Å]ªk­È"
-#define DEF_MSG_STAMINARPOINT	"­@¤O­È"
+#define DEF_MSG_STAMINAPOINT	"­@¤O­È"
 
 #define DEF_MSG_GETNEXTMOVEDIR	"°ê¥ÁµLªk¥h¦MÀI¦a±a¡C»Ý¦Ü¥«¬F¤jÆU¤ºÅÜ§ó¼Ò¦¡¤~¦æ"
 #define DEF_MSG_GUIDEMAP_MIN	"(-) : ¤p¦a¹Ï"

@@ -21,5 +21,3 @@
 #define DEF_SOUND_SWORDHIT			14
 #define DEF_SOUND_MACEHIT			15
 #define DEF_SOUND_ARROWHIT			16
-
-

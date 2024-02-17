@@ -6,15 +6,15 @@
 
 #pragma once
 
-class CTileSpr  
+class CTileSpr
 {
 public:
-	CTileSpr();
-	~CTileSpr();
-	short m_sTileSprite;
-	short m_sTileSpriteFrame;
-	short m_sObjectSprite;
-	short m_sObjectSpriteFrame;
-	bool  m_bIsMoveAllowed;
-	bool  m_bIsTeleport;
+    CTileSpr();
+    ~CTileSpr();
+    short m_sTileSprite;
+    short m_sTileSpriteFrame;
+    short m_sObjectSprite;
+    short m_sObjectSpriteFrame;
+    bool  m_bIsMoveAllowed;
+    bool  m_bIsTeleport;
 };

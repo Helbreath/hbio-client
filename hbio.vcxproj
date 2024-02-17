@@ -25,6 +25,7 @@
     <ClInclude Include="src\fps.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GlobalDef.h" />
+    <ClCompile Include="src\draw_objects_sprites.cpp" />
     <ClCompile Include="src\helbreath.cpp" />
     <ClInclude Include="src\Item.h" />
     <ClInclude Include="src\ItemName.h" />

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <windows.h>
 #include <cstdio>
 #include <io.h>
 #include <fcntl.h>
@@ -88,13 +89,13 @@ public:
     bool check_collison(int sX, int sY, short sFrame, int msX, int msY);
     void get_sprite_rect(int sX, int sY, int sFrame);
     bool open_sprite_() { return make_sprite_surface_(); }
-    void close_sprite_() { /*OutputDebugStringW(("Unloaded image: " + m_cPakFileName + "\n").c_str()); if (_localimage) _localimage->drop(); m_bIsSurfaceEmpty = TRUE;*/ }
+    void close_sprite_() { }
 
-    RECT m_rcBound;
+    RECT m_rcBound{};
     uint64_t m_dwRefTime = 0;
-    bool m_bIsSurfaceEmpty;
-    bool m_bOnCriticalSection;
-    bool m_bAlphaEffect;
+    bool m_bIsSurfaceEmpty{};
+    bool m_bOnCriticalSection{};
+    bool m_bAlphaEffect{};
     short m_sPivotX = 0, m_sPivotY = 0;
     uint16_t * m_pSurfaceAddr = nullptr;
     uint64_t m_dwBitmapFileStartLoc = 0;

@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <iostream>
 #include <fmt/format.h>
+#include "sprite.h"
+#include "SpriteID.h"
 
 #if DEF_LANGUAGE == 1
 #include "lan_tai.h"
@@ -32,9 +34,9 @@ extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4
 extern int _tmp_sStatus;
 extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
 extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern WORD  _tmp_wObjectID;
+extern uint16_t  _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern WORD  wFocusObjectID;
+extern uint16_t  wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
 extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
@@ -45,14 +47,14 @@ static char __cSpace[] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 8,
                           15, 16, 12, 17, 14, 15, 14, 16, 10, 13, 19, 10, 17, 17, 15, 14, 15, 16, 13, 17, 16, 16, 20, 17, 16, 14,
                           8, 8, 8, 8, 8, 8, 8, 6, 7, 8, 7, 7, 7, 7, 4, 7, 7, 4, 11, 7, 8, 8, 7, 8, 6, 5, 8, 9, 14, 8, 9, 8, 8, 8, 8, 8,
                           8, 8, 8, 8, 8, 8, 8 };
-void CGame::put_string_sprite_font(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_font(uint16_t iX, uint16_t iY, std::string_view pStr, short sR, short sG, short sB)
 {
     int iXpos;
     uint32_t iCnt;
     uint64_t dwTime = G_dwGlobalTime;
     char cTmpStr[100];
 
-    ZeroMemory(cTmpStr, sizeof(cTmpStr));
+    memset(cTmpStr, 0, sizeof(cTmpStr));
     strcpy(cTmpStr, pStr.data());
     iXpos = iX;
     for (iCnt = 0; iCnt < strlen(cTmpStr); iCnt++)
@@ -71,14 +73,14 @@ void CGame::put_string_sprite_font(int iX, int iY, std::string_view pStr, short 
     }
 }
 
-void CGame::put_string_sprite_font2(int iX, int iY, std::string_view pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_font2(uint16_t iX, uint16_t iY, std::string_view pStr, short sR, short sG, short sB)
 {
     int iXpos;
     uint32_t iCnt;
     uint64_t dwTime = G_dwGlobalTime;
     char cTmpStr[200];
 
-    ZeroMemory(cTmpStr, sizeof(cTmpStr));
+    memset(cTmpStr, 0, sizeof(cTmpStr));
     strcpy(cTmpStr, pStr.data());
 
     iXpos = iX;
@@ -99,14 +101,14 @@ void CGame::put_string_sprite_font2(int iX, int iY, std::string_view pStr, short
     }
 }
 
-void CGame::put_string_sprite_font3(int iX, int iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans, int iType)
+void CGame::put_string_sprite_font3(uint16_t iX, uint16_t iY, std::string_view pStr, short sR, short sG, short sB, bool bTrans, int iType)
 {
     int iXpos, iAdd;
     uint32_t iCnt;
     uint64_t dwTime = G_dwGlobalTime;
     char cTmpStr[128];
 
-    ZeroMemory(cTmpStr, sizeof(cTmpStr));
+    memset(cTmpStr, 0, sizeof(cTmpStr));
     strcpy(cTmpStr, pStr.data());
 
     if (iType != -1)
@@ -166,13 +168,13 @@ void CGame::put_string_sprite_font3(int iX, int iY, std::string_view pStr, short
 }
 
 static char __cSpace2[] = { 6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6 }; //{8,6,9,8,8,9,8,8,8,8};
-void CGame::put_string_sprite_number(int iX, int iY, char * pStr, short sR, short sG, short sB)
+void CGame::put_string_sprite_number(uint16_t iX, uint16_t iY, char * pStr, short sR, short sG, short sB)
 {
     int iXpos;
     unsigned char iCnt;
     uint64_t dwTime = G_dwGlobalTime;
     char cTmpStr[200];
-    ZeroMemory(cTmpStr, sizeof(cTmpStr));
+    memset(cTmpStr, 0, sizeof(cTmpStr));
     strcpy(cTmpStr, pStr);
     iXpos = iX;
     for (iCnt = 0; iCnt < strlen(cTmpStr); iCnt++)
@@ -190,128 +192,134 @@ void CGame::put_string_sprite_number(int iX, int iY, char * pStr, short sR, shor
     }
 }
 
-void CGame::put_string(int iX, int iY, std::string pString, Color color, bool bHide, char cBGtype)
+void CGame::render_item_details_box(uint16_t iX, uint16_t iY, std::vector<chat_msg> strings, Color background_color)
 {
-    int i;
+    if (strings.size() == 0)
+        return;
+
+    item_box.clear(background_color);
+
+    uint16_t width = 0;
+    uint16_t height = 5;
+
+    for (int i = 0; i < strings.size(); i++)
+    {
+        _text.setFont(*arya_font);
+        _text.setString(strings[i].msg);
+        _text.setFillColor(strings[i].color);
+        _text.setPosition(5.f, (float)height);
+        _text.setCharacterSize(strings[i].size);
+        item_box.draw(_text);
+
+        sf::FloatRect bounds = _text.getLocalBounds();
+        if (bounds.width + 5.f > width)
+            width = bounds.width + 5.f;
+        height += strings[i].size * 1.3;
+    }
+
+    width += 10;
+    height += 5;
+
+    sf::Vertex line[] = {
+        sf::Vertex(sf::Vector2f(1.f, 1.f), Color(200, 200, 200)),
+        sf::Vertex(sf::Vector2f(1.f, float(height - 1)), Color(200, 200, 200)),
+        sf::Vertex(sf::Vector2f(float(width - 1), float(height - 1)), Color(200, 200, 200)),
+        sf::Vertex(sf::Vector2f(float(width - 1), 1.f), Color(200, 200, 200)),
+        sf::Vertex(sf::Vector2f(1.f, 1.f), Color(200, 200, 200)),
+    };
+    item_box.draw(line, 5, sf::LineStrip);
+
+    item_box.display();
+    sf::Sprite sprite(item_box.getTexture());
+    sprite.setPosition((float)iX, (float)iY);
+    sprite.setTextureRect({ 0, 0, width, height });
+    draw(sprite);
+}
+
+void CGame::put_string(uint16_t iX, uint16_t iY, std::string pString, Color color, bool bHide, char cBGtype)
+{
     if (pString.length() == 0)
         return;
     if (bHide == false)
     {
         switch (cBGtype)
         {
-        case 0:
-            put_font_string("default", iX + 1, iY, pString, color);
-            break;
-        case 1:
-            put_font_string("default", iX, iY + 1, pString, Color(5, 5, 5));
-            put_font_string("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
-            put_font_string("default", iX + 1, iY, pString, Color(5, 5, 5));
-            break;
+            case 0:
+                put_font_string(default_font, iX + 1, iY, pString, color);
+                break;
+            case 1:
+                put_font_string(default_font, iX, iY + 1, pString, Color(5, 5, 5));
+                put_font_string(default_font, iX + 1, iY + 1, pString, Color(5, 5, 5));
+                put_font_string(default_font, iX + 1, iY, pString, Color(5, 5, 5));
+                break;
         }
-        put_font_string("default", iX, iY, pString, color);
+        put_font_string(default_font, iX, iY, pString, color);
     }
     else
     {
-        for (i = 0; i < pString.length(); ++i)
+        for (int i = 0; i < pString.length(); ++i)
             if (pString[i] != 0)
                 pString[i] = '*';
 
         switch (cBGtype)
         {
-        case 0:
-            put_font_string("default", iX + 1, iY, pString, color);
-            break;
-        case 1:
-            put_font_string("default", iX, iY + 1, pString, Color(5, 5, 5));
-            put_font_string("default", iX + 1, iY + 1, pString, Color(5, 5, 5));
-            put_font_string("default", iX + 1, iY, pString, Color(5, 5, 5));
-            break;
+            case 0:
+                put_font_string(default_font, iX + 1, iY, pString, color);
+                break;
+            case 1:
+                put_font_string(default_font, iX, iY + 1, pString, Color(5, 5, 5));
+                put_font_string(default_font, iX + 1, iY + 1, pString, Color(5, 5, 5));
+                put_font_string(default_font, iX + 1, iY, pString, Color(5, 5, 5));
+                break;
         }
-        put_font_string("default", iX, iY, pString, color);
+        put_font_string(default_font, iX, iY, pString, color);
     }
 }
-void CGame::put_chat_string(int iX, int iY, std::string pString, Color color)
+void CGame::put_chat_string(uint16_t iX, uint16_t iY, std::string pString, Color color)
 {
-    put_font_string("default", iX, iY, pString, color); //TODO: make 'chat' font?
+    put_font_string(default_font, iX, iY, pString, color); //TODO: make 'chat' font?
 }
-void CGame::put_chat_window_string(int iX, int iY, std::string pString, Color color)
+void CGame::put_chat_window_string(uint16_t iX, uint16_t iY, std::string pString, Color color)
 {
-    try
-    {
-        chat_window_text.setString(pString);
-        chat_window_text.setFillColor(color);
-        chat_window_text.setPosition((float)iX, (float)iY);
-        draw(chat_window_text);
-    }
-    catch (const std::out_of_range &)
-    {
-        //error
-        //__asm int 3;
-        __debugbreak();
-    }
+    chat_window_text.setString(pString);
+    chat_window_text.setFillColor(color);
+    chat_window_text.setPosition((float)iX, (float)iY);
+    draw(chat_window_text);
 }
-void CGame::put_font_string_size(std::string fontname, int iX, int iY, std::string text, Color color, int size)
+void CGame::put_font_string_size(sf::Font * fontname, uint16_t iX, uint16_t iY, std::string text, Color color, int size)
 {
-    try
-    {
-        _text.setFont(_font.at(fontname));
-        _text.setString(text);
-        _text.setFillColor(color);
-        _text.setPosition((float)iX, (float)iY);
-        _text.setCharacterSize(size);
-        draw(_text);
-    }
-    catch (const std::out_of_range &)
-    {
-        //error
-        //__asm int 3;
-        __debugbreak();
-    }
+    _text.setFont(*fontname);
+    _text.setString(text);
+    _text.setFillColor(color);
+    _text.setPosition((float)iX, (float)iY);
+    _text.setCharacterSize(size);
+    draw(_text);
 }
 
-void CGame::put_font_string(std::string fontname, int iX, int iY, std::string text, Color color)
+void CGame::put_font_string(sf::Font * fontname, uint16_t iX, uint16_t iY, std::string text, Color color)
 {
-    try
-    {
-        _text.setFont(_font.at(fontname));
-        _text.setString(text);
-        _text.setFillColor(color);
-        _text.setPosition((float)iX, (float)iY);
-        _text.setCharacterSize(12);
-        draw(_text);
-    }
-    catch (const std::out_of_range &)
-    {
-        //error
-        //__asm int 3;
-        __debugbreak();
-    }
+    _text.setFont(*fontname);
+    _text.setString(text);
+    _text.setFillColor(color);
+    _text.setPosition((float)iX, (float)iY);
+    _text.setCharacterSize(12);
+    draw(_text);
 }
 
-void CGame::put_aligned_string(int iX1, int iX2, int iY, std::string text, Color color)
+void CGame::put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, Color color, int font_size)
 {
-    try
-    {
-        _text.setFont(_font.at("default"));
-        _text.setString(text);
-        _text.setFillColor(color);
-        sf::FloatRect bounds = _text.getLocalBounds();
-        // todo - properly make an aligned string function
-        //_text.setPosition((float)((float(iX2) - iX1) / 2 + bounds.width), (float)iY);
-        _text.setPosition((float)iX1, (float)iY);
-        _text.setCharacterSize(12);
+    _text.setFont(*default_font);
+    _text.setString(text);
+    _text.setFillColor(color);
+    _text.setCharacterSize(font_size);
+    sf::FloatRect bounds = _text.getLocalBounds();
+    // convert to int first to avoid sub-pixel blurring
+    _text.setPosition(float(int(iX1 + (iX2 - iX1 - bounds.width) / 2)), iY);
 
-        draw(_text);
-    }
-    catch (const std::out_of_range &)
-    {
-        //error
-        //__asm int 3;
-        __debugbreak();
-    }
+    draw(_text);
 }
 
-void CGame::put_overhead_string(int x, int y, std::string text, Color color, int multiplier, bool transparency, int size)
+void CGame::put_overhead_string(uint16_t x, uint16_t y, std::string text, Color color, int multiplier, bool transparency, int size)
 {
     overhead_text.setString(text);
     overhead_text.setFillColor(Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, transparency ? 200 : 255));
@@ -320,7 +328,7 @@ void CGame::put_overhead_string(int x, int y, std::string text, Color color, int
     draw(overhead_text);
 }
 
-void CGame::put_under_entity_string(int x, int y, std::string text, Color color, int size)
+void CGame::put_under_entity_string(uint16_t x, uint16_t y, std::string text, Color color, int size)
 {
     under_text.setString(text);
     under_text.setFillColor(color);

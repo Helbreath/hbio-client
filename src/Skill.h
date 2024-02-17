@@ -6,17 +6,15 @@
 
 #pragma once
 
-#include <windows.h>
-
-class CSkill  
+class CSkill
 {
 public:
-	CSkill();
-	~CSkill();
+    CSkill();
+    ~CSkill();
 
-	char m_cName[21];
+    char m_cName[21];
 
-	int  m_iLevel;
-	BOOL m_bIsUseable;
-	char m_cUseMethod;
+    int  m_iLevel;
+    bool m_bIsUseable;
+    char m_cUseMethod;
 };

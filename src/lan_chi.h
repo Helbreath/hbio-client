@@ -1761,7 +1761,7 @@
 #define DEF_MSG_CHARISMA		"÷ÈÁ¦"
 #define DEF_MSG_HITPOINT		"ÉúÃüÖµ"
 #define DEF_MSG_MANAPOINT		"Ä§·¨Öµ"
-#define DEF_MSG_STAMINARPOINT	"ÄÍÁ¦Öµ"
+#define DEF_MSG_STAMINAPOINT	"ÄÍÁ¦Öµ"
 
 #define MSG_WORLDNAME1	"ÈÙÒ«"
 #define MSG_WORLDNAME2	"Ó¢ÓÂ"

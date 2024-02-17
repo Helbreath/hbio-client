@@ -12,6 +12,8 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
+#include "SpriteID.h"
+#include "sprite.h"
 
 std::shared_ptr<CGame::msg_queue_entry> CGame::get_login_msg_queue()
 {
@@ -122,7 +124,7 @@ void CGame::perform_connect()
 
 int32_t CGame::write(const char * data, const std::size_t size)
 {
-    std::cout << "Sent " << size << " cbytes of data\n";
+    //std::cout << "Sent " << size << " cbytes of data\n";
     auto d = ix::IXWebSocketSendData{ data, size };
     if (is_connected()) return (int32_t)ws->sendBinary(d).payloadSize;
     return -129; // DEF_XSOCKEVENT_SOCKETERROR
@@ -130,7 +132,7 @@ int32_t CGame::write(const char * data, const std::size_t size)
 
 int32_t CGame::write(stream_write & sw)
 {
-    std::cout << "Sent " << sw.position << " bytes of data\n";
+    //std::cout << "Sent " << sw.position << " bytes of data\n";
     auto d = ix::IXWebSocketSendData{ sw.data, sw.position };
     if (is_connected()) return (int32_t)ws->sendBinary(d).payloadSize;
     return -129; // DEF_XSOCKEVENT_SOCKETERROR
@@ -152,12 +154,12 @@ void CGame::connection_loss_gamemode()
         case DEF_GAMEMODE_ONSELECTCHARACTER:
         case DEF_GAMEMODE_ONLOGRESMSG:
             // play mode. connection stop here would typically indicate a disconnect
-            ChangeGameMode(DEF_GAMEMODE_ONCONNECTIONLOST);
+            change_game_mode(DEF_GAMEMODE_ONCONNECTIONLOST);
             break;
         case DEF_GAMEMODE_ONMAINMENU:
             break;
         default:
-            ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
+            change_game_mode(DEF_GAMEMODE_ONMAINMENU);
             break;
     }
 }
@@ -231,199 +233,201 @@ void CGame::on_input_event(sf::Event event)
         {
             switch (event.key.code)
             {
-            case Keyboard::Backspace:
-                if (m_pInputBuffer)
-                    if (int len = (int)strlen(m_pInputBuffer))
-                        m_pInputBuffer[len - 1] = 0;
-                break;
-            case Keyboard::Add:
-                //                                      iv1, iv2, iv3,          iv4
-                //bSendCommand(message_id::TEST_MSG, 1, 0,  1,   0,   0, nullptr,   0);
-                window.setFramerateLimit(++frame_limit);
-                //zoom *= 1.05;
-    //                     m_sViewPointX *= 1.05;
-    //                     m_sViewPointY *= 1.05;
-                break;
-            case Keyboard::Subtract:
-                //                            submsg    iv1, iv2, iv3,          iv4
-                //bSendCommand(message_id::TEST_MSG, 1, 0, -1,   0,   0, nullptr,   0);
-                window.setFramerateLimit(--frame_limit);
-                //zoom /= 1.05;
-    //                     m_sViewPointX /= 1.05;
-    //                     m_sViewPointY /= 1.05;
-                break;
-            case Keyboard::Left:
-                //                                      iv1, iv2, iv3,          iv4
-                //bSendCommand(message_id::TEST_MSG, 1, 0,  0,   1,   0, nullptr,   0);
-    //                     if (event.key.shift)
-    //                     {
-    //                         if (event.key.control)
-    //                             m_sViewPointX--;
-    //                         else
-    //                             m_sViewDstX--;
-    //                     }
+                case Keyboard::Backspace:
+                    if (m_pInputBuffer)
+                        if (int len = (int)strlen(m_pInputBuffer))
+                            m_pInputBuffer[len - 1] = 0;
+                    break;
+                case Keyboard::Add:
+                    //                                      iv1, iv2, iv3,          iv4
+                    //bSendCommand(message_id::TEST_MSG, 1, 0,  1,   0,   0, nullptr,   0);
+                    //window.setFramerateLimit(++frame_limit);
+                    zoom *= 1.05;
+                    //                     m_sViewPointX *= 1.05;
+                    //                     m_sViewPointY *= 1.05;
+                    break;
+                case Keyboard::Subtract:
+                    //                            submsg    iv1, iv2, iv3,          iv4
+                    //bSendCommand(message_id::TEST_MSG, 1, 0, -1,   0,   0, nullptr,   0);
+                    //window.setFramerateLimit(--frame_limit);
+                    zoom /= 1.05;
+                    //                     m_sViewPointX /= 1.05;
+                    //                     m_sViewPointY /= 1.05;
+                    break;
+                case Keyboard::Left:
+                    //                                      iv1, iv2, iv3,          iv4
+                    //bSendCommand(message_id::TEST_MSG, 1, 0,  0,   1,   0, nullptr,   0);
+    //                 if (event.key.shift)
+    //                 {
+    //                     if (event.key.control)
+    //                         m_sViewPointX--;
     //                     else
-    //                     {
-    //                         m_sPlayerX--;
-    //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-    //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-    //                     }
-                if (event.key.shift)
-                    testx2--;
-                else
-                    testx--;
-                m_cArrowPressed = 1;
-                //m_pMapData->ShiftMapData(7);
-                break;
-            case Keyboard::Right:
-                //                            submsg    iv1, iv2, iv3,          iv4
-                //bSendCommand(message_id::TEST_MSG, 1, 0,  0,  -1,   0, nullptr,   0);
-    //                     if (event.key.shift)
-    //                     {
-    //                         if (event.key.control)
-    //                             m_sViewPointX++;
-    //                         else
-    //                             m_sViewDstX++;
-    //                     }
+    //                         m_sViewDstX--;
+    //                 }
+    //                 else
+    //                 {
+    //                     m_sPlayerX--;
+    //                     m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32;
+    //                     m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32;
+    //                 }
+                    if (event.key.shift)
+                        testx2--;
+                    else
+                        testx--;
+                    m_cArrowPressed = 1;
+                    //m_pMapData->ShiftMapData(7);
+                    break;
+                case Keyboard::Right:
+                    //                            submsg    iv1, iv2, iv3,          iv4
+                    //bSendCommand(message_id::TEST_MSG, 1, 0,  0,  -1,   0, nullptr,   0);
+    //                 if (event.key.shift)
+    //                 {
+    //                     if (event.key.control)
+    //                         m_sViewPointX++;
     //                     else
-    //                     {
-    //                         m_sPlayerX++;
-    //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-    //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-    //                     }
-                if (event.key.shift)
-                    testx2++;
-                else
-                    testx++;
-                m_cArrowPressed = 3;
-                //m_pMapData->ShiftMapData(3);
-                break;
-            case Keyboard::Up:
-                //                     if (event.key.shift)
-                //                     {
-                //                         if (event.key.control)
-                //                             m_sViewPointY--;
-                //                         else
-                //                             m_sViewDstY--;
-                //                     }
-                //                     else
-                //                     {
-                //                         m_sPlayerY--;
-                //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-                //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-                //                     }
-                if (event.key.shift)
-                    testy2--;
-                else
-                    testy--;
-                m_cArrowPressed = 2;
-                break;
-            case Keyboard::Down:
-                //                     if (event.key.shift)
-                //                     {
-                //                         if (event.key.control)
-                //                             m_sViewPointY++;
-                //                         else
-                //                             m_sViewDstY++;
-                //                     }
-                //                     else
-                //                     {
-                //                         m_sPlayerY++;
-                //                         m_sViewDstX = m_sViewPointX = (m_sPlayerX - 20) * 32;
-                //                         m_sViewDstY = m_sViewPointY = (m_sPlayerY - 19) * 32;
-                //                     }
-                if (event.key.shift)
-                    testy2++;
-                else
-                    testy++;
-                m_cArrowPressed = 4;
-                break;
+    //                         m_sViewDstX++;
+    //                 }
+    //                 else
+    //                 {
+    //                     m_sPlayerX++;
+    //                     m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32;
+    //                     m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32;
+    //                 }
+                    if (event.key.shift)
+                        testx2++;
+                    else
+                        testx++;
+                    m_cArrowPressed = 3;
+                    //m_pMapData->ShiftMapData(3);
+                    break;
+                case Keyboard::Up:
+                    //                 if (event.key.shift)
+                    //                 {
+                    //                     if (event.key.control)
+                    //                         m_sViewPointY--;
+                    //                     else
+                    //                         m_sViewDstY--;
+                    //                 }
+                    //                 else
+                    //                 {
+                    //                     m_sPlayerY--;
+                    //                     m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32;
+                    //                     m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32;
+                    //                 }
+                    if (event.key.shift)
+                        testy2--;
+                    else
+                        testy--;
+                    m_cArrowPressed = 2;
+                    break;
+                case Keyboard::Down:
+                    //                 if (event.key.shift)
+                    //                 {
+                    //                     if (event.key.control)
+                    //                         m_sViewPointY++;
+                    //                     else
+                    //                         m_sViewDstY++;
+                    //                 }
+                    //                 else
+                    //                 {
+                    //                     m_sPlayerY++;
+                    //                     m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32;
+                    //                     m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32;
+                    //                 }
+                    if (event.key.shift)
+                        testy2++;
+                    else
+                        testy++;
+                    m_cArrowPressed = 4;
+                    break;
 
-            case Keyboard::F5:
-                //RequestFullObjectData(ot_player, m_sPlayerObjectID);
-                if (!is_connected()) perform_connect();
-                break;
-            case Keyboard::F7:
-                ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
-                break;
-            case Keyboard::F8:
-                m_showGrid = !m_showGrid;
-                break;
-            case Keyboard::Escape:
-                clipmousegame = !clipmousegame;
-                window.setMouseCursorGrabbed(clipmousegame);
-                m_bEscPressed = true;
-                captured = true;
-                break;
-            case Keyboard::LShift:
-                m_bShiftPressed = true;
-                break;
-            case Keyboard::LControl:
-                m_bCtrlPressed = true;
-                break;
-            case Keyboard::LAlt:
-                m_altPressed = true;
-                break;
-            case Keyboard::Tab:
-                if (m_bShiftPressed)
-                {
-                    m_cCurFocus--;
-                    if (m_cCurFocus < 1) m_cCurFocus = m_cMaxFocus;
-                }
-                else
-                {
-                    m_cCurFocus++;
-                    if (m_cCurFocus > m_cMaxFocus) m_cCurFocus = 1;
-                }
-                if (m_cGameMode == DEF_GAMEMODE_ONMAINGAME)
-                {
-                    //bSendCommand(message_id::COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
-                    bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
-                }
-                break;
-            case Keyboard::Return:
-                if (event.key.alt)
-                {
-                    // todo: recreate surfaces to resize to recenter area
-                    fullscreen = !fullscreen;
-                    create_renderer();
-                    captured = true;
+                case Keyboard::F5:
+                    //RequestFullObjectData(ot_player, m_sPlayerObjectID);
+                    if (!is_connected()) perform_connect();
+                    break;
+                case Keyboard::F7:
+                    change_game_mode(DEF_GAMEMODE_ONCONNECTING);
+                    break;
+                case Keyboard::F8:
+                    m_showGrid = !m_showGrid;
+                    break;
+                case Keyboard::Escape:
+                    clipmousegame = !clipmousegame;
                     window.setMouseCursorGrabbed(clipmousegame);
-                    window.setMouseCursorVisible(false);
-                }
-                else
-                {
-                    m_bEnterPressed = true;
-                }
-                break;
-            case Keyboard::F12:
-                CreateScreenShot();
-                break;
+                    m_bEscPressed = true;
+                    captured = true;
+                    break;
+                case Keyboard::LShift:
+                    m_bShiftPressed = true;
+                    break;
+                case Keyboard::LControl:
+                    m_bCtrlPressed = true;
+                    break;
+                case Keyboard::LAlt:
+                    m_altPressed = true;
+                    break;
+                case Keyboard::Tab:
+                    if (m_bShiftPressed)
+                    {
+                        m_cCurFocus--;
+                        if (m_cCurFocus < 1) m_cCurFocus = m_cMaxFocus;
+                    }
+                    else
+                    {
+                        m_cCurFocus++;
+                        if (m_cCurFocus > m_cMaxFocus) m_cCurFocus = 1;
+                    }
+                    if (m_cGameMode == DEF_GAMEMODE_ONMAINGAME)
+                    {
+                        //bSendCommand(message_id::COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
+                        bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
+                    }
+                    break;
+                case Keyboard::Return:
+                    if (event.key.alt)
+                    {
+                        // todo: recreate surfaces to resize to recenter area
+                        fullscreen = !fullscreen;
+                        create_renderer();
+                        captured = true;
+                        window.setMouseCursorGrabbed(clipmousegame);
+                        window.setMouseCursorVisible(false);
+                    }
+                    else
+                    {
+                        m_bEnterPressed = true;
+                    }
+                    break;
+                case Keyboard::F12:
+                    CreateScreenShot();
+                    break;
 
-            case Keyboard::F11:
-                scale_mouse_rendering = !scale_mouse_rendering;
-                if (scale_mouse_rendering)
-                {
-                    for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
-                        m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
-                }
-                else
-                    for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
-                        m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(1, 1);
+                case Keyboard::F11:
+                    scale_mouse_rendering = !scale_mouse_rendering;
+                    if (scale_mouse_rendering)
+                    {
+                        for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                            m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+                    }
+                    else
+                        for (int i = 0; i < m_pSprite[DEF_SPRID_MOUSECURSOR]->m_iTotalFrame; ++i)
+                            m_pSprite[DEF_SPRID_MOUSECURSOR]->sprite_[i].setScale(1, 1);
 
-                break;
+                    break;
 
-            case Keyboard::F6:
-                calcoldviewport = !calcoldviewport;
-                if (!calcoldviewport)
-                {
-                    AddEventList("Switched to new viewport code.");
-                }
-                else
-                {
-                    AddEventList("Switched to old viewport code.");
-                }
-                break;
+                case Keyboard::F6:
+                    m_sViewDstX = (m_sPlayerX * 32) - ((get_virtual_width() / 32) / 2) - testx; // 288 | 9
+                    m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 32) / 2) - testy; // 224 | 7
+                    //                 calcoldviewport = !calcoldviewport;
+                    //                 if (!calcoldviewport)
+                    //                 {
+                    //                     AddEventList("Switched to new viewport code.");
+                    //                 }
+                    //                 else
+                    //                 {
+                    //                     AddEventList("Switched to old viewport code.");
+                    //                 }
+                    break;
             }
             break;
         }
@@ -438,25 +442,25 @@ void CGame::on_input_event(sf::Event event)
 
             switch (event.key.code)
             {
-            case Keyboard::Escape:
-                break;
-            case Keyboard::LShift:
-                m_bShiftPressed = false;
-                break;
-            case Keyboard::LControl:
-                m_bCtrlPressed = false;
-                break;
-            case Keyboard::LAlt:
-                m_altPressed = false;
-                break;
-            case Keyboard::Tab:
-                break;
-            case Keyboard::Return:
-                break;
-            case Keyboard::F12:
-                break;
-            case Keyboard::F5:
-                break;
+                case Keyboard::Escape:
+                    break;
+                case Keyboard::LShift:
+                    m_bShiftPressed = false;
+                    break;
+                case Keyboard::LControl:
+                    m_bCtrlPressed = false;
+                    break;
+                case Keyboard::LAlt:
+                    m_altPressed = false;
+                    break;
+                case Keyboard::Tab:
+                    break;
+                case Keyboard::Return:
+                    break;
+                case Keyboard::F12:
+                    break;
+                case Keyboard::F5:
+                    break;
             }
             break;
         }
@@ -564,6 +568,8 @@ void CGame::create_surfaces()
     visible.create(screenwidth_v, screenheight_v);
     bg.create(screenwidth_v + 300, screenheight_v + 300);
     dynamic_bg.create(screenwidth_v + 300, screenheight_v + 300);
+    dialog.create(screenwidth_v + 300, screenheight_v + 300);
+    item_box.create(screenwidth_v + 300, screenheight_v + 300);
     //bg.create(32768, 32768);
     //charselect.create(256, 256);
 }
@@ -581,16 +587,19 @@ void CGame::create_fonts()
     _font.insert(std::pair<std::string, sf::Font>("test", s));
 
     _text.setFont(_font.at("arya"));
+    arya_font = &_font.at("arya");
+    default_font = &_font.at("default");
+    test_font = &_font.at("test");
 
-    chat_window_text.setFont(_font.at("arya"));
+    chat_window_text.setFont(*arya_font);
     chat_window_text.setCharacterSize(12);
 
-    overhead_text.setFont(_font.at("test"));
+    overhead_text.setFont(*test_font);
     overhead_text.setCharacterSize(12);
     overhead_text.setOutlineColor(sf::Color::Black);
     overhead_text.setOutlineThickness(2);
 
-    under_text.setFont(_font.at("arya"));
+    under_text.setFont(*arya_font);
     under_text.setCharacterSize(12);
     under_text.setOutlineColor(sf::Color::Black);
     under_text.setOutlineThickness(1);
@@ -677,25 +686,25 @@ int16_t CGame::get_game_mode(std::string _gamemode)
     return DEF_GAMEMODE_NULL;
 }
 
-void CGame::draw_line(int x0, int y0, int x1, int y1, Color color)
+void CGame::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, Color color)
 { //TODO: replace all instances
     draw_line(x0, y0, x1, y1, color.r, color.g, color.b, color.a);
 }
 
-void CGame::draw_line(int x0, int y0, int x1, int y1, int iR, int iG, int iB, int iA)
+void CGame::draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, int iR, int iG, int iB, int iA)
 {
     if ((x0 == x1) && (y0 == y1))
         return;
 
     sf::Vertex line[] =
     {
-        sf::Vertex(sf::Vector2f((float)x0, (float)y0), Color(iR, iG, iB, iA)),
-        sf::Vertex(sf::Vector2f((float)x1, (float)y1), Color(iR, iG, iB, iA))
+        sf::Vertex(sf::Vector2f(x0, y0), Color(iR, iG, iB, iA)),
+        sf::Vertex(sf::Vector2f(x1, y1), Color(iR, iG, iB, iA))
     };
     visible.draw(line, 2, sf::Lines);
 }
 
-void CGame::update_mouse_state(short & x, short & y, short & z, char & left_button, char & right_button)
+void CGame::update_mouse_state(uint16_t & x, uint16_t & y, uint16_t & z, char & left_button, char & right_button)
 {
     x = m_stMCursor.sX;
     y = m_stMCursor.sY;
@@ -704,18 +713,18 @@ void CGame::update_mouse_state(short & x, short & y, short & z, char & left_butt
     right_button = m_stMCursor.RB;
 }
 
-void CGame::draw_shadow_box(short sX, short sY, short dX, short dY, Color color)
+void CGame::draw_shadow_box(uint16_t sX, uint16_t sY, uint16_t dX, uint16_t dY, Color color)
 {
     if ((sX == dX) && (sY == dY))
         return;
 
-    sf::RectangleShape rectangle(sf::Vector2f((float)dX - sX, (float)dY - sY));
-    rectangle.setPosition(sf::Vector2f(sX, sY));
+    sf::RectangleShape rectangle(sf::Vector2f(float(dX - sX), float(dY - sY)));
+    rectangle.setPosition((float)sX, (float)sY);
     rectangle.setFillColor(color);
     visible.draw(rectangle);
 }
 
-void CGame::put_pixel(short sX, short sY, Color color)
+void CGame::put_pixel(uint16_t sX, uint16_t sY, Color color)
 {
     sf::Vertex line[] =
     {
@@ -730,7 +739,7 @@ void CGame::change_display_mode()
     create_renderer();
 }
 
-void CGame::render_mouse(int mx, int my, bool scale_mouse_rendering)
+void CGame::render_mouse(uint16_t mx, uint16_t my)
 {
     if (m_bIsObserverMode == true)
     {

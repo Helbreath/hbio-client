@@ -198,9 +198,6 @@
     <ClCompile Include="src\update_screen.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\draw_objects.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
     <ClCompile Include="src\draw_dialogs.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
@@ -216,14 +213,20 @@
     <ClCompile Include="src\command_processor.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\draw_strings.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
     <ClCompile Include="src\json.hpp">
       <Filter>src\utility</Filter>
     </ClCompile>
     <ClCompile Include="src\helbreath.cpp">
       <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_objects_sprites.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_objects.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_strings.cpp">
+      <Filter>src\engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

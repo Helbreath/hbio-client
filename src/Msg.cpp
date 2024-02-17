@@ -8,10 +8,12 @@
 
 CMsg::CMsg(char cType, const char * pMsg, uint64_t dwTime)
 {
-	m_cType = cType;
+    m_cType = cType;
     message = pMsg;
-	m_dwTime = dwTime;
-	m_iObjectID = -1;
+    m_dwTime = dwTime;
+    m_iObjectID = -1;
+    m_sX = 0;
+    m_sY = 0;
 }
 
 CMsg::CMsg(char cType, std::string_view msg, uint64_t dwTime)
@@ -20,6 +22,8 @@ CMsg::CMsg(char cType, std::string_view msg, uint64_t dwTime)
     message = msg;
     m_dwTime = dwTime;
     m_iObjectID = -1;
+    m_sX = 0;
+    m_sY = 0;
 }
 
 CMsg::CMsg(char cType, std::string & msg, uint64_t dwTime)
@@ -28,4 +32,6 @@ CMsg::CMsg(char cType, std::string & msg, uint64_t dwTime)
     message = msg;
     m_dwTime = dwTime;
     m_iObjectID = -1;
+    m_sX = 0;
+    m_sY = 0;
 }

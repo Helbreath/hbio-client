@@ -6,6 +6,7 @@
 
 #include "Misc.h"
 #include "GlobalDef.h"
+#include <windows.h>
 
 CMisc::CMisc()
 {
@@ -121,35 +122,35 @@ void CMisc::GetDirPoint(char cDir, int * pX, int * pY)
 {
     switch (cDir)
     {
-    case 1:	*pY--; break;
-    case 2:	*pY--; *pX++;	break;
-    case 3:	*pX++; break;
-    case 4:	*pX++; *pY++;	break;
-    case 5:	*pY++; break;
-    case 6:	*pX--; *pY++;	break;
-    case 7:	*pX--; break;
-    case 8:	*pX--; *pY--;	break;
+        case 1:	*pY--; break;
+        case 2:	*pY--; *pX++;	break;
+        case 3:	*pX++; break;
+        case 4:	*pX++; *pY++;	break;
+        case 5:	*pY++; break;
+        case 6:	*pX--; *pY++;	break;
+        case 7:	*pX--; break;
+        case 8:	*pX--; *pY--;	break;
     }
 }
 
-BOOL CMisc::bCheckValidString(const char * str)
+bool CMisc::bCheckValidString(const char * str)
 {
     int len = (int)strlen(str);
     for (int i = 0; i < len; i++)
     {
-        if (str[i] == ' ') return FALSE;
+        if (str[i] == ' ') return false;
     }
-    return TRUE;
+    return true;
 }
 
-BOOL CMisc::bCheckIMEString(const char * str)
+bool CMisc::bCheckIMEString(const char * str)
 {
     int len = (int)strlen(str);
     for (int i = 0; i < len; i++)
     {
-        if (str[i] < 0) return FALSE;
+        if (str[i] < 0) return false;
     }
-    return TRUE;
+    return true;
 }
 
 void CMisc::ReplaceString(char * pStr, char cFrom, char cTo)
@@ -223,48 +224,7 @@ char CMisc::cCalcDirection(short sX, short sY, short dX, short dY)
     return 1;
 }
 
-void CMisc::ColorTransfer(char cPixelFormat, COLORREF fcolor, WORD * wR, WORD * wG, WORD * wB)
-{
-    WORD result = 0x0000;
-    switch (cPixelFormat)
-    {
-    case 1:
-        // R
-        result = result | (WORD)((fcolor & 0x000000f8) << 8);
-        // G
-        result = result | (WORD)((fcolor & 0x0000fc00) >> 5);
-        // B
-        result = result | (WORD)((fcolor & 0x00f80000) >> 19);
-        break;
-
-    case 2:
-        // R
-        result = result | (WORD)((fcolor & 0x000000f8) << 7);
-        // G
-        result = result | (WORD)((fcolor & 0x0000f800) >> 6);
-        // B
-        result = result | (WORD)((fcolor & 0x00f80000) >> 19);
-        break;
-    }
-
-    switch (cPixelFormat)
-    {
-    case 1:
-        *wR = (result & 0xF800) >> 11;
-        *wG = (result & 0x7E0) >> 5;
-        *wB = (result & 0x1F);
-        break;
-
-    case 2:
-        *wR = (result & 0x7C00) >> 10;
-        *wG = (result & 0x3E0) >> 5;
-        *wB = (result & 0x1F);
-        break;
-    }
-}
-
-
-BOOL CMisc::bEncode(char cKey, char * pStr)
+bool CMisc::bEncode(char cKey, char * pStr)
 {
     int iLen = (int)strlen(pStr);
     for (int i = 0; i <= iLen - 1; i++)
@@ -272,11 +232,10 @@ BOOL CMisc::bEncode(char cKey, char * pStr)
         pStr[i] += i;
         pStr[i] = pStr[i] ^ (cKey ^ (iLen - i));
     }
-    return TRUE;
+    return true;
 }
 
-
-BOOL CMisc::bDecode(char cKey, char * pStr)
+bool CMisc::bDecode(char cKey, char * pStr)
 {
     int iLen = (int)strlen(pStr);
     for (int i = 0; i <= iLen - 1; i++)
@@ -284,60 +243,60 @@ BOOL CMisc::bDecode(char cKey, char * pStr)
         pStr[i] = pStr[i] ^ (cKey ^ (iLen - i));
         pStr[i] -= i;
     }
-    return TRUE;
+    return true;
 }
 
-BOOL CMisc::bCheckValidName(const char * pStr)
+bool CMisc::bCheckValidName(const char * pStr)
 {
     int i, iLen;
 
     iLen = (int)strlen(pStr);
     for (i = 0; i < iLen; i++)
     {
-        if (pStr[i] < 0)	return FALSE;
+        if (pStr[i] < 0)	return false;
 #ifndef DEF_FUCK_USA
-        
+
         if ((pStr[i] == ',') || (pStr[i] == '=') || (pStr[i] == ' ') || (pStr[i] == '\n') ||
             (pStr[i] == '\t') || (pStr[i] == '.') || (pStr[i] == '\\') || (pStr[i] == '/') ||
             (pStr[i] == ':') || (pStr[i] == '*') || (pStr[i] == '?') || (pStr[i] == '<') ||
-            (pStr[i] == '>') || (pStr[i] == '|') || (pStr[i] == '"') || (pStr[i] == '`')) return FALSE;
+            (pStr[i] == '>') || (pStr[i] == '|') || (pStr[i] == '"') || (pStr[i] == '`')) return false;
 
-        
+
 #else
-        
+
         if ((pStr[i] == ',') || (pStr[i] == '=') || (pStr[i] == ' ') || (pStr[i] == '\n') ||
             (pStr[i] == '\t') || (pStr[i] == '.') || (pStr[i] == '\\') || (pStr[i] == '/') ||
             (pStr[i] == ':') || (pStr[i] == '*') || (pStr[i] == '?') || (pStr[i] == '<') ||
             (pStr[i] == '>') || (pStr[i] == '|') || (pStr[i] == '"') || (pStr[i] == '`') ||
             (pStr[i] == ';') || (pStr[i] == '=') || (pStr[i] == '@') || (pStr[i] == '[') ||
-            (pStr[i] == ']') || (pStr[i] == '^') || (pStr[i] == '_') || (pStr[i] == '\'')) return FALSE;
+            (pStr[i] == ']') || (pStr[i] == '^') || (pStr[i] == '_') || (pStr[i] == '\'')) return false;
 
-        if ((pStr[i] < '0') || (pStr[i] > 'z')) return FALSE;
+        if ((pStr[i] < '0') || (pStr[i] > 'z')) return false;
 
 #endif
 
     }
-    return TRUE;
+    return true;
 }
 
 int CMisc::_iGetFileCheckSum(char * pFn)
 {
-    HANDLE hFile;
+    HANDLE hFile{};
     FILE * pFile;
-    DWORD  dwFileSize;
+    uint32_t  dwFileSize{};
     char * pContents;
-    int    iCheckSum, iV1, iV2, iV3;
-    UINT i;
-    char cRealFn[512];
+    int    iCheckSum{}, iV1{}, iV2{}, iV3{};
+    UINT i{};
+    char cRealFn[512]{};
 
-    
-    ZeroMemory(cRealFn, sizeof(cRealFn));
+
+    memset(cRealFn, 0, sizeof(cRealFn));
     strcpy(cRealFn, pFn);
     for (i = 0; i < strlen(cRealFn); i++)
-        if (cRealFn[i] != NULL)	cRealFn[i]++;
+        if (cRealFn[i] != 0)	cRealFn[i]++;
 
-    hFile = CreateFileA(cRealFn, GENERIC_READ, NULL, NULL, OPEN_EXISTING, NULL, NULL);//CreateFileA(cRealFn, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
-    dwFileSize = GetFileSize(hFile, NULL);
+    hFile = CreateFileA(cRealFn, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);//CreateFileA(cRealFn, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, 0);
+    dwFileSize = GetFileSize(hFile, 0);
     CloseHandle(hFile);
     if (hFile == INVALID_HANDLE_VALUE)
     {
@@ -345,11 +304,11 @@ int CMisc::_iGetFileCheckSum(char * pFn)
     }
 
     pFile = fopen(cRealFn, "rb");
-    if (pFile == NULL) return 0;
+    if (pFile == 0) return 0;
     else
     {
         pContents = new char[dwFileSize + 1];
-        ZeroMemory(pContents, dwFileSize + 1);
+        memset(pContents, 0, dwFileSize + 1);
         fread(pContents, 1, dwFileSize, pFile);
         fclose(pFile);
     }
@@ -366,50 +325,50 @@ int CMisc::_iGetFileCheckSum(char * pFn)
     return abs(iCheckSum);
 }
 
-BOOL CMisc::_iConvertFileXor(char * pFn, char * pDestFn, char cKey)
+bool CMisc::_iConvertFileXor(char * pFn, char * pDestFn, char cKey)
 {
     HANDLE hFile;
-    DWORD  dwFileSize;
+    uint32_t  dwFileSize;
     FILE * pFile;
     char * pContents;
     int    i;
 
-    
+
     char pHeader[10];
     char cHeaderKey = 20;
 
-    
-    hFile = CreateFileA(pFn, GENERIC_READ, NULL, NULL, OPEN_EXISTING, NULL, NULL);
-    
-    dwFileSize = GetFileSize(hFile, NULL) - 10;
+
+    hFile = CreateFileA(pFn, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+
+    dwFileSize = GetFileSize(hFile, 0) - 10;
     if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
 
-    
-    pFile = fopen(pFn, "rt");
-    if (pFile == NULL)
-        return FALSE;
 
-    
+    pFile = fopen(pFn, "rt");
+    if (pFile == 0)
+        return false;
+
+
     pContents = new char[dwFileSize + 1];
-    ZeroMemory(pContents, dwFileSize + 1);
-    
-    ZeroMemory(pHeader, 10);
+    memset(pContents, 0, dwFileSize + 1);
+
+    memset(pHeader, 0, 10);
     fread(pHeader, 10, 1, pFile);
-    
+
     fread(pContents, dwFileSize, 1, pFile);
     fclose(pFile);
 
 
-    
+
     for (i = 0; i < (int)(dwFileSize); i++)
         pContents[i] = pContents[i] ^ cKey;
 
-    
+
     pFile = fopen(pDestFn, "wt");
-    if (pFile == NULL)
+    if (pFile == 0)
     {
         delete[] pContents;
-        return FALSE;
+        return false;
     }
 
     i = 0;
@@ -418,17 +377,17 @@ BOOL CMisc::_iConvertFileXor(char * pFn, char * pDestFn, char cKey)
         pHeader[i] = pHeader[i] ^ cHeaderKey;
         i++;
     }
-    
-    if (atoi(pHeader) != (int)(dwFileSize))
-        return FALSE;
 
-    
+    if (atoi(pHeader) != (int)(dwFileSize))
+        return false;
+
+
     fwrite(pContents, dwFileSize, 1, pFile);
     fclose(pFile);
 
-    delete pContents;
+    delete[] pContents;
 
-    return TRUE;
+    return true;
 }
 
 int CMisc::iGetTextLengthLoc(sf::Text & text, char * pStr, int iLength)
@@ -439,7 +398,7 @@ int CMisc::iGetTextLengthLoc(sf::Text & text, char * pStr, int iLength)
 
     std::string s{ pStr };
 
-    text.setPosition(0, 0);
+    text.setPosition(0.f, 0.f);
 
     int last_space = 0;
     int lines = 0;
@@ -452,30 +411,29 @@ int CMisc::iGetTextLengthLoc(sf::Text & text, char * pStr, int iLength)
         i++;
         if (pStr[i] == ' ') last_space = i;
         text.setString(s.substr(0, i));
-        //if (text.findCharacterPos(i).x > iLength) lines++;
         if (text.getGlobalBounds().width > iLength) bFlag = true;
     }
     return i - 1;
 }
 
-BOOL CMisc::bIsValidEmail(char * pStr)
+bool CMisc::bIsValidEmail(char * pStr)
 {
     int len = (int)strlen(pStr);
-    if (len < 7) return FALSE;
+    if (len < 7) return false;
     char cEmail[52];
-    ZeroMemory(cEmail, sizeof(cEmail));
+    memset(cEmail, 0, sizeof(cEmail));
     memcpy(cEmail, pStr, len);
-    BOOL bFlag = FALSE;
+    bool bFlag = false;
     for (int i = 0; i < len; i++)
     {
-        if (cEmail[i] == '@') bFlag = TRUE;
+        if (cEmail[i] == '@') bFlag = true;
     }
-    if (bFlag == FALSE) return FALSE;
-    bFlag = FALSE;
+    if (bFlag == false) return false;
+    bFlag = false;
     for (int i = 0; i < len; i++)
     {
-        if (cEmail[i] == '.') bFlag = TRUE;
+        if (cEmail[i] == '.') bFlag = true;
     }
-    if (bFlag == FALSE) return FALSE;
-    return TRUE;
+    if (bFlag == false) return false;
+    return true;
 }

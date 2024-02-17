@@ -5,30 +5,31 @@
 //
 
 #include "Tile.h"
+#include <memory>
 
 CTile::CTile()
 {
-	m_sOwnerType = NULL;
-	ZeroMemory(m_cOwnerName, sizeof(m_cOwnerName));
-	m_sDeadOwnerType = NULL;
-	ZeroMemory(m_cDeadOwnerName, sizeof(m_cDeadOwnerName));
-	m_cDeadOwnerFrame     = -1;
+    m_sOwnerType = 0;
+    memset(m_cOwnerName, 0, sizeof(m_cOwnerName));
+    m_sDeadOwnerType = 0;
+    memset(m_cDeadOwnerName, 0, sizeof(m_cDeadOwnerName));
+    m_cDeadOwnerFrame = -1;
 
-	m_sItemSprite      = NULL;
-	m_sItemSpriteFrame = NULL;
+    m_sItemSprite = 0;
+    m_sItemSpriteFrame = 0;
 
-	m_sDynamicObjectType  = NULL;
-	m_cDynamicObjectFrame = NULL;
+    m_sDynamicObjectType = 0;
+    m_cDynamicObjectFrame = 0;
 
-	m_iChatMsg       = NULL;
-	m_iDeadChatMsg   = NULL;
+    m_iChatMsg = 0;
+    m_iDeadChatMsg = 0;
 
-	m_wObjectID = NULL;
-	
-	m_iEffectType  = 0;
-	m_iEffectFrame = 0;
-	m_iEffectTotalFrame = 0;
-	m_dwEffectTime = NULL;
+    m_wObjectID = 0;
+
+    m_iEffectType = 0;
+    m_iEffectFrame = 0;
+    m_iEffectTotalFrame = 0;
+    m_dwEffectTime = 0;
 }
 
 CTile::~CTile()
@@ -38,50 +39,50 @@ CTile::~CTile()
 
 void CTile::Clear()
 {
-	m_wObjectID     = NULL;
-	m_wDeadObjectID = NULL;
+    m_wObjectID = 0;
+    m_wDeadObjectID = 0;
 
-	m_sOwnerType = NULL;
-	ZeroMemory(m_cOwnerName, sizeof(m_cOwnerName));
-	
-	m_sDeadOwnerType = NULL;
-	ZeroMemory(m_cDeadOwnerName, sizeof(m_cDeadOwnerName));
+    m_sOwnerType = 0;
+    memset(m_cOwnerName, 0, sizeof(m_cOwnerName));
 
-	m_cDeadOwnerFrame = -1;
-	m_dwDeadOwnerTime = NULL;
+    m_sDeadOwnerType = 0;
+    memset(m_cDeadOwnerName, 0, sizeof(m_cDeadOwnerName));
 
-	m_cOwnerAction = NULL;
-	m_cDir         = NULL;
-	m_cOwnerFrame  = NULL;
+    m_cDeadOwnerFrame = -1;
+    m_dwDeadOwnerTime = 0;
 
-	m_sItemSprite      = NULL;
-	m_sItemSpriteFrame = NULL;
-	m_cItemColor       = NULL;
+    m_cOwnerAction = 0;
+    m_cDir = 0;
+    m_cOwnerFrame = 0;
 
-	m_sDynamicObjectType  = NULL;
-	m_cDynamicObjectFrame = NULL;
+    m_sItemSprite = 0;
+    m_sItemSpriteFrame = 0;
+    m_cItemColor = 0;
 
-	m_iChatMsg     = NULL;
-	m_iDeadChatMsg = NULL;
+    m_sDynamicObjectType = 0;
+    m_cDynamicObjectFrame = 0;
 
-	m_sStatus      = NULL;
-	m_sDeadStatus  = NULL;
+    m_iChatMsg = 0;
+    m_iDeadChatMsg = 0;
 
-	m_sV1 = NULL;
-	m_sV2 = NULL;
-	m_sV3 = NULL;
+    m_sStatus = 0;
+    m_sDeadStatus = 0;
 
-	m_sAppr1 = NULL;
-	m_sAppr2 = NULL;
-	m_sAppr3 = NULL;
-	m_sAppr4 = NULL;
-	m_iApprColor = NULL;
+    m_sV1 = 0;
+    m_sV2 = 0;
+    m_sV3 = 0;
 
-	m_iEffectType  = 0;
-	m_iEffectFrame = 0;
-	m_iEffectTotalFrame = 0;
-	m_dwEffectTime = NULL;
+    m_sAppr1 = 0;
+    m_sAppr2 = 0;
+    m_sAppr3 = 0;
+    m_sAppr4 = 0;
+    m_iApprColor = 0;
 
-	m_dwOwnerTime        = NULL;
+    m_iEffectType = 0;
+    m_iEffectFrame = 0;
+    m_iEffectTotalFrame = 0;
+    m_dwEffectTime = 0;
+
+    m_dwOwnerTime = 0;
 }
 

@@ -16,9 +16,7 @@
 #include <cstring>
 #include "GlobalDef.h"
 #include "enums.h"
-#ifdef WIN32
-#include <windows.h>
-#endif
+#include <cstdint>
 #include <SFML/Graphics/Color.hpp>
 using Color = sf::Color;
 
@@ -36,7 +34,7 @@ constexpr auto MAX_MONSTER_SOUNDS = 160;
 constexpr auto MAX_EFFECT_SOUNDS = 55;
 
 template <std::size_t N, class... T>
-inline const char * format_to_local(char (& _Out)[N], const std::format_string<T...> _Fmt, T&&... _Args)
+inline const char * format_to_local(char(&_Out)[N], const std::format_string<T...> _Fmt, T&&... _Args)
 {
     memset(_Out, 0, N);
     return _STD vformat_to(_STD move(_Out), _Fmt.get(), _STD make_format_args(_Args...));
@@ -781,13 +779,13 @@ struct hbxpoint
 #define _atoi64 atoll
 #define sprintf_s snprintf
 #define strcpy_s(a,b,c) strcpy(a,c)
+#define SLEEP(a) { struct timespec req={0}; req.tv_sec = 0; req.tv_nsec = 1000000 * a; nanosleep(&req,0); }
 #endif
 
 #define DBL "%f"
 #define DBL2 "f"
 #define XI64 "%lld"
 
-#define SLEEP(a) { struct timespec req={0}; req.tv_sec = 0; req.tv_nsec = 1000000 * a; nanosleep(&req,0); }
 
 #define CLIENTSOCKETBLOCKLIMIT	15
 
@@ -867,7 +865,7 @@ struct hbxpoint
 #define DEF_ITEMEFFECTTYPE_ATTACK_MAXHPDOWN	19
 #define DEF_ITEMEFFECTTYPE_ATTACK_DEFENSE	20
 #define DEF_ITEMEFFECTTYPE_MATERIAL_ATTR	21
-#define DEF_ITEMEFFECTTYPE_FIRMSTAMINAR		22
+#define DEF_ITEMEFFECTTYPE_FIRMSTAMINA		22
 #define DEF_ITEMEFFECTTYPE_LOTTERY			23
 
 #define DEF_ITEMEFFECTTYPE_ATTACK_SPECABLTY		24
@@ -949,7 +947,7 @@ static inline const ItemStats2 itemStats2[] = {
 #define ITEMEFFECTTYPE_ATTACK_MAXHPDOWN	19
 #define ITEMEFFECTTYPE_ATTACK_DEFENSE	20
 #define ITEMEFFECTTYPE_MATERIAL_ATTR	21
-#define ITEMEFFECTTYPE_FIRMSTAMINAR		22
+#define ITEMEFFECTTYPE_FIRMSTAMINA		22
 #define ITEMEFFECTTYPE_LOTTERY			23
 
 #define ITEMEFFECTTYPE_ATTACK_SPECABLTY		24
@@ -1147,7 +1145,7 @@ static inline const char * mapNames[MAXMAPNAMES] = {
 #define ITEMEFFECTTYPE_ATTACK_MAXHPDOWN	19
 #define ITEMEFFECTTYPE_ATTACK_DEFENSE	20
 #define ITEMEFFECTTYPE_MATERIAL_ATTR	21
-#define ITEMEFFECTTYPE_FIRMSTAMINAR		22
+#define ITEMEFFECTTYPE_FIRMSTAMINA		22
 #define ITEMEFFECTTYPE_LOTTERY			23
 
 #define ITEMEFFECTTYPE_ATTACK_SPECABLTY		24
@@ -1280,7 +1278,6 @@ extern uint64_t unixtime();
 extern int32_t unixseconds();
 
 #ifndef WIN32
-#define ZeroMemory(a,b) memset(a, 0, b)
 typedef struct tagRECT
 {
     int32_t left;
@@ -1325,7 +1322,7 @@ void SetRect(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom)
 
 //-----------------------------------------------------------------------------------------------------------------------
 
-#define GetBoolText(val)	( val ? "True" : "False" )
+#define GetBoolText(val)	( val ? "true" : "false" )
 
 
 //----------------------------------------------- TYPEDEFS ----------------------------------------------------------------------------------
