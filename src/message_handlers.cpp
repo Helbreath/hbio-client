@@ -1768,6 +1768,7 @@ void CGame::ConnectionEstablishHandler(char cWhere)
                         break;
 
                     case MSGID_REQUEST_ENTERGAME:
+                        send_screen_settings_to_server();
                         bSendCommand(MSGID_REQUEST_ENTERGAME, 0, 0, 0, 0, 0, 0);
                         break;
 

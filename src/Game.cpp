@@ -210,6 +210,32 @@ CGame::CGame()
     for (i = 0; i < DEF_MAXMENUITEMS; i++)
         m_pItemForSaleList[i] = 0;
 
+    m_bCtrlPressed = false;
+    m_bShiftPressed = false;
+    m_bEnterPressed = false;
+    m_bEscPressed = false;
+
+    m_bSoundFlag = false;
+    m_dwDialogCloseTime = 0;
+
+    m_iTimeLeftSecAccount = 0;
+    m_iTimeLeftSecIP = 0;
+
+
+
+    m_bWhisper = true;
+    m_bShout = true;
+}
+
+
+CGame::~CGame()
+{
+
+
+}
+
+void CGame::init_dialogs()
+{
     //Character-Info Dialog(F5)
     m_stDialogBoxInfo[1].sX = 30;
     m_stDialogBoxInfo[1].sY = 30;
@@ -445,31 +471,19 @@ CGame::CGame()
     m_stDialogBoxInfo[39].sY = 0;
     m_stDialogBoxInfo[39].sSizeX = 291;
     m_stDialogBoxInfo[39].sSizeY = 413;
-
-    m_bCtrlPressed = false;
-    m_bShiftPressed = false;
-    m_bEnterPressed = false;
-    m_bEscPressed = false;
-
-    m_bSoundFlag = false;
-    m_dwDialogCloseTime = 0;
-
-    m_iTimeLeftSecAccount = 0;
-    m_iTimeLeftSecIP = 0;
-
-
-
-    m_bWhisper = true;
-    m_bShout = true;
 }
 
 
-CGame::~CGame()
+void CGame::send_screen_settings_to_server()
 {
-
-
+    stream_write sw{};
+    sw.write<uint32_t>(MSGID_SCREEN_SETTINGS);
+    sw.write<uint16_t>(get_virtual_width());
+    sw.write<uint16_t>(get_virtual_height());
+    sw.write<uint16_t>(get_width());
+    sw.write<uint16_t>(get_height());
+    write(sw);
 }
-
 
 bool CGame::bInit()
 {

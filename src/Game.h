@@ -563,6 +563,8 @@ public:
         screenheight_v = height;
     }
 
+    void init_dialogs();
+
     __forceinline uint16_t get_width() { return screenwidth; }
     __forceinline uint16_t get_height() { return screenheight; }
 
@@ -571,6 +573,8 @@ public:
 
     __forceinline uint16_t get_virtual_width() { return screenwidth_v; }
     __forceinline uint16_t get_virtual_height() { return screenheight_v; }
+
+    void send_screen_settings_to_server();
 
     uint64_t mtime;
 
