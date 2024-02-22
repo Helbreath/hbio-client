@@ -413,10 +413,10 @@ void CGame::init_dialogs()
     m_stDialogBoxInfo[29].sSizeY = 53;
 
     //Icon Panel
-    m_stDialogBoxInfo[30].sX = 0;
-    m_stDialogBoxInfo[30].sY = 427;
+    m_stDialogBoxInfo[30].sX = (get_virtual_width() - 640) / 2;
+    m_stDialogBoxInfo[30].sY = get_virtual_height() - 53;
     m_stDialogBoxInfo[30].sSizeX = 640;
-    m_stDialogBoxInfo[30].sSizeY = 53;//47;
+    m_stDialogBoxInfo[30].sSizeY = 53;
 
     //Sell List Dialog
     m_stDialogBoxInfo[31].sX = 170;
@@ -2230,10 +2230,12 @@ int _iAttackerHeight[] = { 0, 35, 35,35,35,35,35, 0,0,0,
 void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cStartFrame, int iV1)
 {
     int i;
-    short sAbsX, sAbsY, sDist;
-    long lPan;
+    int16_t sAbsX, sAbsY, sDist, lPan;
     int  iV2 = 0;
 
+    auto result = get_distance_from_player(dX, dY);
+
+    lPan = result.first;
 
     if (m_cDetailLevel == 0)
     {
@@ -2251,8 +2253,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
     if (m_bIsProgramActive == false) return;
 
-    sAbsX = abs(((m_sViewPointX / 32) + 10) - dX);
-    sAbsY = abs(((m_sViewPointY / 32) + 7) - dY);
+    sAbsX = abs(((m_sViewPointX / 32) + (get_virtual_width() / 32) / 2) - dX);
+    sAbsY = abs(((m_sViewPointY / 32) + (get_virtual_height() / 32) / 2) - dY);
 
     if (sAbsX > sAbsY) sDist = sAbsX;
     else sDist = sAbsY;
@@ -2300,13 +2302,12 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 100;
 
-                    sAbsX = abs(((m_sViewPointX / 32) + 10) - sX);
-                    sAbsY = abs(((m_sViewPointY / 32) + 7) - sY);
+                    sAbsX = abs(((m_sViewPointX / 32) + (get_virtual_width() / 32) / 2) - sX);
+                    sAbsY = abs(((m_sViewPointY / 32) + (get_virtual_height() / 32) / 2) - sY);
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - sX) * 1000;
                     PlaySound('E', 12, sDist, lPan);
                     break;
 
@@ -2316,15 +2317,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - sX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist);
                     break;
@@ -2336,15 +2336,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(320 - (sX - m_sViewPointX)) * 1000;
                     PlaySound('E', 2, sDist, lPan);
                     SetCameraShakingEffect(sDist);
                     break;
@@ -2356,15 +2355,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 5;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(320 - (sX - m_sViewPointX)) * 1000;
                     PlaySound('E', 3, sDist, lPan);
                     break;
 
@@ -2457,8 +2455,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 10;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2491,15 +2489,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 9;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(320 - (sX - m_sViewPointX)) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist * 2);
                     break;
@@ -2510,15 +2507,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 8;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(320 - (sX - m_sViewPointX)) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist);
                     break;
@@ -2545,8 +2541,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2562,15 +2558,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 45, sDist, lPan);
                     break;
 
@@ -2586,15 +2581,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 20;
                     m_pEffectList[i]->m_iV1 = 20;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 46, sDist, lPan);
                     break;
 
@@ -2607,15 +2601,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 20;
                     m_pEffectList[i]->m_iV1 = 20;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 46, sDist, lPan);
                     break;
 
@@ -2625,15 +2618,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     if ((rand() % 4) == 1) SetCameraShakingEffect(sDist);
                     PlaySound('E', 47, sDist, lPan);
                     break;
@@ -2651,15 +2643,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -2669,15 +2660,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -2695,15 +2685,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 45, sDist, lPan);
                     break;
 
@@ -2730,15 +2719,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 16;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - sX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist, 2);
                     break;
@@ -2782,15 +2770,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - sX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist, 2);
                     break;
@@ -2810,15 +2797,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 17;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - sX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
 
                     m_pEffectList[i]->m_iV1 = sDist;
@@ -2832,15 +2818,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - (sX / 32)) * 1000;
                     PlaySound('E', 42, sDist, lPan);
                     break;
 
@@ -2851,15 +2836,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - (sX / 32)) * 1000;
                     PlaySound('E', 42, sDist, lPan);
                     break;
 
@@ -2870,8 +2854,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2887,15 +2871,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs(320 - (sX - m_sViewPointX));
-                    sAbsY = abs(240 - (sY - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
 
                     sDist = sDist / 32;
 
-                    lPan = ((sX - m_sViewPointX) - 320) * 30;
                     if ((rand() % 4) == 1) SetCameraShakingEffect(sDist);
                     PlaySound('E', 47, sDist, lPan);
                     break;
@@ -2948,8 +2931,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
-
                     PlaySound('E', 1, sDist, lPan);
                     break;
 
@@ -2981,7 +2962,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 13;
                     m_pEffectList[i]->m_dwFrameTime = 120;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -2991,7 +2971,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 100;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3000,7 +2979,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 120;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3013,7 +2991,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3023,7 +3000,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3037,7 +3013,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 1, sDist, lPan);
                     break;
 
@@ -3063,7 +3038,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     m_pEffectList[i]->m_cDir = m_Misc.cCalcDirection(sX, sY, dX, dY);
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 1, sDist, lPan);
                     break;
 
@@ -3079,12 +3053,10 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     m_pEffectList[i]->m_cDir = m_Misc.cCalcDirection(sX, sY, dX, dY);
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 1, sDist, lPan);
                     break;
 
                 case 138:
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
                     SetCameraShakingEffect(sDist, 2);
 
@@ -3109,7 +3081,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 164: // worm-bite
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 4, sDist, lPan);
 
                     bAddNewEffect(14, dX * 32 + (rand() % 120) - 60, dY * 32 + (rand() % 80) - 40, 0, 0, 0, 0);
@@ -3137,7 +3108,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 13;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3145,7 +3115,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 21;
                     m_pEffectList[i]->m_dwFrameTime = 70;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
@@ -3160,7 +3129,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 7;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 40, sDist, lPan);
                     break;
 
@@ -3184,7 +3152,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 10;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 40, sDist, lPan);
                     break;
 
@@ -3213,7 +3180,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     m_pEffectList[i]->m_cDir = m_Misc.cCalcDirection(sX, sY, dX, dY);
 
-                    lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
                     PlaySound('E', 1, sDist, lPan);
                     break;
 
@@ -4072,13 +4038,13 @@ void CGame::bItemDrop_IconPannel(short msX, short msY)
     if (m_cCommand < 0) return;
 
 
-    if ((453 < msX) && (486 > msX) && (440 < msY) && (475 > msY))
+    if ((sX + 453 < msX) && (sX + 486 > msX) && (get_virtual_height() - 480 + 440 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         bItemDrop_Inventory(m_stDialogBoxInfo[2].sX + (rand() % 148), m_stDialogBoxInfo[2].sY + (rand() % 55));
         return;
     }
 
-    if ((425 < msX) && (448 > msX) && (440 < msY) && (475 > msY))
+    if ((sX + 425 < msX) && (sX + 448 > msX) && (get_virtual_height() - 480 + 440 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         bItemDrop_Character();
         return;
@@ -4320,8 +4286,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
     uint16_t * wp{}, wDynamicObjectID{};
 
     cp = pData;
-    m_sVDL_X = sPivotX; // Valid Data Loc-X
-    m_sVDL_Y = sPivotY;
 
     sp = (short *)cp;
     sTotal = *sp;
@@ -4779,6 +4743,7 @@ bool CGame::effect_frame_counter()
         {
             if ((dwTime - m_pEffectList[i]->m_dwTime) > m_pEffectList[i]->m_dwFrameTime)
             {
+                sDist = get_distance_from_player(m_pEffectList[i]->m_mX, m_pEffectList[i]->m_mY).first;
 
                 m_pEffectList[i]->m_dwTime = dwTime;
                 m_pEffectList[i]->m_cFrame++;
@@ -5463,7 +5428,6 @@ bool CGame::effect_frame_counter()
                         bAddNewEffect(8, m_pEffectList[i]->m_mX + (rand() % 20) - 10, m_pEffectList[i]->m_mY + (rand() % 20) - 10, 0, 0, -1 * (rand() % 4));
 
 
-                        lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX) * 1000;
                         PlaySound('E', 1, sDist, lPan);
 
                         bAddNewEffect(7, m_pEffectList[i]->m_dX * 32, m_pEffectList[i]->m_dY * 32, 0, 0, 0);
@@ -5505,13 +5469,12 @@ bool CGame::effect_frame_counter()
                             bAddNewEffect(137, m_pEffectList[i]->m_sX, m_pEffectList[i]->m_sY,
                                 m_pEffectList[i]->m_dX, m_pEffectList[i]->m_dY, 0);
 
-                            sAbsX = abs(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
-                            sAbsY = abs(((m_sViewPointY / 32) + 7) - m_pEffectList[i]->m_dY);
+                            sAbsX = abs(((m_sViewPointX / 32) + ((get_virtual_width() / 32) / 2)) - m_pEffectList[i]->m_dX);
+                            sAbsY = abs(((m_sViewPointY / 32) + ((get_virtual_height() / 32) / 2)) - m_pEffectList[i]->m_dY);
 
                             if (sAbsX > sAbsY) sDist = sAbsX;
                             else sDist = sAbsY;
 
-                            lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX) * 1000;
                             PlaySound('E', 1, sDist, lPan);
                         }
                         break;
@@ -5546,13 +5509,12 @@ bool CGame::effect_frame_counter()
                             bAddNewEffect(16, m_pEffectList[i]->m_sX, m_pEffectList[i]->m_sY,
                                 m_pEffectList[i]->m_dX * 32 + 50 - (rand() % 100), m_pEffectList[i]->m_dY * 32 + 50 - (rand() % 100), 0);
 
-                            sAbsX = abs(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
-                            sAbsY = abs(((m_sViewPointY / 32) + 7) - m_pEffectList[i]->m_dY);
+                            sAbsX = abs(((m_sViewPointX / 32) + ((get_virtual_width() / 32) / 2)) - m_pEffectList[i]->m_dX);
+                            sAbsY = abs(((m_sViewPointY / 32) + ((get_virtual_height() / 32) / 2)) - m_pEffectList[i]->m_dY);
 
                             if (sAbsX > sAbsY) sDist = sAbsX;
                             else sDist = sAbsY;
 
-                            lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
                             PlaySound('E', 1, sDist, lPan);
                         }
                         break;
@@ -5618,13 +5580,12 @@ bool CGame::effect_frame_counter()
                             bAddNewEffect(34, m_pEffectList[i]->m_sX, m_pEffectList[i]->m_sY,
                                 m_pEffectList[i]->m_dX * 32 + 30 - (rand() % 60), m_pEffectList[i]->m_dY * 32 + 30 - (rand() % 60), 0);
 
-                            sAbsX = abs(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
-                            sAbsY = abs(((m_sViewPointY / 32) + 7) - m_pEffectList[i]->m_dY);
+                            sAbsX = abs(((m_sViewPointX / 32) + ((get_virtual_width() / 32) / 2)) - m_pEffectList[i]->m_dX);
+                            sAbsY = abs(((m_sViewPointY / 32) + ((get_virtual_height() / 32) / 2)) - m_pEffectList[i]->m_dY);
 
                             if (sAbsX > sAbsY) sDist = sAbsX;
                             else sDist = sAbsY;
 
-                            lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
                             PlaySound('E', 1, sDist, lPan);
                         }
                         break;
@@ -5669,13 +5630,12 @@ bool CGame::effect_frame_counter()
                             bAddNewEffect(151, m_pEffectList[i]->m_sX, m_pEffectList[i]->m_sY,
                                 m_pEffectList[i]->m_dX + (rand() % 3) - 1, m_pEffectList[i]->m_dY + (rand() % 3) - 1, 0);
 
-                            sAbsX = abs(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
-                            sAbsY = abs(((m_sViewPointY / 32) + 7) - m_pEffectList[i]->m_dY);
+                            sAbsX = abs(((m_sViewPointX / 32) + ((get_virtual_width() / 32) / 2)) - m_pEffectList[i]->m_dX);
+                            sAbsY = abs(((m_sViewPointY / 32) + ((get_virtual_height() / 32) / 2)) - m_pEffectList[i]->m_dY);
 
                             if (sAbsX > sAbsY) sDist = sAbsX;
                             else sDist = sAbsY;
 
-                            lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
                             PlaySound('E', 1, sDist, lPan);
                         }
                         break;
@@ -5696,13 +5656,12 @@ bool CGame::effect_frame_counter()
                             bAddNewEffect(71, m_pEffectList[i]->m_sX, m_pEffectList[i]->m_sY,
                                 m_pEffectList[i]->m_dX * 32 + (rand() % 120) - 60, m_pEffectList[i]->m_dY * 32 + (rand() % 120) - 60, 0);
 
-                            sAbsX = abs(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
-                            sAbsY = abs(((m_sViewPointY / 32) + 7) - m_pEffectList[i]->m_dY);
+                            sAbsX = abs(((m_sViewPointX / 32) + ((get_virtual_width() / 32) / 2)) - m_pEffectList[i]->m_dX);
+                            sAbsY = abs(((m_sViewPointY / 32) + ((get_virtual_height() / 32) / 2)) - m_pEffectList[i]->m_dY);
 
                             if (sAbsX > sAbsY) sDist = sAbsX;
                             else sDist = sAbsY;
 
-                            lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
                             PlaySound('E', 1, sDist, lPan);
                         }
                         break;
@@ -6642,7 +6601,7 @@ void CGame::SetCameraShakingEffect(short sDist, int iMul)
 
     if (iDegree <= 2) return;
 
-    m_iCameraShakingDegree = iDegree;
+    //m_iCameraShakingDegree = iDegree;
 }
 
 void CGame::MeteorStrikeComing(int iCode)
@@ -7204,60 +7163,45 @@ void CGame::_RemoveChatMsgListByObjectID(int iObjectID)
 
 void CGame::PlaySound(char cType, int iNum, int iDist, long lPan)
 {
-    int iVol;
     float fPan = (float)lPan;
-    float forward = 0;
 
     if (m_bSoundFlag == false) return;
     if (m_bSoundStat == false) return;
 
-    if (iDist > 10) iDist = 10;
+    int16_t max_distance = (get_virtual_width() / 32) / 2;
 
-    iVol = (m_cSoundVolume - 100) * 20;
-    iVol += -200 * iDist;
+    if (fPan > max_distance) fPan = max_distance;
+    if (fPan < -max_distance) fPan = -max_distance;
+    if (fPan > -3 && fPan < 3) fPan = 0;
 
-    if (iVol > 0) iVol = 0;
-    if (iVol < -10000) iVol = -10000;
-
-    if (fPan != 0)
+    switch (cType)
     {
-        fPan -= 0.5f;
-        forward = -4;
-    }
-    if (fPan > 0) fPan -= 3.f;
-    else if (fPan < 0) fPan += 3.f;
+        case 'C':
+            if (iNum >= MAX_CHARACTER_SOUNDS) return;
+            m_pCSound[iNum].setMinDistance(4.f);
+            m_pCSound[iNum].setAttenuation(1.f);
+            m_pCSound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
+            m_pCSound[iNum].setVolume(m_cSoundVolume);
+            m_pCSound[iNum].play();
+            break;
 
-    if (fPan >= -3 && fPan <= 3)
-        fPan = 0;
+        case 'M':
+            if (iNum >= MAX_MONSTER_SOUNDS) return;
+            m_pMSound[iNum].setMinDistance(4.f);
+            m_pMSound[iNum].setAttenuation(1.f);
+            m_pMSound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
+            m_pMSound[iNum].setVolume(m_cSoundVolume);
+            m_pMSound[iNum].play();
+            break;
 
-    if (iVol > -2000)
-    {
-        switch (cType)
-        {
-            case 'C':
-                if (iNum >= MAX_CHARACTER_SOUNDS) return;
-                m_pCSound[iNum].setMinDistance(4.f);
-                m_pCSound[iNum].setAttenuation(1.f);
-                m_pCSound[iNum].setPosition({ (float)fPan, 0.f, forward });
-                m_pCSound[iNum].play();
-                break;
-
-            case 'M':
-                if (iNum >= MAX_MONSTER_SOUNDS) return;
-                m_pMSound[iNum].setMinDistance(4.f);
-                m_pMSound[iNum].setAttenuation(1.f);
-                m_pMSound[iNum].setPosition({ (float)fPan, 0.f, forward });
-                m_pMSound[iNum].play();
-                break;
-
-            case 'E':
-                if (iNum >= MAX_EFFECT_SOUNDS) return;
-                m_pESound[iNum].setMinDistance(4.f);
-                m_pESound[iNum].setAttenuation(1.f);
-                m_pESound[iNum].setPosition({ (float)fPan, 0.f, forward });
-                m_pESound[iNum].play();
-                break;
-        }
+        case 'E':
+            if (iNum >= MAX_EFFECT_SOUNDS) return;
+            m_pESound[iNum].setMinDistance(4.f);
+            m_pESound[iNum].setAttenuation(1.f);
+            m_pESound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
+            m_pESound[iNum].setVolume(m_cSoundVolume);
+            m_pESound[iNum].play();
+            break;
     }
 }
 

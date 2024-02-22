@@ -1680,7 +1680,7 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
     sVal = sViewPointX;
     sCenterX = (sVal / 32) + (m_pGame->get_virtual_width() / 32) / 2;
     sVal = sViewPointY;
-    sCenterY = (sVal / 32) + (m_pGame->get_virtual_height() / 32) / 2;
+    sCenterY = (sVal / 32) + ((m_pGame->get_virtual_height() - 60) / 32) / 2;
 
     m_sRectX = m_pGame->m_sVDL_X;
     m_sRectY = m_pGame->m_sVDL_Y;
@@ -1688,13 +1688,12 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
     if ((dwTime - S_dwUpdateTime) > 40) bAutoUpdate = true;
     dynObjsNeedUpdate = (dwTime - m_dwDOframeTime) > 100;
 
-
-    //     for (dX = 0; dX < MAPDATASIZEX; dX++)
-    //         for (dY = 0; dY < MAPDATASIZEY; dY++)
-    for (dX = sViewPointX / 32 - 3; dX < (sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 3 + 65; dX++)
-        for (dY = sViewPointY / 32 - 3 - 35; dY < (sViewPointY / 32) + ((m_pGame->get_virtual_height() - 60) / 32) + 3 + 35; dY++)
+    for (dX = sViewPointX / 32 - 5; dX < (sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 5; dX++)
+        for (dY = sViewPointY / 32 - 5; dY < (sViewPointY / 32) + ((m_pGame->get_virtual_height() - 60) / 32) + 5; dY++)
         {
+            // fix: update to handle dead players
             bool isClientPlayer = m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID;
+            //m_pGame->player_action = m_pData[dX][dY].m_cOwnerAction;
 
             if ((!self_only && isClientPlayer) || (self_only && !isClientPlayer))
                 continue;
@@ -1702,8 +1701,9 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
             if ((dX <= 0) || (dY <= 0))
                 continue;
 
-            sDist = (abs(sCenterX - dX) + abs(sCenterY - dY)) / 2;
-            lPan = -(sCenterX - dX);
+            auto result = m_pGame->get_distance_from_player(dX, dY);
+            //sDist = (abs(sCenterX - dX) + abs(sCenterY - dY)) / 2;
+            lPan = sDist = result.first;
 
             if ((dwTime - m_dwDOframeTime) > 100)
             {
@@ -1983,19 +1983,19 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                                 S_dwUpdateTime = dwTime;
                             }
                         }
-                        //                         else
-                        //                         {
-                        //                             m_pData[dX][dY].m_wObjectID = 0; //-1; v1.41
-                        //                             m_pData[dX][dY].m_sOwnerType = 0;
-                        // 
-                        //                             memset(m_pData[dX][dY].m_cOwnerName, 0, sizeof(m_pData[dX][dY].m_cOwnerName));
-                        // 
-                        //                             if (m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] != 0)
-                        //                             {
-                        //                                 delete m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg];
-                        //                                 m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] = 0;
-                        //                             }
-                        //                         }
+                        else
+                        {
+                            m_pData[dX][dY].m_wObjectID = 0;
+                            m_pData[dX][dY].m_sOwnerType = 0;
+
+                            memset(m_pData[dX][dY].m_cOwnerName, 0, sizeof(m_pData[dX][dY].m_cOwnerName));
+
+                            if (m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] != 0)
+                            {
+                                delete m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg];
+                                m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] = 0;
+                            }
+                        }
                     }
                     if (m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTSTOP)
                     {
@@ -3472,11 +3472,10 @@ bool CMapData::bSetItem(short sX, short sY, short sItemSpr, short sItemSprFrame,
     m_pData[dX][dY].m_sItemSpriteFrame = sItemSprFrame;
     m_pData[dX][dY].m_cItemColor = cItemColor;
 
-    sAbsX = abs(((m_pGame->m_sViewPointX / 32) + 10) - sX);
-    sAbsY = abs(((m_pGame->m_sViewPointY / 32) + 7) - sY);
+    auto result = m_pGame->get_distance_from_player(sX, sY);
 
-    if (sAbsX > sAbsY) sDist = sAbsX;
-    else sDist = sAbsY;
+    // only care about the X distance
+    sDist = result.first;
 
     if (sItemSpr != 0)
     {

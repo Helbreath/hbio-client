@@ -340,7 +340,8 @@ void CGame::ResponsePanningHandler(char * pData)
         case 8: m_sViewDstY -= 32; m_sPlayerY--; m_sViewDstX -= 32; m_sPlayerX--; break;
     }
 
-
+    m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;
@@ -844,7 +845,8 @@ void CGame::MotionResponseHandler(char * pData)
                     AddEventList(G_cTxt, 10);
                 }
             }
-
+            m_sVDL_X = sX;
+            m_sVDL_Y = sY;
             _ReadMapData(sX, sY, cp);
 
             m_bIsRedrawPDBGS = true;
@@ -1141,13 +1143,11 @@ void CGame::InitDataResponseHandler(char * pData)
             DEF_OBJECTSTOP, 0, 0, 0);
     }
 
-    //     m_sViewDstX = m_sViewPointX = (sX + 4 + 5) * 32;
-    //     m_sViewDstY = m_sViewPointY = (sY + 5 + 5) * 32;
+    m_sViewDstX = m_sViewPointX = sX * 32 - (get_virtual_width() / 2);
+    m_sViewDstY = m_sViewPointY = sY * 32 - ((get_virtual_height() - 60) / 2) - 16;
 
-    m_sViewDstX = m_sViewPointX = sX * 32 - 32;
-    m_sViewDstY = m_sViewPointY = sY * 32 - 32;
-
-    //_ReadMapData(sX + 4 + 5, sY + 5 + 5, cp);
+    m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;

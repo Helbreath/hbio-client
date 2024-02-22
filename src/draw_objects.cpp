@@ -335,9 +335,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     {
                         if (m_bIsObserverMode == false)
                         {
-
-                            m_sViewDstX = (indexX * 32) - ((get_virtual_width() / 32) / 2) - 16; // 288 | 9
-                            m_sViewDstY = (indexY * 32) - ((get_virtual_height() / 32) / 2) - 16; // 224 | 7
+                            m_sViewDstX = (indexX * 32) - (get_virtual_width() / 2); // 288 | 9
+                            m_sViewDstY = (indexY * 32) - ((get_virtual_height() - 60) / 2) - 16; // 224 | 7
                         }
 
                         SetRect(&m_rcPlayerRect, m_rcBodyRect.left, m_rcBodyRect.top, m_rcBodyRect.right, m_rcBodyRect.bottom);

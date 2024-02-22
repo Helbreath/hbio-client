@@ -3480,10 +3480,10 @@ void CGame::DrawDialogBoxs(short msX, short msY, short msZ, char cLB)
         if (m_iSuperAttackLeft > 0)
         {
             if (m_altPressed)
-                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_trans_sprite(368, 439, 3, m_dwCurTime);
+                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_trans_sprite(m_stDialogBoxInfo[30].sX + 368, get_virtual_height() - 480 + 439, 3, m_dwCurTime);
 
             format_to_local(G_cTxt, "{}", m_iSuperAttackLeft);
-            put_string_sprite_font2(380, 454, G_cTxt, 220, 200, 200);
+            put_string_sprite_font2(m_stDialogBoxInfo[30].sX + 380, get_virtual_height() - 480 + 454, G_cTxt, 220, 200, 200);
         }
     }
     else
@@ -3491,7 +3491,7 @@ void CGame::DrawDialogBoxs(short msX, short msY, short msZ, char cLB)
         if (m_iSuperAttackLeft > 0)
         {
             format_to_local(G_cTxt, "{}", m_iSuperAttackLeft);
-            put_string_sprite_font2(380, 454, G_cTxt, 10, 10, 10);
+            put_string_sprite_font2(m_stDialogBoxInfo[30].sX + 380, get_virtual_height() - 480 + 454, G_cTxt, 10, 10, 10);
         }
     }
 }
@@ -3506,83 +3506,65 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 
     m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX, sY, 14, dwTime);
 
-    if ((362 < msX) && (404 > msX) && (434 < msY) && (475 > msY))
+    if ((sX + 362 < msX) && (sX + 404 > msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
-        m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(362, 434, 16, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 362, get_virtual_height() - 480 + 434, 16, dwTime);
     }
 
     if (m_bIsCombatMode)
     {
         if (m_bIsSafeAttackMode)
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(368, 440, 4, dwTime);
-        else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(368, 440, 5, dwTime);
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 368, get_virtual_height() - 480 + 440, 4, dwTime);
+        else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 368, get_virtual_height() - 480 + 440, 5, dwTime);
     }
 
     if ((m_bIsCrusadeMode) && (m_iCrusadeDuty != 0))
     {
         if (m_bAresden == true)
         {
-            if ((322 <= msX) && (355 >= msX) && (434 < msY) && (475 > msY))
-                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(322, 434, 1, dwTime);
-            else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(322, 434, 2, dwTime);
+            if ((sX + 322 <= msX) && (sX + 355 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
+                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 322, get_virtual_height() - 480 + 434, 1, dwTime);
+            else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 322, get_virtual_height() - 480 + 434, 2, dwTime);
         }
         else if (m_bAresden == false)
         {
-            if ((322 <= msX) && (355 >= msX) && (434 < msY) && (475 > msY))
-                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(322, 434, 0, dwTime);
-            else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(322, 434, 15, dwTime);
+            if ((sX + 322 <= msX) && (sX + 355 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
+                m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 322, get_virtual_height() - 480 + 434, 0, dwTime);
+            else m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 322, get_virtual_height() - 480 + 434, 15, dwTime);
         }
     }
 
-    if ((msY > 436) && (msY < 478))
+    if ((msY > get_virtual_height() - 480 + 436) && (msY < get_virtual_height() - 480 + 478))
     {
-        if ((msX > 410) && (msX < 447))
+        if ((msX > sX + 410) && (msX < sX + 447))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(360, 497, 410, "Ä³¸¯ÅÍ ÀÎÆ÷(F5)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(412, 434, 6, dwTime);// Character
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 412, get_virtual_height() - 480 + 434, 6, dwTime);// Character
         }
-        if ((msX > 447) && (msX < 484))
+        if ((msX > sX + 447) && (msX < sX + 484))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(397, 534, 410, "ÀÎº¥Åä¸®(F6)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(449, 434, 7, dwTime);// Inventory
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 449, get_virtual_height() - 480 + 434, 7, dwTime);// Inventory
         }
-        if ((msX > 484) && (msX < 521))
+        if ((msX > sX + 484) && (msX < sX + 521))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(434, 571, 410, "¸¶¹ý¸®½ºÆ®(F7)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(486, 434, 8, dwTime);// Magic
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 486, get_virtual_height() - 480 + 434, 8, dwTime);// Magic
         }
-        if ((msX > 521) && (msX < 558))
+        if ((msX > sX + 521) && (msX < sX + 558))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(471, 608, 410, "½ºÅ³Á¤º¸(F8)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(523, 434, 9, dwTime);// Skill
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 523, get_virtual_height() - 480 + 434, 9, dwTime);// Skill
         }
-        if ((msX > 558) && (msX < 595))
+        if ((msX > sX + 558) && (msX < sX + 595))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(508, 645, 410, "Ã¤ÆÃÈ÷½ºÅä¸®(F9)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(560, 434, 10, dwTime);// History
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 560, get_virtual_height() - 480 + 434, 10, dwTime);// History
         }
-        if ((msX > 595) && (msX < 631))
+        if ((msX > sX + 595) && (msX < sX + 631))
         {
-#if DEF_LANGUAGE == 3		// Korea 2.19
-            if (m_iLevel < 80) put_aligned_string(530, 640, 410, "½Ã½ºÅÛ ¸Þ´º(F12)", 200, 200, 120);
-#endif
-            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(597, 434, 11, dwTime);// System Menu
+            m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast(sX + 597, get_virtual_height() - 480 + 434, 11, dwTime);// System Menu
         }
     }
 
     std::string output;
 
-    if (((msX > 144) && (msX < 317) && (msY > 434) && (msY < 477)) || (m_bCtrlPressed))
+    if (((msX > sX + 144) && (msX < sX + 317) && (msY > sY + 434) && (msY < sY + 477)) || (m_bCtrlPressed))
     {
         int iLev = 0;
         int iCurExp = iGetLevelExp(m_iLevel);
@@ -3612,7 +3594,7 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
         }
     }
     else output = std::format("{}({},{})", m_cMapMessage, m_sPlayerX, m_sPlayerY);
-    put_aligned_string(140, 323, 456, output, 200, 200, 120);
+    put_aligned_string(sX + 140, sX + 323, get_virtual_height() - 480 + 456, output, 200, 200, 120);
 }
 
 void CGame::DrawDialogBox_GaugePannel()
@@ -3623,32 +3605,31 @@ void CGame::DrawDialogBox_GaugePannel()
     iBarWidth = 101 - (m_iHP * 101) / iMaxPoint;
     if (iBarWidth < 0) iBarWidth = 0;
     if (iBarWidth > 101) iBarWidth = 101;
-    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(23, 437, 12, iBarWidth, m_dwCurTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(((get_virtual_width() - 640) / 2) + 23, get_virtual_height() - 480 + 437, 12, iBarWidth, m_dwCurTime);
     iTemp = m_iHP;
     format_to_local(G_cTxt, "{}", iTemp);
     if (m_bIsPoisoned)
     {
-        put_string_sprite_number(85, 441, G_cTxt, m_wR[5] * 11, m_wG[5] * 11, m_wB[5] * 11);
-        put_string_sprite_font3(35, 440, "Poisoned", m_wR[5] * 8, m_wG[5] * 8, m_wB[5] * 8, true, 2);
+        put_string_sprite_number(((get_virtual_width() - 640) / 2) + 85, get_virtual_height() - 480 + 441, G_cTxt, m_wR[5] * 11, m_wG[5] * 11, m_wB[5] * 11);
+        put_string_sprite_font3(((get_virtual_width() - 640) / 2) + 35, get_virtual_height() - 480 + 440, "Poisoned", m_wR[5] * 8, m_wG[5] * 8, m_wB[5] * 8, true, 2);
     }
-    else put_string_sprite_number(85, 441, G_cTxt, 200, 100, 100);
-
+    else put_string_sprite_number(((get_virtual_width() - 640) / 2) + 85, get_virtual_height() - 480 + 441, G_cTxt, 200, 100, 100);
 
     iMaxPoint = m_iMag * 2 + m_iLevel * 2 + m_iInt / 2;
     iBarWidth = 101 - (m_iMP * 101) / iMaxPoint;
     if (iBarWidth < 0) iBarWidth = 0;
     if (iBarWidth > 101) iBarWidth = 101;
-    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(23, 459, 12, iBarWidth, m_dwCurTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(((get_virtual_width() - 640) / 2) + 23, get_virtual_height() - 480 + 459, 12, iBarWidth, m_dwCurTime);
     iTemp = m_iMP;
     format_to_local(G_cTxt, "{}", iTemp);
-    put_string_sprite_number(85, 463, G_cTxt, 100, 100, 200);
+    put_string_sprite_number(((get_virtual_width() - 640) / 2) + 85, get_virtual_height() - 480 + 463, G_cTxt, 100, 100, 200);
 
 
     iMaxPoint = m_iStr * 2 + m_iLevel * 2;
     iBarWidth = 167 - (m_iSP * 167) / iMaxPoint;
     if (iBarWidth < 0) iBarWidth = 0;
     if (iBarWidth > 167) iBarWidth = 167;
-    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(147, 435, 13, iBarWidth, m_dwCurTime);
+    m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->put_sprite_fast_width(((get_virtual_width() - 640) / 2) + 147, get_virtual_height() - 480 + 435, 13, iBarWidth, m_dwCurTime);
 }
 
 void CGame::DrawDialogBox_Text(short msX, short msY, short msZ, char cLB)

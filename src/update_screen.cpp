@@ -3667,7 +3667,6 @@ void CGame::UpdateScreen_OnGame()
     static uint32_t dwPrevChatTime = 0;
     static int   imX = 0, imY = 0;
 
-
     if (m_cGameModeCount == 0)
     {
         m_dwFPStime = m_dwCheckConnTime = m_dwCheckSprTime = m_dwCheckChatTime = dwTime;
@@ -3965,16 +3964,16 @@ void CGame::UpdateScreen_OnGame()
 
 
         // todo: ???
-    uint16_t left = m_sPlayerX - ((get_virtual_width() / 32) / 2);
-    uint16_t top = m_sPlayerY - ((get_virtual_height() / 32) / 2);
-    sPivotX = left;//m_sPlayerX - 10; // 12
-    sPivotY = top + 1;//m_sPlayerY - 7; // 9
+    uint16_t left = m_sViewPointX / 32;
+    uint16_t top = m_sViewPointY / 32;
+    sPivotX = 0;//m_sPlayerX - 10; // 12
+    sPivotY = 0;//m_sPlayerY - 7; // 9
 
-    sVal = m_sViewPointX - ((m_sPlayerX - sPivotX) * 32);
+    sVal = m_sViewPointX;
     sDivX = sVal / 32;
     sModX = sVal % 32;
 
-    sVal = m_sViewPointY - ((m_sPlayerY - sPivotY) * 32);
+    sVal = m_sViewPointY;
     sDivY = sVal / 32;
     sModY = sVal % 32;
 
@@ -4048,14 +4047,14 @@ void CGame::UpdateScreen_OnGame()
 
         bg.display();
         bg_sprite = sf::Sprite(bg.getTexture());
-        bg_sprite.setScale(zoom / 100, zoom / 100);
-        bg_sprite.setPosition(-sModX, -sModY);
 
         dynamic_bg.display();
         dynbg_sprite = sf::Sprite(dynamic_bg.getTexture());
-        dynbg_sprite.setScale(zoom / 100, zoom / 100);
     }
 
+    bg_sprite.setScale(zoom / 100, zoom / 100);
+    bg_sprite.setPosition(-sModX, -sModY);
+    dynbg_sprite.setScale(zoom / 100, zoom / 100);
     render_target(oldTarget);
     draw_weather_effects();
     visible.draw(bg_sprite);
@@ -4082,12 +4081,12 @@ void CGame::UpdateScreen_OnGame()
         ShowEventList(m_dwCurTime);
 
         dialog.display();
-        dialog_sprite = sf::Sprite(dialog.getTexture());
-        dialog_sprite.setScale(zoom / 100, zoom / 100);
 
         render_target(oldTarget);
     }
 
+    dialog_sprite = sf::Sprite(dialog.getTexture());
+    dialog_sprite.setScale(zoom / 100, zoom / 100);
     visible.draw(dialog_sprite);
 
     if ((iUpdateRet != 0) && (m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_ITEM) &&

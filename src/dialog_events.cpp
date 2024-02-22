@@ -1955,7 +1955,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     sX = m_stDialogBoxInfo[30].sX;
     sY = m_stDialogBoxInfo[30].sY;
 
-    if ((msX > 322) && (msX < 355) && (434 < msY) && (475 > msY))
+    if ((msX > sX + 322) && (msX < sX + 355) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
 
         if (m_bIsCrusadeMode == false) return;
@@ -1978,7 +1978,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
         PlaySound('E', 14, 5);
     }
 
-    if ((362 < msX) && (404 > msX) && (434 < msY) && (475 > msY))
+    if ((sX + 362 < msX) && (sX + 404 > msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         // Combat Mode Toggle
         bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_TOGGLECOMBATMODE, 0, 0, 0, 0, 0);
@@ -1986,7 +1986,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // Character
-    if ((413 <= msX) && (446 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 413 <= msX) && (sX + 446 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[1] == true)
             DisableDialogBox(1);
@@ -1995,7 +1995,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // Inventory
-    if ((453 <= msX) && (486 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 453 <= msX) && (sX + 486 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[2] == true)
             DisableDialogBox(2);
@@ -2004,7 +2004,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // Magic
-    if ((490 <= msX) && (522 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 490 <= msX) && (sX + 522 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[3] == true)
             DisableDialogBox(3);
@@ -2013,7 +2013,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // Skill
-    if ((526 <= msX) && (552 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 526 <= msX) && (sX + 552 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[15] == true)
             DisableDialogBox(15);
@@ -2022,7 +2022,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // Chat
-    if ((556 <= msX) && (587 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 556 <= msX) && (sX + 587 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[10] == true)
             DisableDialogBox(10);
@@ -2031,7 +2031,7 @@ void CGame::DlgBoxClick_IconPannel(short msX, short msY)
     }
 
     // System Menu
-    if ((589 <= msX) && (621 >= msX) && (434 < msY) && (475 > msY))
+    if ((sX + 589 <= msX) && (sX + 621 >= msX) && (get_virtual_height() - 480 + 434 < msY) && (get_virtual_height() - 480 + 475 > msY))
     {
         if (m_bIsDialogEnabled[19] == true)
             DisableDialogBox(19);

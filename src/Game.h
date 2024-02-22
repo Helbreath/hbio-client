@@ -249,6 +249,15 @@ public:
     void handle_stop();
     void close(uint32_t code = ix::WebSocketCloseConstants::kNormalClosureCode, const std::string & reason = ix::WebSocketCloseConstants::kNormalClosureMessage);
 
+    std::pair<int16_t, int16_t> get_distance_from_player(int16_t x, int16_t y, bool abs_ = false)
+    {
+        int16_t distanceX = x - m_sPlayerX;
+        int16_t distanceY = y - m_sPlayerY;
+        if (abs_)
+            return std::make_pair(std::abs(distanceX), std::abs(distanceY));
+        return std::make_pair(distanceX, distanceY);
+    }
+
     bool loggedin;
     bool disconnecting = false;
 
