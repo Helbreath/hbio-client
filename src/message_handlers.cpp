@@ -1645,8 +1645,16 @@ bool CGame::GameRecvMsgHandler(char * pData, uint64_t size)
 
     uint8_t v = 0;
 
+    stream_read sr(pData, size);
+    int32_t message_id = sr.read_int32();
+    int16_t command_id = sr.read_int16();
+
     switch (*dwpMsgID)
     {
+        case MSGID_COMMAND_CHECKCONNECTION:
+            ping = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - sr.read_int64();
+            return true;
+
         case MSGID_RESPONSE_CHARGED_TELEPORT:
             ResponseChargedTeleport(pData);
             return true;
