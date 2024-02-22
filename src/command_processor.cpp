@@ -1081,7 +1081,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
     else
         if (cRB != 0)
         {
-
             m_cCommand = DEF_OBJECTSTOP;
 
             if (m_bIsGetPointingMode == true)

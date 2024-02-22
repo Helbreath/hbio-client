@@ -1163,7 +1163,7 @@ public:
 
 
     bool m_bZoomMap;
-    bool m_bIsProgramActive;
+    bool m_bIsProgramActive = true;
     bool m_bCommandAvailable;
     bool m_bSoundFlag;
     bool m_bSoundStat, m_bMusicStat; // On/Off

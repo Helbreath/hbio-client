@@ -494,7 +494,6 @@ bool CGame::bInit()
 
     m_bCommandAvailable = true;
 
-
     m_dwTime = G_dwGlobalTime;
 
     m_bSoundFlag = true;
@@ -611,6 +610,8 @@ void CGame::Quit()
 {
     int i;
 
+    m_bIsProgramActive = false;
+
     change_game_mode(DEF_GAMEMODE_NULL);
 
     for (i = 0; i < DEF_MAXSPRITES; i++)
@@ -684,7 +685,6 @@ void CGame::Quit()
     }
 }
 
-
 void CGame::CalcViewPoint()
 {
     short dX, dY;
@@ -730,7 +730,6 @@ void CGame::CalcViewPoint()
         update_background = true;
     }
 }
-
 
 void CGame::RestoreSprites()
 {
@@ -2174,10 +2173,10 @@ void CGame::AddEventList(const char * pTxt, char cColor, bool bDupAllow)
 
 
 int _iAttackerHeight[] = { 0, 35, 35,35,35,35,35, 0,0,0,
-5,  // Slime
-35, // Skeleton
-40, // Stone-Golem
-45, // Cyclops
+5,// Slime
+35,// Skeleton
+40,// Stone-Golem
+45,// Cyclops
 35,// OrcMage
 35,// ShopKeeper
 5,// GiantAnt
@@ -2276,15 +2275,14 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
             switch (sType)
             {
                 case 1:
-
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32 - _iAttackerHeight[iV1];
                     m_pEffectList[i]->m_iErr = 0;
                     m_pEffectList[i]->m_cMaxFrame = 2;
                     m_pEffectList[i]->m_dwFrameTime = 10;
                     break;
-                case 2:
 
+                case 2:
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32 - _iAttackerHeight[iV1];
                     m_pEffectList[i]->m_iErr = 0;
@@ -2297,7 +2295,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 4:
-
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32;
                     m_pEffectList[i]->m_cMaxFrame = 12;
@@ -2314,7 +2311,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 5:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 11;
@@ -2335,7 +2331,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                 case 6:	 // Energy Bolt
                 case 10: // Lightning Arrow
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 14;
@@ -2374,7 +2369,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 8:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 4;
@@ -2382,7 +2376,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 9:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_rX = 6 - (rand() % 12);
@@ -2393,8 +2386,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 11:
-#if DEF_LANGUAGE != 3
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_rX = 6 - (rand() % 12);
@@ -2405,11 +2396,9 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     m_pEffectList[i]->m_cMaxFrame = 8;
                     m_pEffectList[i]->m_dwFrameTime = 30;
-#endif
                     break;
 
                 case 12:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_rX = 8 - (rand() % 16);
@@ -2420,7 +2409,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 13:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
 
@@ -2429,7 +2417,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 14:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
 
@@ -2438,7 +2425,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 15:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
 
@@ -2490,8 +2476,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                 case 25:
                 case 26:
                 case 27:
-
-
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32 - 40;
                     m_pEffectList[i]->m_iErr = 0;
@@ -2502,7 +2486,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 30:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 9;
@@ -2522,7 +2505,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 31:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 8;
@@ -2533,6 +2515,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = -(320 - (sX - m_sViewPointX)) * 1000;
@@ -2541,7 +2524,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 32:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_iErr = 0;
@@ -2550,7 +2532,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 33:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 16;
@@ -2576,7 +2557,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 40:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 15;
@@ -2587,6 +2567,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2597,7 +2578,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                 case 42:
                 case 43:
                 case 44:
-
                 case 45:
                 case 46:
                     m_pEffectList[i]->m_mX = sX;
@@ -2611,12 +2591,12 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
                     PlaySound('E', 46, sDist, lPan);
                     break;
-
 
                 case 47:
                 case 48:
@@ -2632,6 +2612,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2649,6 +2630,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2674,6 +2656,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2691,6 +2674,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2706,7 +2690,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 56:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
                     m_pEffectList[i]->m_cMaxFrame = 14;
@@ -2717,6 +2700,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2724,7 +2708,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 57:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
 
@@ -2733,7 +2716,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 60:
-
                     m_pEffectList[i]->m_mX = sX + 300;
                     m_pEffectList[i]->m_mY = sY - 460;
 
@@ -2742,7 +2724,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 61:
-
                     m_pEffectList[i]->m_mX = sX;
                     m_pEffectList[i]->m_mY = sY;
 
@@ -2882,7 +2863,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     PlaySound('E', 42, sDist, lPan);
                     break;
 
-
                 case 71:
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32;
@@ -2912,6 +2892,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
+
                     sDist = sDist / 32;
 
                     lPan = ((sX - m_sViewPointX) - 320) * 30;
@@ -2961,7 +2942,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 100:
-
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32 - 40;
                     m_pEffectList[i]->m_iErr = 0;
@@ -3005,10 +2985,9 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     PlaySound('E', 5, sDist, lPan);
                     break;
 
-                case 150: // Berserk : Cirlcle 6 magic 
+                case 150: // Berserk : Circle 6 magic 
                 case 180: // Illusion
                 case 190: // Mass-Illusion
-
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 100;
 
@@ -3018,7 +2997,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
                 case 113: // Defense-Shield
                 case 144: // Great-Defense-Shield
-
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 120;
 
@@ -3196,7 +3174,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 20;
                     break;
 
-
                 case 151:
                     m_pEffectList[i]->m_mX = sX * 32;
                     m_pEffectList[i]->m_mY = sY * 32 - 50;
@@ -3234,7 +3211,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-
                     m_pEffectList[i]->m_cDir = m_Misc.cCalcDirection(sX, sY, dX, dY);
 
                     lPan = -(((m_sViewPointX / 32) + 10) - dX) * 1000;
@@ -3262,7 +3238,6 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     break;
 
                 case 181:
-
                     m_pEffectList[i]->m_mX = dX * 32 + 300;
                     m_pEffectList[i]->m_mY = dY * 32 - 460;
 
@@ -3270,9 +3245,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 25;
                     break;
 
-
                 case 191:
-
                     m_pEffectList[i]->m_cMaxFrame = 7;
                     m_pEffectList[i]->m_dwFrameTime = 80;
                     break;
@@ -3302,7 +3275,6 @@ void CGame::DrawEffects()
     for (i = 0; i < DEF_MAXEFFECTS; i++)
         if ((m_pEffectList[i] != 0) && (m_pEffectList[i]->m_cFrame >= 0))
         {
-
             switch (m_pEffectList[i]->m_sType)
             {
                 case 1:
@@ -3407,7 +3379,6 @@ void CGame::DrawEffects()
                     break;
 
                 case 11:
-#if DEF_LANGUAGE != 3
                     cTempFrame = (rand() % 5) + 5;
                     if (cTempFrame < 0) break;
 
@@ -3415,7 +3386,6 @@ void CGame::DrawEffects()
                     dY = (m_pEffectList[i]->m_mY) - m_sViewPointY;
 
                     m_pEffectSpr[11]->put_trans_sprite2(dX, dY, cTempFrame, dwTime);
-#endif
                     break;
 
                 case 12:
@@ -3554,8 +3524,6 @@ void CGame::DrawEffects()
                 case 44:
                 case 45:
                 case 46:
-
-
                     dX = (m_pEffectList[i]->m_sX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_sY) - m_sViewPointY;
                     m_pEffectSpr[21]->put_fade_sprite(dX, dY, 48, dwTime);
@@ -3581,7 +3549,6 @@ void CGame::DrawEffects()
                 case 47:
                 case 48:
                 case 49:
-
                     dX = (m_pEffectList[i]->m_sX) - m_sViewPointX;
                     dY = (m_pEffectList[i]->m_sY) - m_sViewPointY;
                     m_pEffectSpr[m_pEffectList[i]->m_sType - 1]->put_reverse_trans_sprite(dX, dY, 0, dwTime);
@@ -4093,7 +4060,6 @@ void CGame::DrawEffects()
 
 void CGame::bItemDrop_IconPannel(short msX, short msY)
 {
-
     short sX, sY, sItemIndex;
 
     sX = m_stDialogBoxInfo[30].sX;
@@ -4354,18 +4320,15 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
     uint16_t * wp{}, wDynamicObjectID{};
 
     cp = pData;
-
     m_sVDL_X = sPivotX; // Valid Data Loc-X
     m_sVDL_Y = sPivotY;
 
-    return;
     sp = (short *)cp;
     sTotal = *sp;
     cp += 2;
 
     for (i = 1; i <= sTotal; i++)
     {
-
         sp = (short *)cp;
         sX = *sp;
         cp += 2;
@@ -4373,13 +4336,11 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
         sY = *sp;
         cp += 2;
 
-
         ucHeader = *cp;
         cp++;
 
         if (ucHeader & 0x01)
         {
-
             // object ID
             wp = (uint16_t *)cp;
             wObjectID = *wp;
@@ -4394,7 +4355,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
 
             if (wObjectID < 10000)
             {
-
                 // Appearance1
                 sp = (short *)cp;
                 sAppr1 = *sp;
@@ -4426,7 +4386,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
             }
             else
             {
-
                 sAppr1 = sAppr3 = sAppr4 = 0;
                 // Appearance2
                 sp = (short *)cp;
@@ -4447,7 +4406,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
 
         if (ucHeader & 0x02)
         {
-
             // object ID
             wp = (uint16_t *)cp;
             wObjectID = *wp;
@@ -4461,7 +4419,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
             cp++;
             if (wObjectID < 10000)
             {
-
                 // Appearance1
                 sp = (short *)cp;
                 sAppr1 = *sp;
@@ -4493,7 +4450,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
             }
             else
             {
-
                 sAppr1 = sAppr3 = sAppr4 = 0;
                 // Appearance2
                 sp = (short *)cp;
@@ -4514,8 +4470,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
 
         if (ucHeader & 0x04)
         {
-
-
             sp = (short *)cp;
             sItemSpr = *sp;
             cp += 2;
@@ -4531,7 +4485,6 @@ void CGame::_ReadMapData(short sPivotX, short sPivotY, char * pData)
 
         if (ucHeader & 0x08)
         {
-
             wp = (uint16_t *)cp;
             wDynamicObjectID = *wp;
             cp += 2;
@@ -4816,7 +4769,7 @@ bool CGame::effect_frame_counter()
     bool bRet = false;
     short sAbsX, sAbsY, sDist{};
     char  cDir;
-    long lPan;
+    long lPan{};
 
     dwTime = m_dwCurTime;
     dwTime += m_pMapData->m_dwFrameAdjustTime;

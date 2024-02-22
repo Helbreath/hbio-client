@@ -20,7 +20,6 @@ CMapData::CMapData(CGame * pGame)
     memset(m_iObjectIDcacheLocY, 0, sizeof(m_iObjectIDcacheLocY));
     m_dwDOframeTime = m_dwFrameTime = unixtime();
 
-    //[MAPDATASIZEX][MAPDATASIZEY]{}
     m_pData = new CTile * [MAPDATASIZEX];
     m_pTmpData = new CTile * [MAPDATASIZEX];
     m_tile = new CTileSpr * [MAPDATASIZEX];
@@ -825,11 +824,6 @@ void CMapData::_bDecodeMapInfo(char * pHeader)
     }
 }
 
-void CMapData::ShiftMapData(char cDir)
-{
-    return;
-}
-
 bool CMapData::is_locateable(short x, short y) const
 {
     int dX, dY;
@@ -875,7 +869,6 @@ bool CMapData::set_owner(uint16_t wObjectID, int sX, int sY, int sType, int cDir
     {
         if (m_iObjectIDcacheLocX[wObjectID] > 0)
         {
-
             iX = m_iObjectIDcacheLocX[wObjectID];
             iY = m_iObjectIDcacheLocY[wObjectID];
 
@@ -1731,7 +1724,6 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
 
                 if ((m_pData[dX][dY].m_sDynamicObjectType != 0))
                 {
-
                     m_pData[dX][dY].m_cDynamicObjectFrame++;
 
                     switch (m_pData[dX][dY].m_sDynamicObjectType)
@@ -1855,7 +1847,6 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                 }
             }
 
-
             if (m_pData[dX][dY].m_sDeadOwnerType != 0)
                 if ((m_pData[dX][dY].m_cDeadOwnerFrame >= 0) && ((dwTime - m_pData[dX][dY].m_dwDeadOwnerTime) > 150))
                 {
@@ -1871,7 +1862,7 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                     if (m_pData[dX][dY].m_cDeadOwnerFrame > 10)
                     {
 
-                        m_pData[dX][dY].m_wDeadObjectID = 0; // -1; v1.41
+                        m_pData[dX][dY].m_wDeadObjectID = 0;
                         m_pData[dX][dY].m_sDeadOwnerType = 0;
                         memset(m_pData[dX][dY].m_cDeadOwnerName, 0, sizeof(m_pData[dX][dY].m_cDeadOwnerName));
                     }
@@ -1953,8 +1944,8 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
 
                     if (m_pData[dX][dY].m_cOwnerFrame > m_stFrame[m_pData[dX][dY].m_sOwnerType][m_pData[dX][dY].m_cOwnerAction].m_sMaxFrame)
                     {
-                        //                         if ((m_sRectX <= dX) && ((m_sRectX + 20) >= dX) &&
-                        //                             (m_sRectY <= dY) && ((m_sRectY + 15) >= dY))
+                        if ((sViewPointX / 32 - 5 <= dX) && (((sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 5) >= dX) &&
+                            (sViewPointY / 32 - 5 <= dY) && (((sViewPointY / 32) + ((m_pGame->get_virtual_height() - 60) / 32) + 5) >= dY))
                         {
                             if (m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTDYING)
                             {
@@ -1971,13 +1962,13 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                                 m_pData[dX][dY].m_cDeadOwnerFrame = -1;
                                 memcpy(m_pData[dX][dY].m_cDeadOwnerName, m_pData[dX][dY].m_cOwnerName, 11);
 
-                                m_pData[dX][dY].m_wObjectID = 0; //-1; v1.41
+                                m_pData[dX][dY].m_wObjectID = 0;
                                 m_pData[dX][dY].m_sOwnerType = 0;
 
                                 memset(m_pData[dX][dY].m_cOwnerName, 0, sizeof(m_pData[dX][dY].m_cOwnerName));
 
-                                m_iObjectIDcacheLocX[m_pData[dX][dY].m_wDeadObjectID] = -1 * m_iObjectIDcacheLocX[m_pData[dX][dY].m_wDeadObjectID]; //dX;
-                                m_iObjectIDcacheLocY[m_pData[dX][dY].m_wDeadObjectID] = -1 * m_iObjectIDcacheLocY[m_pData[dX][dY].m_wDeadObjectID]; //dY;
+                                m_iObjectIDcacheLocX[m_pData[dX][dY].m_wDeadObjectID] = -1 * m_iObjectIDcacheLocX[m_pData[dX][dY].m_wDeadObjectID];
+                                m_iObjectIDcacheLocY[m_pData[dX][dY].m_wDeadObjectID] = -1 * m_iObjectIDcacheLocY[m_pData[dX][dY].m_wDeadObjectID];
                             }
                             else
                             {

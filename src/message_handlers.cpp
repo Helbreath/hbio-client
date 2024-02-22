@@ -340,7 +340,7 @@ void CGame::ResponsePanningHandler(char * pData)
         case 8: m_sViewDstY -= 32; m_sPlayerY--; m_sViewDstX -= 32; m_sPlayerX--; break;
     }
 
-    m_pMapData->ShiftMapData(cDir);
+
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;
@@ -844,7 +844,7 @@ void CGame::MotionResponseHandler(char * pData)
                     AddEventList(G_cTxt, 10);
                 }
             }
-            m_pMapData->ShiftMapData(cDir);
+
             _ReadMapData(sX, sY, cp);
 
             m_bIsRedrawPDBGS = true;
@@ -915,10 +915,8 @@ void CGame::MotionResponseHandler(char * pData)
 
             m_bIsGetPointingMode = false;
 
-
             m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32 - 32;
             m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32 - 32;
-
 
             m_bIsPrevMoveBlocked = true;
 
@@ -936,8 +934,6 @@ void CGame::MotionResponseHandler(char * pData)
                     PlaySound('C', 13, 0);
                     break;
             }
-
-
             break;
     }
 }
@@ -1696,7 +1692,6 @@ bool CGame::GameRecvMsgHandler(char * pData, uint64_t size)
             return true;
 
         case MSGID_RESPONSE_CREATENEWGUILD:
-
             CreateNewGuildResponseHandler(pData);
             return true;
 
@@ -1705,12 +1700,10 @@ bool CGame::GameRecvMsgHandler(char * pData, uint64_t size)
             return true;
 
         case MSGID_PLAYERCHARACTERCONTENTS:
-
             InitPlayerCharacteristics(pData);
             return true;
 
         case MSGID_RESPONSE_CIVILRIGHT:
-
             CivilRightAdmissionHandler(pData);
             return true;
 
@@ -1746,12 +1739,10 @@ void CGame::ConnectionEstablishHandler(char cWhere)
         case DEF_SERVERTYPE_LOG:
             if (m_bIsCheckingGateway == true)
             {
-
                 bSendCommand(MSGID_GETMINIMUMLOADGATEWAY, 0, 0, 0, 0, 0, 0);
             }
             else
             {
-
                 switch (m_dwConnectMode)
                 {
                     case MSGID_REQUEST_LOGIN:
@@ -1759,7 +1750,6 @@ void CGame::ConnectionEstablishHandler(char cWhere)
                         break;
 
                     case MSGID_REQUEST_CREATENEWACCOUNT:
-
                         bSendCommand(MSGID_REQUEST_CREATENEWACCOUNT, 0, 0, 0, 0, 0, 0);
                         break;
 
@@ -1871,7 +1861,6 @@ void CGame::LogEventHandler(char * pData)
     switch (wEventType)
     {
         case DEF_MSGTYPE_CONFIRM:
-
             m_pMapData->set_owner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
             switch (sType)
             {
@@ -1890,7 +1879,6 @@ void CGame::LogEventHandler(char * pData)
             m_pMapData->set_owner(wObjectID, -1, -1, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
             break;
     }
-
 
     _RemoveChatMsgListByObjectID(wObjectID);
 }

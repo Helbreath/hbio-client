@@ -28,7 +28,6 @@ public:
     void GetOwnerStatusByObjectID(uint16_t wObjectID, char * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pStatus, int * pColor, char * pName);
     void ClearDeadChatMsg(short sX, short sY);
     void ClearChatMsg(short sX, short sY);
-    void ShiftMapData(char cDir);
     void _bDecodeMapInfo(char * pHeader);
     bool __fastcall bSetChatMsgOwner(uint16_t wObjectID, short sX, short sY, int iIndex);
     bool __fastcall bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType, char cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName);

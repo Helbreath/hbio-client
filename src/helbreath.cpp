@@ -275,7 +275,6 @@ void CGame::on_input_event(sf::Event event)
                     else
                         testx--;
                     m_cArrowPressed = 1;
-                    //m_pMapData->ShiftMapData(7);
                     break;
                 case Keyboard::Right:
                     //                            submsg    iv1, iv2, iv3,          iv4
@@ -298,7 +297,6 @@ void CGame::on_input_event(sf::Event event)
                     else
                         testx++;
                     m_cArrowPressed = 3;
-                    //m_pMapData->ShiftMapData(3);
                     break;
                 case Keyboard::Up:
                     //                 if (event.key.shift)

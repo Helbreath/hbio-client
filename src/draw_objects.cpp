@@ -340,7 +340,6 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                             m_sViewDstY = (indexY * 32) - ((get_virtual_height() / 32) / 2) - 16; // 224 | 7
                         }
 
-
                         SetRect(&m_rcPlayerRect, m_rcBodyRect.left, m_rcBodyRect.top, m_rcBodyRect.right, m_rcBodyRect.bottom);
 
                         bIsPlayerDrawed = true;
