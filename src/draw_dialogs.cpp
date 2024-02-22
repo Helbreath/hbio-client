@@ -5892,12 +5892,7 @@ void CGame::DrawDialogBox_SysMenu(short msX, short msY, char cLB)
             if (m_cMusicVolume < 0) m_cMusicVolume = 0;
             if (m_bSoundFlag)
             {
-                //todo: sound volume control
-                int iVol;
-                iVol = (m_cMusicVolume - 100) * 20;
-                if (iVol > 0) iVol = 0;
-                if (iVol < -10000) iVol = -10000;
-
+                m_pBGM.setVolume(m_cMusicVolume);
                 StartBGM();
             }
         }
