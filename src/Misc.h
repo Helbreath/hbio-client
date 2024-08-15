@@ -30,7 +30,7 @@ public:
     bool bCheckValidString(const char * str);
     void GetDirPoint(char cDir, int * pX, int * pY);
     void GetPoint(int x0, int y0, int x1, int y1, int * pX, int * pY, int * pError, int iCount);
-    char cGetNextMoveDir(short sX, short sY, short dX, short dY);
+    char cGetNextMoveDir(short sX, short sY, short dX, short dY, bool bMIM);
     bool bIsValidEmail(char * pStr);
     CMisc();
     ~CMisc();

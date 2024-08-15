@@ -6,6 +6,7 @@
 
 #pragma once
 
+// todo: replace with stdlib tokenizer
 class CStrTok
 {
 public:

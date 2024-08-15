@@ -25,4 +25,6 @@ public:
     std::string message;
 
     int m_iObjectID;
+
+    int m_iGM = 0;
 };

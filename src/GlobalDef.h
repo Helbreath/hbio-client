@@ -7,12 +7,6 @@
 #define DEF_ENGLISHITEM
 #define DEF_GIZON
 #define DEF_LANGUAGE 4
-//#define DEF_TAIWAN	1
-//#define DEF_CHINESE	2
-//#define DEF_KOREAN	3
-//#define DEF_ENGLISH	4 
-//#define DEF_JAPANESE	5
-//#define DEF_GIZON
 
 #define NAME_WORLDNAME1			"xtreme" 
 #define MSG_WORLDNAME1			"Helbreath Xtreme" 
@@ -42,28 +36,6 @@
 
 #define DEF_SNOW_POSITION_Y		430
 
-#if DEF_LANGUAGE == 1	// Taiwan
-#define DEF_UPPERVERSION		2
-#define DEF_LOWERVERSION		19
-#elif DEF_LANGUAGE == 2	// China
-#define DEF_UPPERVERSION		2
-#define DEF_LOWERVERSION		19
-#elif DEF_LANGUAGE == 3	// Korea
-#define DEF_UPPERVERSION		2
-#define DEF_LOWERVERSION		20
-#elif DEF_LANGUAGE == 4	// English
 #define DEF_UPPERVERSION		0
 #define DEF_LOWERVERSION		0
 #define DEF_PATCHVERSION		1
-// Fuck USA : 2.20     International : 2.20
-#elif DEF_LANGUAGE == 5	// Japan
-#define DEF_UPPERVERSION		2
-#define DEF_LOWERVERSION		20
-// Terra : 2.185     Inter Japan : 2.20
-#endif
-
-
-
-//#define DEF_TESTSERVER
-//#define DEF_SHOWCURSORPOS
-//

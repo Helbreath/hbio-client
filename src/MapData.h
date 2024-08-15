@@ -7,10 +7,8 @@
 #pragma once
 
 #include <cstdint>
-#include "ActionID.h"
+#include "action_id.h"
 
-// #define MAPDATASIZEX	40
-// #define MAPDATASIZEY	35
 #define MAPDATASIZEX 950
 #define MAPDATASIZEY 950
 
@@ -29,17 +27,17 @@ public:
     void ClearDeadChatMsg(short sX, short sY);
     void ClearChatMsg(short sX, short sY);
     void _bDecodeMapInfo(char * pHeader);
-    bool __fastcall bSetChatMsgOwner(uint16_t wObjectID, short sX, short sY, int iIndex);
-    bool __fastcall bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType, char cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName);
-    bool __fastcall bGetDeadOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, char * pFrame, char * pName, short * pItemSprite, short * pItemSpriteFrame, int * pCharIndex) const;
-    bool __fastcall get_owner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, int * pStatus, char * pName, char * pAction, char * pFrame, int * pChatIndex, short * pV1, short * pV2) const;
-    bool set_owner(uint16_t wObjectID, int sX, int sY, int sType, int cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName, short sAction, short sV1, short sV2, short sV3, int iPreLoc = 0, int iFrame = 0);
-    bool __fastcall get_owner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID);
+    bool bSetChatMsgOwner(uint16_t wObjectID, short sX, short sY, int iIndex);
+    bool bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType, char cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName);
+    bool bGetDeadOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, char * pFrame, char * pName, short * pItemSprite, short * pItemSpriteFrame, int * pCharIndex);
+    bool bGetOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, int * pStatus, char * pName, char * pAction, char * pFrame, int * pChatIndex, short * pV1, short * pV2);
+    bool bSetOwner(uint16_t wObjectID, int sX, int sY, int sType, int cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName, short sAction, short sV1, short sV2, short sV3, int iPreLoc = 0, int iFrame = 0);
+    bool bGetOwner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID);
     bool bSetDynamicObject(short sX, short sY, uint16_t wID, short sType, bool bIsEvent);
-    bool is_teleport(short x, short y) const;
-    bool is_locateable(short x, short y) const;
+    bool bIsTeleportLoc(short x, short y);
+    bool bGetIsLocateable(short x, short y);
     bool bSetItem(short sX, short sY, short sItemSpr, short sItemSprFrame, char cItemColor, bool bDropEffect = true);
-    int  object_frame_counter(char * cPlayerName, short sViewPointX, short sViewPointY, bool self_only = false);
+    int object_frame_counter(char * cPlayerName, short sViewPointX, short sViewPointY, bool self_only = false);
 
     CTile ** m_pData;
     CTile ** m_pTmpData;
@@ -54,10 +52,12 @@ public:
     uint32_t m_dwFrameTime{};
     uint32_t m_dwDOframeTime{};
     uint32_t m_dwFrameCheckTime{};
-    int m_iObjectIDcacheLocX[30000]{};
-    int m_iObjectIDcacheLocY[30000]{};
+
+    // one server managing all maps will generate lots of npcs - this needs to be adjusted
+    // todo: use std::set or something - for now use something higher than uint16_t
+    int m_iObjectIDcacheLocX[70000]{};
+    int m_iObjectIDcacheLocY[70000]{};
     uint32_t m_dwFrameAdjustTime{};
     short m_sMapSizeX{}, m_sMapSizeY{};
     short m_sRectX{}, m_sRectY{};
-    short m_sPivotX{}, m_sPivotY{};
 };

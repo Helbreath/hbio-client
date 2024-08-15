@@ -18,13 +18,21 @@ CMisc::~CMisc()
 
 }
 
-char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY)
+char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY, bool bMIM)
 {
     short absX, absY;
     char  cRet = 0;
 
-    absX = sX - dX;
-    absY = sY - dY;
+    if (bMIM)
+    {
+        absX = dX - sX;
+        absY = dY - sY;
+    }
+    else
+    {
+        absX = sX - dX;
+        absY = sY - dY;
+    }
 
     if ((absX == 0) && (absY == 0)) cRet = 0;
 
@@ -45,7 +53,6 @@ char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY)
 
     return cRet;
 }
-
 
 void CMisc::GetPoint(int x0, int y0, int x1, int y1, int * pX, int * pY, int * pError, int iCount)
 {

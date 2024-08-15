@@ -7,22 +7,17 @@
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
+#include <queue>
 #include <fmt/format.h>
 #include "sprite.h"
-#include "Msg.h"
+#include "sprite_id.h"
+#include "CharInfo.h"
+#include "MouseInterface.h"
+#include "action_id.h"
+#include "Item.h"
 #include "MapData.h"
-
-#if DEF_LANGUAGE == 1
-#include "lan_tai.h"
-#elif DEF_LANGUAGE == 2
-#include "lan_chi.h"
-#elif DEF_LANGUAGE == 3
-#include "lan_kor.h"
-#elif DEF_LANGUAGE == 4
 #include "lan_eng.h"
-#elif DEF_LANGUAGE == 5
-#include "lan_jap.h"
-#endif
+#include "msg.h"
 
 extern char G_cSpriteAlphaDegree;
 
@@ -32,7 +27,7 @@ extern char _cMantleDrawingOrderOnRun[];
 
 
 extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
-extern int _tmp_sStatus;
+extern int _tmp_iStatus;
 extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
 extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
 extern uint16_t  _tmp_wObjectID;
@@ -41,22 +36,149 @@ extern uint16_t  wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
 extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
-extern int sFocusStatus;
+extern int iFocusStatus;
 extern int   iFocusApprColor;
+
+
+void CGame::_Draw_CharacterBody(short sX, short sY, short sType)
+{
+    uint32_t dwTime = m_dwCurTime;
+    int  iR, iG, iB;
+
+    if (sType <= 3)
+    {
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 0]->put_sprite_fast(sX, sY, sType - 1, dwTime);
+        _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18]->put_sprite_color(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
+
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19]->put_sprite_fast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
+    }
+    else
+    {
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 40]->put_sprite_fast(sX, sY, sType - 4, dwTime);
+
+        _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18 + 40]->put_sprite_color(sX, sY, (_tmp_sAppr1 & 0x0F00) >> 8, iR, iG, iB, dwTime);
+
+        m_pSprite[DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19 + 40]->put_sprite_fast(sX, sY, (_tmp_sAppr1 & 0x000F), dwTime);
+    }
+}
+
+bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int iPoint)
+{
+    bool bFlag = true;
+    uint32_t dwTime = unixtime();
+    int i = 0;
+
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWCHAR, 0, 0, 0, true);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 69, true);
+    put_aligned_string(64, 282, 90, _BDRAW_ON_CREATE_NEW_CHARACTER1, 5, 5, 5);
+    put_aligned_string(57, 191, 110, DEF_MSG_CHARACTERNAME, 5, 5, 5);//"Character Name"
+    if (m_cCurFocus != 1) put_string(197, 112, pName, Color(25, 35, 25));
+    put_aligned_string(64, 282, 140, _BDRAW_ON_CREATE_NEW_CHARACTER2, 5, 5, 5);
+    put_string(100, 160, DEF_MSG_GENDER, Color(5, 5, 5));//"Gender"
+    put_string(100, 175, DEF_MSG_SKINCOLOR, Color(5, 5, 5));//"Skin Color"
+    put_string(100, 190, DEF_MSG_HAIRSTYLE, Color(5, 5, 5));//"Hair Style"
+    put_string(100, 205, DEF_MSG_HAIRCOLOR, Color(5, 5, 5));//"Hair Color"
+    put_string(100, 220, DEF_MSG_UNDERWEARCOLOR, Color(5, 5, 5));//"Underwear Color"
+    put_aligned_string(64, 282, 245, _BDRAW_ON_CREATE_NEW_CHARACTER3, 5, 5, 5);
+    format_to_local(G_cTxt, _BDRAW_ON_CREATE_NEW_CHARACTER4, iPoint);
+    put_aligned_string(64, 282, 260, G_cTxt, 15, 10, 10);
+    put_string(100, 275, DEF_MSG_STRENGTH, Color(5, 5, 5));//"Strength"
+    put_string(100, 292, DEF_MSG_VITALITY, Color(5, 5, 5));//"Vitality"
+    put_string(100, 309, DEF_MSG_DEXTERITY, Color(5, 5, 5));//"Dexterity"
+    put_string(100, 326, DEF_MSG_INTELLIGENCE, Color(5, 5, 5));//"Intelligence"
+    put_string(100, 343, DEF_MSG_MAGIC, Color(5, 5, 5));//"Magic"
+    put_string(100, 360, DEF_MSG_CHARISMA, Color(5, 5, 5));//"Charisma"
+
+    format_to_local(G_cTxt, "{}", m_ccStr);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    format_to_local(G_cTxt, "{}", m_ccVit);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    format_to_local(G_cTxt, "{}", m_ccDex);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    format_to_local(G_cTxt, "{}", m_ccInt);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    format_to_local(G_cTxt, "{}", m_ccMag);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    format_to_local(G_cTxt, "{}", m_ccChr);
+    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_aligned_string(64, 295, 380, _BDRAW_ON_CREATE_NEW_CHARACTER5, 5, 5, 5);
+
+    if (strlen(pName) <= 0) bFlag = false;
+    if (iPoint > 0) bFlag = false;
+    if (m_Misc.bCheckValidName(pName) == false) bFlag = false;
+    //if (_bCheckBadWords(pName) == true) bFlag = false;
+
+    if ((bFlag == true) && (m_cCurFocus == 2)) m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 25, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 24, dwTime);
+    if (m_cCurFocus == 3)
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 17, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 16, dwTime);
+    if (m_cCurFocus == 4)
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 68, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 67, dwTime);
+    if (m_cCurFocus == 5)
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 66, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 65, dwTime);
+    if (m_cCurFocus == 6)
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 64, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 63, dwTime);
+
+    ShowReceivedString();
+
+    switch (m_cGender)
+    {
+        case 1:	_tmp_sOwnerType = 1; break;
+        case 2:	_tmp_sOwnerType = 4; break; //@@@@@@@@@@@@@@@@@!!!!!!!!!!!!!!!!!
+    }
+    _tmp_sOwnerType += m_cSkinCol - 1;
+    _tmp_cDir = m_cMenuDir;
+    _tmp_sAppr1 = 0;
+    _tmp_sAppr1 = _tmp_sAppr1 | (m_cUnderCol);
+    _tmp_sAppr1 = _tmp_sAppr1 | (m_cHairStyle << 8);
+    _tmp_sAppr1 = _tmp_sAppr1 | (m_cHairCol << 4);
+    _tmp_sAppr2 = 0;
+    _tmp_sAppr3 = 0;
+    _tmp_sAppr4 = 0;
+    memset(_tmp_cName, 0, sizeof(_tmp_cName));
+    memcpy(_tmp_cName, m_cPlayerName, 10);
+    _tmp_cAction = DEF_OBJECTMOVE;
+    _tmp_cFrame = m_cMenuFrame;
+
+    _Draw_CharacterBody(507, 267, _tmp_sOwnerType);
+
+    DrawObject_OnMove_ForMenu(0, 0, 500, 174, false, dwTime, msX, msY);
+
+    i = 0;
+
+    put_string(445, 192, DEF_MSG_HITPOINT, Color(5, 5, 5));//"Hit Point"
+    format_to_local(G_cTxt, "{}", m_ccVit * 3 + 2 + m_ccStr / 2);
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+
+    put_string(445, 208, DEF_MSG_MANAPOINT, Color(5, 5, 5));//"Mana Point"
+    format_to_local(G_cTxt, "{}", m_ccMag * 2 + 2 + m_ccInt / 2);
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+
+    put_string(445, 224, DEF_MSG_STAMINAPOINT, Color(5, 5, 5));//"Stamina Point"
+    format_to_local(G_cTxt, "{}", m_ccStr * 2 + 2);
+    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+
+    return bFlag;
+}
+
 
 bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iWeapon{}, iAdd{}, iShieldIndex{}, iMantleIndex{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iWeapon, iAdd, iShieldIndex, iMantleIndex;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
-
-
+    //if(_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -90,87 +212,85 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
         case 3:
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;
+                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 4;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 4;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (5 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 5;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 5;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 5;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
 
                 iWeaponIndex = -1;
                 iShieldIndex = -1;
@@ -180,94 +300,91 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;
+                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 4;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 4;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (5 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 5;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 5;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 5;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
 
                 iWeaponIndex = -1;
                 iShieldIndex = -1;
@@ -278,11 +395,13 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
         default:
             if (_tmp_sAppr2 != 0)
             {
-                iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                 _tmp_cFrame = _tmp_sAppr2 - 1;
             }
-            else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
-            else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+            else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+            else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+            else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+            //if (_tmp_sOwnerType >= 70) { iBodyIndex = DEF_NPC + (2*8); }//ChangeSprite
             iUndiesIndex = -1;
             iHairIndex = -1;
             iBodyArmorIndex = -1;
@@ -297,11 +416,8 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, _tmp_cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -312,9 +428,10 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
     if (bTrans == false)
     {
 
+        CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
+
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (iWeaponColor == 0)
@@ -326,7 +443,9 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -341,13 +460,16 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
 
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // FireWyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -359,24 +481,25 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
-            if (bInv == true)
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+            }
+            else if (bInv == true)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -388,7 +511,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -434,7 +557,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -448,12 +571,11 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -471,13 +593,16 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
         {
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -489,24 +614,25 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
-            if (bInv == true)
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+            }
+            else if (bInv == true)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -518,7 +644,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -564,7 +690,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -578,12 +704,11 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -603,7 +728,9 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -618,32 +745,78 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+//		if ((_tmp_iStatus & 0x80) != 0) 
+//			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    //Change Abaddon Effects
+    if (_tmp_sOwnerType == 81)
+    {
+        int randFrame = _tmp_cFrame % 12;
+        m_pEffectSpr[154]->put_trans_sprite70(sX - 50, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[155]->put_trans_sprite70(sX - 20, sY - 80, randFrame, dwTime);
+        m_pEffectSpr[156]->put_trans_sprite70(sX + 70, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[157]->put_trans_sprite70(sX - 30, sY, randFrame, dwTime);
+        m_pEffectSpr[158]->put_trans_sprite70(sX - 60, sY + 90, randFrame, dwTime);
+        m_pEffectSpr[159]->put_trans_sprite70(sX + 65, sY + 85, randFrame, dwTime);
+        switch (_tmp_cDir)
+        {
+            case 1:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 108, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 50, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 2:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 70, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 3:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 105, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 90, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 4:
+                m_pEffectSpr[153]->put_trans_sprite70(sX - 35, sY + 100, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 80, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 5:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 65, sY - 5, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 6:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 45, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 31, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 7:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 40, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 30, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 8:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 20, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 20, sY + 16, _tmp_iEffectFrame % 15, dwTime);
+                break;
+        }
+    }
+
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -655,21 +828,20 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
     return false;
 }
 
+
 bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iWeapon{}, iAdd{}, iShieldIndex{}, iMantleIndex{}, dx{}, dy{}, dsx{}, dsy{};
-    int cFrameMoveDots{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iWeapon, iAdd, iShieldIndex, iMantleIndex, dx, dy, dsx, dsy;
+    int cFrameMoveDots;
     bool bInv = false, bDashDraw = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -696,11 +868,17 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     switch (_tmp_cFrame)
@@ -723,87 +901,85 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
         case 3:
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;
+                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 4;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 4;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (5 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 5;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 5;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 5;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
 
                 iWeaponIndex = -1;
                 iShieldIndex = -1;
@@ -813,94 +989,91 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;
+                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 4 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 4;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 4;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (5 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 5;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 5;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 5;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 5;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 5;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 5;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 5;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 5;
 
                 iWeaponIndex = -1;
                 iShieldIndex = -1;
@@ -909,7 +1082,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
 
 
         default:
-            iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+            iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
             iUndiesIndex = -1;
             iHairIndex = -1;
             iBodyArmorIndex = -1;
@@ -953,8 +1126,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
             case 2: dy += 2; break;
             case 3: dy++;    break;
         }
-
-
         switch (_tmp_cFrame)
         {
             case 2: bDashDraw = true; cFrameMoveDots = 26; break;
@@ -996,11 +1167,8 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX + dx, sY + dy, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -1011,16 +1179,19 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     if (bTrans == false)
     {
 
+        CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (iWeaponColor == 0)
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -1036,20 +1207,23 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
             if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                 if (m_cDetailLevel != 0) {
                     if (sX < 50)
-                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX+dx, sY+dy, _tmp_cFrame, dwTime);
-                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX+dx, sY+dy, _tmp_cFrame, dwTime);
                 }
             }
             */
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -1066,15 +1240,14 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -1086,7 +1259,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -1132,7 +1305,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -1146,12 +1319,11 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -1167,25 +1339,27 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
         }
         else
         {
-
             /*
             if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                 if (m_cDetailLevel != 0) {
                     if (sX < 50)
-                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX+dx, sY+dy, _tmp_cFrame, dwTime);
-                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX+dx, sY+dy, _tmp_cFrame, dwTime);
                 }
             }
             */
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -1202,15 +1376,14 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -1222,7 +1395,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -1268,7 +1441,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -1282,12 +1455,11 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -1307,7 +1479,9 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -1322,11 +1496,11 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+//		if ((_tmp_iStatus & 0x80) != 0) 
+//			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
 
         if (bDashDraw == true)
         {
@@ -1337,27 +1511,27 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX + dx;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY + dy;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
 
     _tmp_dx = dx;
     _tmp_dy = dy;
+    DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -1369,17 +1543,17 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     return false;
 }
 
+
 bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
     bool bInv = false;
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -1402,30 +1576,26 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
         iBootsColor = (_tmp_iApprColor & 0x000000F0) >> 4;
         iHelmColor = (_tmp_iApprColor & 0x0000000F);
     }
-
-
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0)
             bInv = true;
         else
         {
-
+            // v1.4 
             if (_tmp_iChatIndex != 0)
             {
                 if (m_pChatMsgList[_tmp_iChatIndex] != 0)
                 {
-
                     m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
                     m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
                 }
                 else
                 {
-
                     m_pMapData->ClearChatMsg(indexX, indexY);
                 }
             }
-
+            // v1.4
 
             return false;
         }
@@ -1437,78 +1607,75 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
         case 2:
         case 3:
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (8 * 8);
-            iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 8;
-            iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 8;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 8;
+            iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 8;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 8;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 8;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 8;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 8;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 8;
+            else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 8;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 8;
+            else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 8;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 8;
+            else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 8;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 8;
+            else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 8;
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (8 * 8);
 
-            iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 8;
-            iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 8;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 8;
+            iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 8;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 8;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 8;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 8;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 8;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 8;
+            else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 8;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 8;
+            else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 8;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 8;
+            else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 8;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 8;
+            else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 8;
             break;
     }
-
-
     /*
     switch (_tmp_cFrame) {
     case 15:
@@ -1542,11 +1709,8 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
     */
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, _tmp_cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -1559,19 +1723,24 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
         /*
         if (m_cDetailLevel != 0) {
             if (sX < 50)
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, _tmp_cFrame, dwTime);
-            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, _tmp_cFrame, dwTime);
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, _tmp_cFrame, dwTime);
+            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, _tmp_cFrame, dwTime);
         }
         */
+        CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
+
         switch (_tmp_sOwnerType)
         {
-            case 10:
-            case 35:
-            case 50:
-            case 51:
-            case 60:
-            case 65:
-            case 66:
+            case 10: // Slime
+            case 35: // Energy Sphere
+            case 50: // TW
+            case 51: // CP
+            case 60: // Plant
+            case 65: // IceGolem
+            case 66: // Wyvern
+            case 73: // Fire Wyvern
+            case 81: // Abaddon
+            case 91: // Gate
                 break;
 
             default:
@@ -1588,11 +1757,10 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
         else
         {
-            if ((_tmp_sStatus & 0x40) != 0)
+            if ((_tmp_iStatus & 0x40) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
         }
-
         SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
@@ -1600,7 +1768,7 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
 
         if ((iHairIndex != -1) && (iHelmIndex == -1))
         {
-            _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+            _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
             m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 16 + _tmp_cFrame, iR, iG, iB, dwTime);
         }
 
@@ -1654,32 +1822,32 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+//		if ((_tmp_iStatus & 0x80) != 0) 
+//			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -1691,17 +1859,16 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
     return false;
 }
 
+
 bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
     bool bInv = false;
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -1725,11 +1892,17 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
         iHelmColor = (_tmp_iApprColor & 0x0000000F);
     }
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     switch (_tmp_sOwnerType)
@@ -1738,74 +1911,73 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
         case 2:
         case 3:
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (9 * 8);
-            iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 9;
-            iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 9;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 9;
+            iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 9;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 9;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 9;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 9;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 9;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 9;
+            else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 9;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 9;
+            else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 9;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 9;
+            else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 9;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 9;
+            else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 9;
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (9 * 8);
 
-            iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 9;
-            iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 9;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 9;
+            iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 9;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 9;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 9;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 9;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 9;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 9;
+            else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 9;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 9;
+            else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 9;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 9;
+            else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 9;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 9;
+            else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 9;
             break;
 
         default:
@@ -1821,11 +1993,8 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, _tmp_cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -1838,19 +2007,24 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
         /*
         if (m_cDetailLevel != 0) {
             if (sX < 50)
-                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, _tmp_cFrame, dwTime);
-            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, _tmp_cFrame, dwTime);
+                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, _tmp_cFrame, dwTime);
+            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, _tmp_cFrame, dwTime);
         }
         */
+        CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
+
         switch (_tmp_sOwnerType)
         {
-            case 10:
-            case 35:
-            case 50:
-            case 51:
-            case 60:
-            case 65:
-            case 66:
+            case 10: // Slime
+            case 35: // Energy Sphere
+            case 50: // TW
+            case 51: // CP
+            case 60: // Plant
+            case 65: // IceGolem
+            case 66: // Wyvern
+            case 73: // Fire Wyvern
+            case 81: // Abaddon
+            case 91: // Gate
                 break;
 
             default:
@@ -1867,11 +2041,10 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite2(sX, sY, _tmp_cFrame, dwTime);
         else
         {
-            if ((_tmp_sStatus & 0x40) != 0)
+            if ((_tmp_iStatus & 0x40) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
         }
-
         SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
@@ -1883,7 +2056,7 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
 
         if ((iHairIndex != -1) && (iHelmIndex == -1))
         {
-            _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+            _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
             m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + _tmp_cFrame, iR, iG, iB, dwTime);
         }
 
@@ -1965,32 +2138,32 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+//		if ((_tmp_iStatus & 0x80) != 0) 
+//			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -2002,20 +2175,20 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
     return false;
 }
 
+
 bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iWeaponIndex{}, iShieldIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iAdd{}, iDrawMode{}, iMantleIndex{};
-    char cFrame{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iWeaponIndex, iShieldIndex, iHelmIndex, iR, iG, iB;
+    int iAdd, iDrawMode, iMantleIndex;
+    char cFrame;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -2042,11 +2215,17 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     cFrame = _tmp_cFrame;
@@ -2062,45 +2241,45 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                 else iAdd = 0;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + iAdd;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * iAdd + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * iAdd + (_tmp_cDir - 1);
                 }
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
 
                 iDrawMode = 0;
             }
@@ -2108,46 +2287,46 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             {
                 cFrame -= 4;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (10 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 10;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 10;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 10;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 10;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 5;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 5;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
 
                 iDrawMode = 1;
             }
@@ -2156,7 +2335,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if (cFrame < 4)
@@ -2165,44 +2343,44 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                 else iAdd = 0;
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + iAdd;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * iAdd + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * iAdd + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
 
                 iDrawMode = 0;
             }
@@ -2212,45 +2390,45 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (10 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 10;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 10;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 10;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 10;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 5;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 5;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
                 }
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
 
                 iDrawMode = 1;
             }
@@ -2261,22 +2439,41 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             {
                 if (_tmp_sAppr2 != 0)
                 {
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     cFrame = _tmp_sAppr2 - 1;
                 }
-                else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
-                else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 67) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 68) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 69) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 81) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 86) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 87) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 89) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 91) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
             }
             else
             {
                 cFrame -= 4;
                 if (_tmp_sAppr2 != 0)
                 {
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     cFrame = _tmp_sAppr2 - 1;
                 }
-                else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
-                else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+                else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 67) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 68) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 69) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 81) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 86) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 87) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 89) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 91) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+                else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+
             }
 
             iUndiesIndex = -1;
@@ -2295,11 +2492,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -2309,19 +2503,23 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
     if (bTrans == false)
     {
+
+        CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
+
         if (iDrawMode == 1)
         {
 
             if (_cDrawingOrder[_tmp_cDir] == 1)
             {
-
                 if (iWeaponIndex != -1)
                 {
                     if (iWeaponColor == 0)
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2335,20 +2533,23 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                 if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                     if (m_cDetailLevel != 0) {
                         if (sX < 50)
-                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, cFrame, dwTime);
-                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, cFrame, dwTime);
+                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
                     }
                 }
                 */
                 switch (_tmp_sOwnerType)
                 {
-                    case 10:
-                    case 35:
-                    case 50:
-                    case 51:
-                    case 60:
-                    case 65:
-                    case 66:
+                    case 10: // Slime
+                    case 35: // Energy Sphere
+                    case 50: // TW
+                    case 51: // CP
+                    case 60: // Plant
+                    case 65: // IceGolem
+                    case 66: // Wyvern
+                    case 73: // Fire Wyvern
+                    case 81: // Abaddon
+                    case 91: // Gate
                         break;
 
                     default:
@@ -2360,24 +2561,25 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         }
                         break;
                 }
-
-
                 if (_tmp_sOwnerType == 35)
                     m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
-                if (bInv == true)
+                if (_tmp_sOwnerType == 81) //Abaddon
+                {
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
+                }
+                else if (bInv == true)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
                 else
                 {
-                    if ((_tmp_sStatus & 0x40) != 0)
+                    if ((_tmp_iStatus & 0x40) != 0)
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-
                 SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2389,7 +2591,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
                 if ((iHairIndex != -1) && (iHelmIndex == -1))
                 {
-                    _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                    _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                     m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, iR, iG, iB, dwTime);
                 }
 
@@ -2435,7 +2637,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2449,12 +2651,11 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
-                            //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                            //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                         case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                         case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                         case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -2470,25 +2671,27 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             }
             else
             {
-
                 /*
                 if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                     if (m_cDetailLevel == 0) {
                         if (sX < 50)
-                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, cFrame, dwTime);
-                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, cFrame, dwTime);
+                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
                     }
                 }
                 */
                 switch (_tmp_sOwnerType)
                 {
-                    case 10:
-                    case 35:
-                    case 50:
-                    case 51:
-                    case 60:
-                    case 65:
-                    case 66:
+                    case 10: // Slime
+                    case 35: // Energy Sphere
+                    case 50: // TW
+                    case 51: // CP
+                    case 60: // Plant
+                    case 65: // IceGolem
+                    case 66: // Wyvern
+                    case 73: // Fire Wyvern
+                    case 81: // Abaddon
+                    case 91: // Gate
                         break;
 
                     default:
@@ -2500,8 +2703,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         }
                         break;
                 }
-
-
                 if (_tmp_sOwnerType == 35)
                     m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
@@ -2509,15 +2710,14 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
                 else
                 {
-                    if ((_tmp_sStatus & 0x40) != 0)
+                    if ((_tmp_iStatus & 0x40) != 0)
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-
                 SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2529,7 +2729,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
                 if ((iHairIndex != -1) && (iHelmIndex == -1))
                 {
-                    _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                    _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                     m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, iR, iG, iB, dwTime);
                 }
 
@@ -2575,7 +2775,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2589,12 +2789,11 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
-                            //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                            //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                         case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                         case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                         case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -2614,7 +2813,9 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2626,25 +2827,26 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             }
 
             // Berserk 
-            if ((_tmp_sStatus & 0x20) != 0)
+            if ((_tmp_iStatus & 0x20) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, 0, -5, -5, dwTime);
-            // Protection From Magic
-            if ((_tmp_sStatus & 0x80) != 0)
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, -5, 0, 5, dwTime);
+            // Poison
+    //		if ((_tmp_iStatus & 0x80) != 0) 
+    //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
         }
         else
         {
 
             if (_cDrawingOrder[_tmp_cDir] == 1)
             {
-
                 if (iWeaponIndex != -1)
                 {
                     if (iWeaponColor == 0)
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2658,8 +2860,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                 if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                     if (m_cDetailLevel != 0) {
                         if (sX < 50)
-                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, cFrame, dwTime);
-                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, cFrame, dwTime);
+                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
                     }
                 }
                 */
@@ -2688,15 +2890,14 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
                 else
                 {
-                    if ((_tmp_sStatus & 0x40) != 0)
+                    if ((_tmp_iStatus & 0x40) != 0)
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-
                 SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2708,7 +2909,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
                 if ((iHairIndex != -1) && (iHelmIndex == -1))
                 {
-                    _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                    _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                     m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, iR, iG, iB, dwTime);
                 }
 
@@ -2754,7 +2955,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2768,12 +2969,11 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
-                            //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                            //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                         case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                         case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                         case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -2789,25 +2989,27 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             }
             else
             {
-
                 /*
                 if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                     if (m_cDetailLevel != 0) {
                         if (sX < 50)
-                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, cFrame, dwTime);
-                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, cFrame, dwTime);
+                             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                        else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
                     }
                 }
                 */
                 switch (_tmp_sOwnerType)
                 {
-                    case 10:
-                    case 35:
-                    case 50:
-                    case 51:
-                    case 60:
-                    case 65:
-                    case 66:
+                    case 10: // Slime
+                    case 35: // Energy Sphere
+                    case 50: // TW
+                    case 51: // CP
+                    case 60: // Plant
+                    case 65: // IceGolem
+                    case 66: // Wyvern
+                    case 73: // Fire Wyvern
+                    case 81: // Abaddon
+                    case 91: // Gate
                         break;
 
                     default:
@@ -2824,11 +3026,10 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
                 else
                 {
-                    if ((_tmp_sStatus & 0x40) != 0)
+                    if ((_tmp_iStatus & 0x40) != 0)
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-
                 SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
@@ -2843,7 +3044,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
                 if ((iHairIndex != -1) && (iHelmIndex == -1))
                 {
-                    _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                    _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                     m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, iR, iG, iB, dwTime);
                 }
 
@@ -2889,7 +3090,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-
+                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2903,12 +3104,11 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
-                            //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                            //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                         case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                         case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                         case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -2928,7 +3128,9 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2940,33 +3142,79 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             }
 
             // Berserk 
-            if ((_tmp_sStatus & 0x20) != 0)
+            if ((_tmp_iStatus & 0x20) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, 0, -5, -5, dwTime);
-            // Protection From Magic
-            if ((_tmp_sStatus & 0x80) != 0)
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, -5, 0, 5, dwTime);
+            // Poison
+    //		if ((_tmp_iStatus & 0x80) != 0) 
+    //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
         }
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    //Abaddon effects
+    if (_tmp_sOwnerType == 81)
+    {
+        int randFrame = _tmp_cFrame % 12;
+        m_pEffectSpr[154]->put_trans_sprite70(sX - 50, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[155]->put_trans_sprite70(sX - 20, sY - 80, randFrame, dwTime);
+        m_pEffectSpr[156]->put_trans_sprite70(sX + 70, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[157]->put_trans_sprite70(sX - 30, sY, randFrame, dwTime);
+        m_pEffectSpr[158]->put_trans_sprite70(sX - 60, sY + 90, randFrame, dwTime);
+        m_pEffectSpr[159]->put_trans_sprite70(sX + 65, sY + 85, randFrame, dwTime);
+        switch (_tmp_cDir)
+        {
+            case 1:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 108, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 50, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 2:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 70, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 3:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 105, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 90, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 4:
+                m_pEffectSpr[153]->put_trans_sprite70(sX - 35, sY + 100, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 80, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 5:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 65, sY - 5, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 6:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 45, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 31, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 7:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 40, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 30, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 8:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 20, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 20, sY + 16, _tmp_iEffectFrame % 15, dwTime);
+                break;
+        }
+    }
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -2980,12 +3228,12 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 
 bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-    char cFrame{};
+    char cFrame;
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -3010,8 +3258,6 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
     }
 
     cFrame = _tmp_cFrame;
-
-
     switch (_tmp_sOwnerType)
     {
         case 1:
@@ -3020,132 +3266,131 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
             if (cFrame < 6)
             {
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (0 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 0;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 0;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 0;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 0;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 0;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 0;
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 0;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 0;
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 0;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 0;
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 0;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 0;
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
             }
             else
             {
                 cFrame -= 6;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (11 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 11;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 11;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 11;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 11;
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
             }
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if (cFrame < 6)
             {
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (0 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 0;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 0;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 0;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 0;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 0;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 0;
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 0;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 0;
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 0;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 0;
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 0;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 0;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
             }
             else
             {
                 cFrame -= 6;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (11 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 11;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 11;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 11;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 11;
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
             }
             break;
 
@@ -3154,11 +3399,15 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
             {
                 if (_tmp_sAppr2 != 0)
                 {
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     cFrame = _tmp_sAppr2 - 1;
                 }
-                else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
-                else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+                else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 86) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 87) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 89) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
                 iUndiesIndex = -1;
                 iHairIndex = -1;
                 iArmArmorIndex = -1;
@@ -3170,13 +3419,13 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
                 switch (_tmp_sOwnerType)
                 {
-                    case 36:
-                    case 37:
-                    case 39:
-                    case 38:
-                    case 40:
-                    case 41:
-                    case 42:
+                    case 36: // AGT
+                    case 37: // CGT
+                    case 38: // MS
+                    case 39: // DT
+                    case 40: // ESG
+                    case 41: // GMG
+                    case 42: // ManaStone	
 
                         if (_tmp_sAppr2 == 0) cFrame = 0;
                         break;
@@ -3195,11 +3444,17 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
                 if (_tmp_sAppr2 != 0)
                 {
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     cFrame = _tmp_sAppr2 - 1;
                 }
-                else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
-                else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else if (_tmp_sOwnerType == 81) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+                else if (_tmp_sOwnerType == 86) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+                else if (_tmp_sOwnerType == 87) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+                else if (_tmp_sOwnerType == 89) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+                else if (_tmp_sOwnerType == 91) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                 iUndiesIndex = -1;
                 iHairIndex = -1;
                 iArmArmorIndex = -1;
@@ -3213,11 +3468,8 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -3232,20 +3484,23 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
         if (_tmp_sOwnerType != 10) {
             if (m_cDetailLevel != 0) {
                 if (sX < 50)
-                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX, sY, cFrame, dwTime);
-                else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX, sY, cFrame, dwTime);
+                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
             }
         }
         */
         switch (_tmp_sOwnerType)
         {
-            case 10:
-            case 35:
-            case 50:
-            case 51:
-            case 60:
-            case 65:
-            case 66:
+            case 10: // Slime
+            case 35: // Energy Sphere
+            case 50: // TW
+            case 51: // CP
+            case 60: // Plant
+            case 65: // IceGolem
+            case 66: // Wyvern
+            case 73: // Fire Wyvern
+            case 81: // Abaddon
+            case 91: // Gate
                 break;
 
             default:
@@ -3258,14 +3513,40 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
                 break;
         }
 
-        if (_tmp_sOwnerType == 66) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
+        //if( _tmp_sOwnerType == 66 ) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime); 
+        //if( _tmp_sOwnerType == 73 ) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime); 
+        if (_tmp_sOwnerType == 81)
+        {
+            m_pEffectSpr[152]->put_trans_sprite70(sX - 80, sY - 15, _tmp_iEffectFrame % 27, dwTime); // Explosion Abaddon
+            m_pEffectSpr[152]->put_trans_sprite70(sX, sY - 15, _tmp_iEffectFrame % 27, dwTime);
+            m_pEffectSpr[152]->put_trans_sprite70(sX - 40, sY, _tmp_iEffectFrame % 27, dwTime);
+            m_pEffectSpr[163]->put_trans_sprite70(sX - 90, sY - 80, _tmp_iEffectFrame % 12, dwTime); // Ames qui s'envolent
+            m_pEffectSpr[160]->put_trans_sprite70(sX - 60, sY - 50, _tmp_iEffectFrame % 12, dwTime);
+            m_pEffectSpr[161]->put_trans_sprite70(sX - 30, sY - 20, _tmp_iEffectFrame % 12, dwTime);
+            m_pEffectSpr[162]->put_trans_sprite70(sX, sY - 100, _tmp_iEffectFrame % 12, dwTime);
+            m_pEffectSpr[163]->put_trans_sprite70(sX + 30, sY - 30, _tmp_iEffectFrame % 12, dwTime);
+            m_pEffectSpr[162]->put_trans_sprite70(sX + 60, sY - 90, _tmp_iEffectFrame % 12, dwTime);
+            m_pEffectSpr[163]->put_trans_sprite70(sX + 90, sY - 50, _tmp_iEffectFrame % 12, dwTime);
+            switch (_tmp_cDir)
+            {
+                case 1: m_pEffectSpr[140]->put_trans_sprite70(sX, sY, cFrame, dwTime); break; // Abbadon dying
+                case 2: m_pEffectSpr[141]->put_trans_sprite70(sX, sY, cFrame, dwTime); break; // fixed sprit IDs
+                case 3: m_pEffectSpr[142]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+                case 4: m_pEffectSpr[143]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+                case 5: m_pEffectSpr[144]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+                case 6: m_pEffectSpr[145]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+                case 7: m_pEffectSpr[146]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+                case 8: m_pEffectSpr[147]->put_trans_sprite70(sX, sY, cFrame, dwTime); break;
+            }
+        }
+        else if (_tmp_sOwnerType == 66) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, cFrame, dwTime);
+        //else if( _tmp_sOwnerType == 73 ) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime); 
         else
         {
-            if ((_tmp_sStatus & 0x40) != 0)
+            if ((_tmp_iStatus & 0x40) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
         }
-
         SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
@@ -3273,7 +3554,7 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
         if ((iHairIndex != -1) && (iHelmIndex == -1))
         {
-            _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+            _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
             m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, iR, iG, iB, dwTime);
         }
 
@@ -3327,32 +3608,32 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, cFrame, -5, 0, 5, dwTime);
+        // Poison
+//		if ((_tmp_iStatus & 0x80) != 0) 
+//			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -3366,12 +3647,13 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
 bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iFrame{}, iMantleIndex{}, iHelmIndex{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iFrame, iMantleIndex, iHelmIndex;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
 
     if (_tmp_sOwnerType == 66) return false;
-
+    //if( _tmp_sOwnerType == 73 ) return false;
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -3402,132 +3684,166 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
         case 3:
             iFrame = 7;
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (11 * 8);
-            iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 11;
-            iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 11;
+            iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 11;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 11;
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
+            else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
+            else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
+            else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
+            else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             iFrame = 7;
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (11 * 8);
-            iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 11;
-            iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 11;
+            iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 11;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 11;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 11;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 11;
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
+            else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 11;
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
+            else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 11;
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
+            else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 11;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
+            else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 11;
             break;
 
 
         default:
             switch (_tmp_sOwnerType)
             {
-                case 28:
-                case 29:
-                case 30:
-                case 31:
+                case 28: // Troll
+                case 29: // Ogre
+                case 30: // Liche
+                case 31: // DD
+                case 63: // Frost
                     iFrame = 5;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     break;
 
-                case 32:
-                case 33:
-                case 43:
-                case 44:
-                case 45:
-                case 46:
-                case 47:
-                case 48:
-                case 49:
-                case 50:
-                case 53:
-                case 54:
-                case 55:
-                case 56:
-                case 57:
-                case 58:
-                case 59:
-                case 60:
-                case 61:
-                case 62:
-                case 64:
-                case 65:
+                case 32: // Uni
+                case 33: // WW
+                case 43: // LWB
+                case 44: // GHK
+                case 45: // GHKABS
+                case 46: // TK
+                case 47: // BG
+                case 48: // SK
+                case 49: // HC
+                case 50: // TW
+                case 53: // BB
+                case 54: // DE
+                case 55: // Rabbit
+                case 56: // Cat
+                case 57: // Frog	
+                case 58: // MG
+                case 59: // Ettin
+                case 60: // Plant
+                case 61: // Rudolph
+                case 62: // Direboar
+                case 64: // Crops
+                case 65: // IceGolem
+                case 70: // Barlog
+                case 71: // Centaur
+                case 72: // ClawTurtle
+                case 74: // GiantCrayfish
+                case 75: // Giant Lizard
+                case 76: // Giant Tree
+                case 77: // Master Orc
+                case 78: // Minotaur
+                case 79: // Nizie
+                case 80: // Tentocle
+                case 82: // Sorceress
+                case 83: // ATK
+                case 84: // MasterElf
+                case 85: // DSK
+                case 88: // Barbarian
                     iFrame = 7;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     break;
 
-                case 63:
-                    iFrame = 5;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                case 86: // HBT
+                case 87: // CT
+                case 89: // AGC
+                    iFrame = 7;
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
                     break;
 
-                case 66:
+                case 66: // Wyvern
                     iFrame = 15;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
                     break;
 
-                case 51:
+                case 73: // FireWyvern
+                    iFrame = 7;
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                    //bTrans = true; // Prevents showing ugly corpse
+                    break;
+
+                case 81: // Abaddon	
                     iFrame = 0;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
+                    //bTrans = true; // Prevents showing ugly corpse
                     break;
 
-                case 52:
+                case 51: // CP
+                    iFrame = 0;
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    break;
+
+                case 52: // GG
                     iFrame = 11;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    break;
+
+                case 91: // Gate
+                    iFrame = 5;
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (2 * 8);
                     break;
 
                 default:
                     iFrame = 3;
-                    iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                    iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                     break;
             }
 
@@ -3546,12 +3862,11 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
     {
         if (_tmp_cFrame == -1)
         {
-            _tmp_cFrame = 7;
+            _tmp_cFrame = 7; // v1.4
 
-            if ((_tmp_sStatus & 0x40) != 0)
+            if ((_tmp_iStatus & 0x40) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, iFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, iFrame, dwTime);
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
@@ -3559,7 +3874,7 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -3614,31 +3929,41 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
         }
         else
         {
-            if ((_tmp_sStatus & 0x20) != 0)
+            if ((_tmp_iStatus & 0x20) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, iFrame, -2 * _tmp_cFrame + 5, -2 * _tmp_cFrame - 5, -2 * _tmp_cFrame - 5, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, iFrame, -2 * _tmp_cFrame, -2 * _tmp_cFrame, -2 * _tmp_cFrame, dwTime);
         }
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearDeadChatMsg(indexX, indexY);
         }
     }
+    //Change Abaddon's Death Animation (lightning)
+    if (_tmp_sOwnerType == 81)
+    {
+        Abaddon_corpse(sX, sY);
+    }
+    //	else if (_tmp_sOwnerType == 73)	
+    //	{
+            //m_pEffectSpr[35]->put_trans_sprite70(sX+120, sY+120, rand(), dwTime);
+    //		m_pEffectSpr[35]->put_trans_sprite70(sX+20, sY-15,  rand()%10, dwTime);
+    //	}
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -3650,25 +3975,26 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
     return false;
 }
 
+
+
 bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int dx{}, dy{};
-    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iShieldIndex{}, iAdd{}, iMantleIndex{};
+    int dx, dy;
+    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iShieldIndex, iAdd, iMantleIndex;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     //if(_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 35) bInv = true; //Energy-Ball,Wyvern
+    //if(_tmp_sOwnerType == 73) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 66)
     {
         bInv = true; //Energy-Ball,Wyvern
     }
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -3695,11 +4021,17 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     switch (_tmp_sOwnerType)
@@ -3709,201 +4041,198 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         case 3:
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iAdd = 3;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 3;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 3;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (2 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 2;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 2;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 2;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 2;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 2;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
             }
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iAdd = 3;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 3;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 3;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (2 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 2;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 2;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 2;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 2;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 2;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
             }
             break;
 
         default:
-            if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
-            else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+            if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+            else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+            else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+
             iUndiesIndex = -1;
             iHairIndex = -1;
             iBodyArmorIndex = -1;
@@ -3931,8 +4260,6 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         case 7: dx = 28 - (_tmp_cFrame << 2); break;
         case 8: dx = 28 - (_tmp_cFrame << 2); dy = 28 - (_tmp_cFrame << 2); break;
     }
-
-
     switch (_tmp_sOwnerType)
     {
         case 1:
@@ -3942,34 +4269,59 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         case 5:
         case 6:
 
-        case 28:
+        case 28: // Troll.
         case 29: // Orge.
         case 30: // Liche
-        case 31: // Orge
-        case 32:
-        case 33:
-        case 43:
-        case 44:
-        case 45:
-        case 46:
-        case 47:
-        case 48:
-        case 49:
-        case 50:
-        case 52:
-        case 53:
-        case 54:
-        case 55:
-        case 56:
-        case 57:
-        case 58:
-        case 59:
-        case 60:
-        case 61:
-        case 62:
-        case 63:
-        case 65:
-        case 66:
+        case 31: // DD
+        case 32: // Uni
+        case 33: // ww
+
+        case 43: // LWB
+        case 44: // GHK
+        case 45: // GHKABS
+        case 46: // TK
+        case 47: // BG
+        case 48: // SK
+        case 49: // HC
+        case 50: // TW
+
+        case 52: // GG
+        case 53: // BB
+        case 54: // DE
+        case 55: // Rabbit
+        case 56: // Cat
+        case 57: // Frog
+        case 58: // MG
+        case 59: // Ettin
+        case 60: // Plant
+        case 61: // Rudolph
+        case 62: // DireBoar
+        case 63: // Frost
+
+        case 65: // Ice-Golem
+        case 66: // Wyvern
+
+        case 70: // Balrog
+        case 71: // Centaur
+        case 72: // ClawTurtle
+        case 73: // FireWyvern
+        case 74: // GiantCrayfish
+        case 75: // Gi Lizard
+        case 76: // Gi Tree
+        case 77: // Master Orc
+        case 78: // Minotaur
+        case 79: // Nizie
+        case 80: // Tentocle
+        case 81: // Abaddon
+        case 82: // Sorceress
+        case 83: // ATK
+        case 84: // MasterElf
+        case 85: // DSK
+        case 86: // HBT
+        case 87: // CT
+        case 88: // Barbarian
+        case 89: // AGC
+        case 90: // Gail
             break;
 
         default:
@@ -3979,10 +4331,10 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
 
-
+    //	if ((_tmp_sAppr1 == m_sAppr1_IE) && (_tmp_sAppr2 == m_sAppr2_IE) && (m_pMapData[m_sPlayerX][m_sPlayerY].m_sItemSprite != 0))
+    //		bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTGETITEM, m_cPlayerDir, 0, 0, 0, 0);
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX + dx, sY + dy, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -3990,31 +4342,30 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         }
     }
 
-    if (_tmp_sOwnerType == 65)
+    if (_tmp_sOwnerType == 65) // IceGolem
     {
-        m_pEffectSpr[77]->put_trans_sprite70(sX + dx, sY + dy, _tmp_cFrame, dwTime);
-        /*
-        switch( rand()%3 )
+        //m_pEffectSpr[77]->put_trans_sprite70(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+        switch (rand() % 3)
         {
-        case 0:
-            m_pEffectSpr[76]->PutTransSprite70(sX+dx, sY+dy, _tmp_cFrame, dwTime);
-            break;
-        case 1:
-            m_pEffectSpr[77]->PutTransSprite70(sX+dx, sY+dy, _tmp_cFrame, dwTime);
-            break;
-        case 2:
-            m_pEffectSpr[78]->PutTransSprite70(sX+dx, sY+dy, _tmp_cFrame, dwTime);
-            break;
+            case 0:
+                m_pEffectSpr[76]->put_trans_sprite70(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+                break;
+            case 1:
+                m_pEffectSpr[77]->put_trans_sprite70(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+                break;
+            case 2:
+                m_pEffectSpr[78]->put_trans_sprite70(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+                break;
         }
-        */
     }
 
     if (bTrans == false)
     {
 
+        CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (bInv) m_pSprite[iWeaponIndex]->put_trans_sprite25(sX + dx, sY + dy, _tmp_cFrame, dwTime);
@@ -4025,7 +4376,9 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4037,14 +4390,16 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 53:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -4056,25 +4411,26 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX + dx, sY + dy, 1, dwTime);
 
-            if (bInv == true)
-                //m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutTransSprite2(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+            }
+            else if (bInv == true)
+                //m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite2(sX+dx, sY+dy, _tmp_cFrame, dwTime);
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4094,7 +4450,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -4163,7 +4519,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
             }
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4185,12 +4541,11 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -4212,14 +4567,16 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         {
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 53:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -4231,24 +4588,25 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX + dx, sY + dy, 1, dwTime);
 
-            if (bInv == true)
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+            }
+            else if (bInv == true)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4268,7 +4626,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -4338,7 +4696,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                 }
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4360,12 +4718,11 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -4393,7 +4750,9 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4405,35 +4764,82 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+    //	if ((_tmp_iStatus & 0x80) != 0) 
+    //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX + dx;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY + dy;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
 
     _tmp_dx = dx;
     _tmp_dy = dy;
+    // Abaddon effects
+    if (_tmp_sOwnerType == 81)
+    {
+        int randFrame = _tmp_iEffectFrame % 12;
+        m_pEffectSpr[154]->put_trans_sprite70(sX - 50, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[155]->put_trans_sprite70(sX - 20, sY - 80, randFrame, dwTime);
+        m_pEffectSpr[156]->put_trans_sprite70(sX + 70, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[157]->put_trans_sprite70(sX - 30, sY, randFrame, dwTime);
+        m_pEffectSpr[158]->put_trans_sprite70(sX - 60, sY + 90, randFrame, dwTime);
+        m_pEffectSpr[159]->put_trans_sprite70(sX + 65, sY + 85, randFrame, dwTime);
+        switch (_tmp_cDir)
+        {
+            case 1:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx, sY + dy + 108, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 50, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 2:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx, sY + dy + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 70, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 3:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx, sY + dy + 105, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 90, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 4:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx - 35, sY + dy + 100, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 80, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 5:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx, sY + dy + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 65, sY + dy - 5, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 6:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx + 45, sY + dy + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 31, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 7:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx + 40, sY + dy + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 30, sY + dy + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 8:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + dx + 20, sY + dy + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX + dx - 20, sY + dy + 16, _tmp_iEffectFrame % 15, dwTime);
+                break;
+        }
+    }
+
+    DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -4445,21 +4851,21 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
     return false;
 }
 
+
 bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int cFrame{}, cDir{};
-    int dx{}, dy{};
-    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iShieldIndex{}, iMantleIndex{};
+    int cFrame, cDir;
+    int dx, dy;
+    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iShieldIndex, iMantleIndex;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
+    if (_tmp_sOwnerType == 67 || _tmp_sOwnerType == 68 || _tmp_sOwnerType == 69 || _tmp_sOwnerType == 81) return false;
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -4486,11 +4892,17 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     cDir = _tmp_cDir;
@@ -4512,101 +4924,101 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
         case 2:
         case 3:
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (10 * 8);
-            iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 10;
-            iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 10;
+            iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 10;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 10;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
+            else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
+            else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
 
             if ((_tmp_sAppr2 & 0x000F) == 0)
                 iShieldIndex = -1;
-            else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 5;
+            else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 5;
 
             if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                 iWeaponIndex = -1;
             else
             {
-                iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
+                iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
             }
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
+            else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
+            else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (10 * 8);
 
-            iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 10;
-            iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 10;
+            iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 10;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 10;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 10;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 10;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
+            else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 10;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
+            else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 10;
 
             if ((_tmp_sAppr2 & 0x000F) == 0)
                 iShieldIndex = -1;
-            else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 5;
+            else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 5;
 
             if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                 iWeaponIndex = -1;
             else
             {
-                iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
+                iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 5 + (_tmp_cDir - 1);
             }
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
+            else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 10;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
+            else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 10;
             break;
 
         default:
-            if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
-            else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
+            if (_tmp_sOwnerType == 66) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+            else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+            else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (3 * 8);
 
             iUndiesIndex = -1;
             iHairIndex = -1;
@@ -4639,11 +5051,8 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     cFrame = _tmp_cFrame;
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, cFrame);
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX + dx, sY + dy, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -4654,16 +5063,19 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     if (bTrans == false)
     {
 
+        CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (iWeaponColor == 0)
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4677,20 +5089,23 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
             if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                 if (m_cDetailLevel != 0) {
                     if (sX < 50)
-                        m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX+dx, sY+dy, cFrame, dwTime);
-                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX+dx, sY+dy, cFrame, dwTime);
+                        m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX+dx, sY+dy, cFrame, dwTime);
+                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX+dx, sY+dy, cFrame, dwTime);
                 }
             }
             */
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -4702,8 +5117,6 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
@@ -4711,15 +5124,14 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -4735,7 +5147,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, iR, iG, iB, dwTime);
             }
 
@@ -4781,7 +5193,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -4795,12 +5207,11 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -4816,25 +5227,27 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
         }
         else
         {
-
             /*
             if ((_tmp_sOwnerType != 10) && (_tmp_sOwnerType != 35)) {
                 if (m_cDetailLevel == 0) {
                     if (sX < 50)
-                        m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSpriteClip(sX+dx, sY+dy, cFrame, dwTime);
-                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutShadowSprite(sX+dx, sY+dy, cFrame, dwTime);
+                        m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX+dx, sY+dy, cFrame, dwTime);
+                    else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX+dx, sY+dy, cFrame, dwTime);
                 }
             }
             */
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -4846,8 +5259,6 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
@@ -4855,14 +5266,13 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -4878,7 +5288,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, iR, iG, iB, dwTime);
             }
 
@@ -4924,7 +5334,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -4938,12 +5348,11 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -4963,7 +5372,9 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4975,29 +5386,27 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, cFrame, -5, 0, 5, dwTime);
+        // Poison
+    //	if ((_tmp_iStatus & 0x80) != 0) 
+    //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX + dx;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY + dy;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
@@ -5005,7 +5414,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     _tmp_dx = dx;
     _tmp_dy = dy;
 
-
+    DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -5017,14 +5426,14 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
 
 bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    short dx{}, dy{};
-    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iShieldIndex{}, iAdd{}, iMantleIndex{};
+    short dx, dy;
+    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iShieldIndex, iAdd, iMantleIndex;
     bool bInv = false;
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
 
-
+    // v1.4
     iWeaponColor = (_tmp_iApprColor & 0xF0000000) >> 28;
     iShieldColor = (_tmp_iApprColor & 0x0F000000) >> 24;
     iArmorColor = (_tmp_iApprColor & 0x00F00000) >> 20;
@@ -5041,11 +5450,10 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
         case 3:
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iAdd = 3;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
@@ -5053,13 +5461,11 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                         iBodyArmorIndex = -1;
                     else
                     {
-                        iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
-
+                        iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                     }
                 }
                 else
                 {
-
                     iBodyArmorIndex = -1;
                 }
 
@@ -5067,43 +5473,41 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                     iArmArmorIndex = -1;
                 else
                 {
-                    iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
-
+                    iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 3;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 3;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (2 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 2;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 2;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
@@ -5111,8 +5515,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                         iBodyArmorIndex = -1;
                     else
                     {
-                        iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
-
+                        iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
                     }
                 }
                 else
@@ -5124,61 +5527,56 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                     iArmArmorIndex = -1;
                 else
                 {
-                    iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 2;
-
+                    iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 2;
                 }
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
                 else
                 {
-                    iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
-
+                    iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
                 }
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
                 else
                 {
-                    iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
-
+                    iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
                 }
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 2;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 2;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
             }
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iAdd = 3;
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (iAdd * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + iAdd;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
@@ -5186,8 +5584,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                         iBodyArmorIndex = -1;
                     else
                     {
-                        iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
-
+                        iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + iAdd;
                     }
                 }
                 else
@@ -5199,41 +5596,39 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                     iArmArmorIndex = -1;
                 else
                 {
-                    iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
-
+                    iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + iAdd;
                 }
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + iAdd;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
-                else iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
+                else iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 3 + (_tmp_cDir - 1);
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 3;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 3;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + iAdd;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + iAdd;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (2 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 2;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 2;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
@@ -5241,8 +5636,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                         iBodyArmorIndex = -1;
                     else
                     {
-                        iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
-
+                        iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 2;
                     }
                 }
                 else
@@ -5254,38 +5648,38 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                     iArmArmorIndex = -1;
                 else
                 {
-                    iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 2;
-
+                    iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 2;
                 }
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 2;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 2;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
-                else iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
+                else iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 2 + (_tmp_cDir - 1);
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 2;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 2;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 2;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 2;
             }
             break;
 
         default:
-            iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+            iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (1 * 8);
+
             iUndiesIndex = -1;
             iHairIndex = -1;
             iBodyArmorIndex = -1;
@@ -5303,7 +5697,6 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
     if (_cDrawingOrder[_tmp_cDir] == 1)
     {
-
         if (iWeaponIndex != -1)
         {
             if (iWeaponColor == 0)
@@ -5313,10 +5706,20 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
         switch (_tmp_sOwnerType)
         {
-            case 10:
+            /*case 10:
             case 35:
             case 50:
-            case 51:
+            case 51:*/
+            case 10: // Slime
+            case 35: // Energy Sphere
+            case 50: // TW
+            case 51: // CP
+            case 60: // Plant
+            case 65: // IceGolem
+            case 66: // Wyvern
+            case 73: // Fire Wyvern
+            case 81: // Abaddon
+            case 91: // Gate
                 break;
 
             default:
@@ -5329,11 +5732,15 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                 break;
         }
 
-        if (bInv == true)
+        if (_tmp_sOwnerType == 81) //Abaddon
+        {
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+        }
+        else if (bInv == true)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
         else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
 
-
+        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
         {
             if (iMantleColor == 0)
@@ -5349,7 +5756,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
         if ((iHairIndex != -1) && (iHelmIndex == -1))
         {
-            _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+            _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
             m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
         }
 
@@ -5394,7 +5801,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                 m_pSprite[iHelmIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
             else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
         }
-
+        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
         {
             if (iMantleColor == 0)
@@ -5420,13 +5827,16 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
     {
         switch (_tmp_sOwnerType)
         {
-            case 10:
-            case 35:
-            case 50:
-            case 51:
-            case 60:
-            case 65:
-            case 66:
+            case 10: // Slime
+            case 35: // Energy Sphere
+            case 50: // TW
+            case 51: // CP
+            case 60: // Plant
+            case 65: // IceGolem
+            case 66: // Wyvern
+            case 73: // Fire Wyvern
+            case 81: // Abaddon
+            case 91: // Gate
                 break;
 
             default:
@@ -5439,11 +5849,15 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                 break;
         }
 
-        if (bInv == true)
+        if (_tmp_sOwnerType == 81) //Abaddon
+        {
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+        }
+        else if (bInv == true)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
         else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
 
-
+        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
         {
             if (iMantleColor == 0)
@@ -5455,7 +5869,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
         if ((iHairIndex != -1) && (iHelmIndex == -1))
         {
-            _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+            _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
             m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
         }
 
@@ -5501,7 +5915,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
             else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
         }
 
-
+        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
         {
             if (iMantleColor == 0)
@@ -5541,15 +5955,12 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
 
     _tmp_dx = dx;
     _tmp_dy = dy;
-
-
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -5559,19 +5970,18 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
     return false;
 }
 
+
 bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iBodyArmorIndex{}, iArmArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
-    int iWeaponIndex{}, iShieldIndex{}, iMantleIndex{};
+    int iBodyIndex, iUndiesIndex, iHairIndex, iBodyArmorIndex, iArmArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
+    int iWeaponIndex, iShieldIndex, iMantleIndex;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
+    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66 || _tmp_sOwnerType == 81) bInv = true; //Energy-Ball, Wyvern
 
-
-    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
-
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -5595,7 +6005,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
         iHelmColor = (_tmp_iApprColor & 0x0000000F);
     }
 
-#ifdef DEF_COLOR	
+#ifdef DEF_COLOR
     iWeaponColor = G_iColor;
     iShieldColor = G_iColor;
     iArmorColor = G_iColor;
@@ -5609,11 +6019,26 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
+    }
+
+    //Single-direction monsters
+    switch (_tmp_sOwnerType)
+    {
+        case 91: // Gate 
+            if (_tmp_cDir <= 3) _tmp_cDir = 3;
+            else  _tmp_cDir = 5;
+            break;
     }
 
     switch (_tmp_sOwnerType)
@@ -5625,91 +6050,89 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (1 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 1;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 1;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 1;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 1;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 1;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 1;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 1;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 1;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 1;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 1;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 1;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 1;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 1 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 1 + (_tmp_cDir - 1);
                 }
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 1;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 1;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 1;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 1;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 1;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 1;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (0 * 8);
-                iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15;
-                iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15;
+                iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15;
+                else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15;
+                else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 0 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 0 + (_tmp_cDir - 1);
                 }
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 0;
+                else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 0;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15;
+                else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
+                else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
             }
             break;
 
@@ -5717,112 +6140,113 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
         case 5:
         case 6:
             _tmp_cFrame = _tmp_cFrame / 2;
-
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (1 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 1;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 1;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 1;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 1;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 1;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 1;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 1;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 1;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 1;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 1;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 1;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 1;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 1 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 1 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 1;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 1;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 1;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 1;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 1;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 1;
             }
             else
             {
-
                 iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (0 * 8);
 
-                iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15;
-                iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15;
+                iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15;
+                iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15;
 
                 if ((_tmp_sAppr4 & 0x80) == 0)
                 {
                     if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                         iBodyArmorIndex = -1;
-                    else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15;
+                    else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15;
                 }
 
                 if ((_tmp_sAppr3 & 0x000F) == 0)
                     iArmArmorIndex = -1;
-                else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15;
+                else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15;
 
                 if ((_tmp_sAppr3 & 0x0F00) == 0)
                     iPantsIndex = -1;
-                else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15;
+                else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15;
 
                 if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                     iBootsIndex = -1;
-                else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15;
+                else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15;
 
                 if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                     iWeaponIndex = -1;
                 else
                 {
-                    iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 0 + (_tmp_cDir - 1);
+                    iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 0 + (_tmp_cDir - 1);
                 }
 
                 if ((_tmp_sAppr2 & 0x000F) == 0)
                     iShieldIndex = -1;
-                else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 0;
+                else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 0;
 
                 if ((_tmp_sAppr4 & 0x0F00) == 0)
                     iMantleIndex = -1;
-                else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15;
+                else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15;
 
                 if ((_tmp_sAppr3 & 0x00F0) == 0)
                     iHelmIndex = -1;
-                else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
+                else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 0;
             }
             break;
 
         default:
             if (_tmp_sAppr2 != 0)
             {
-                iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
+                iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (4 * 8);
                 _tmp_cFrame = (_tmp_sAppr2 & 0x00FF) - 1;
             }
-            else if (_tmp_sOwnerType == 66) iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
-            else iBodyIndex = 1220 + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+            /*
+            else if (_tmp_sOwnerType == 66) iBodyIndex = DEF_NPC +  (_tmp_sOwnerType - 10 )*8*7 + (0 * 8);
+            else if (_tmp_sOwnerType == 73) iBodyIndex = DEF_NPC +  (_tmp_sOwnerType - 10 )*8*7 + (0 * 8);
+            else if (_tmp_sOwnerType == 81) iBodyIndex =  DEF_SPRID_MOB  +  (_tmp_sOwnerType - 10 )*8*7 + (0 * 8);
+            */
+            else iBodyIndex = DEF_SPRID_NPC + (_tmp_sOwnerType - 10) * 8 * 7 + (0 * 8);
+
             iUndiesIndex = -1;
             iHairIndex = -1;
             iBodyArmorIndex = -1;
@@ -5837,29 +6261,27 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX, sY, _tmp_cFrame);
-
-
     switch (_tmp_sOwnerType)
     {
-        case 15:
-        case 19:
-        case 20:
-        case 24:
-        case 25:
-        case 26:
+        case 15: // ShopKeeper
+        case 19: // Gandalf
+        case 20: // Howard
+        case 24: // Tom
+        case 25: // William
+        case 26: // Kenedy
+        case 51: // CP
+        case 86: // HBT
+        case 90: // Gail
             m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
             break;
     }
 
 #ifdef _DEBUG
-    //m_pEffectSpr[74]->PutSpriteFast(sX, sY, _tmp_cFrame, dwTime );
-    //m_pEffectSpr[79]->PutTransSprite70_NoColorKey(sX, sY+32, _tmp_cFrame, dwTime );
+    //m_pEffectSpr[74]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime );
+    //m_pEffectSpr[79]->put_trans_sprite70_no_color_key(sX, sY+32, _tmp_cFrame, dwTime );
 #endif
-
-
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX, sY, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -5870,9 +6292,12 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
     if (bTrans == false)
     {
 
+        CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
+
+
+
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (bInv) m_pSprite[iWeaponIndex]->put_trans_sprite25(sX, sY, _tmp_cFrame, dwTime);
@@ -5882,6 +6307,8 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
+
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
                 switch (iWeaponGlare)
                 {
@@ -5894,13 +6321,16 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -5912,23 +6342,25 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
-            if (bInv) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+
+            }
+            else if (bInv) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -5948,11 +6380,11 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
-
+            //
             if ((iBootsIndex != -1) && (iSkirtDraw == 1))
             {
                 if (bInv) m_pSprite[iBootsIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6019,7 +6451,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 }
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6041,12 +6473,11 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -6068,13 +6499,16 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
         {
             switch (_tmp_sOwnerType)
             {
-                case 10:
-                case 35:
-                case 50:
-                case 51:
-                case 60:
-                case 65:
-                case 66:
+                case 10: // Slime
+                case 35: // Energy Sphere
+                case 50: // TW
+                case 51: // CP
+                case 60: // Plant
+                case 65: // IceGolem
+                case 66: // Wyvern
+                case 73: // Fire Wyvern
+                case 81: // Abaddon
+                case 91: // Gate
                     break;
 
                 default:
@@ -6086,23 +6520,26 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     }
                     break;
             }
-
-
             if (_tmp_sOwnerType == 35)
                 m_pEffectSpr[0]->put_trans_sprite(sX, sY, 1, dwTime);
 
-            if (bInv) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+            if (_tmp_sOwnerType == 81) //Abaddon
+            {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
+            }
+            else if (bInv) m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX, sY, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-
+            //if (!m_pSprite[iBodyIndex + (_tmp_cDir - 1)])
+            //	return false;
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6122,11 +6559,11 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
-
+            //
             if ((iBootsIndex != -1) && (iSkirtDraw == 1))
             {
                 if (bInv) m_pSprite[iBootsIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6193,7 +6630,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 }
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6215,12 +6652,11 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13, sY - 34, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -6247,6 +6683,8 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
+
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
                 switch (iWeaponGlare)
                 {
@@ -6274,32 +6712,81 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
             }
         }
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, 0, -5, -5, dwTime);
-        // Protection From Magic
-        if ((_tmp_sStatus & 0x80) != 0)
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, _tmp_cFrame, -5, 0, 5, dwTime);
+        // Poison
+    //	if ((_tmp_iStatus & 0x80) != 0) 
+    //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+    // : Abaddon effects
+    if (_tmp_sOwnerType == 81)
+    {
+        int randFrame = _tmp_cFrame % 12;
+        m_pEffectSpr[154]->put_trans_sprite70(sX - 50, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[155]->put_trans_sprite70(sX - 20, sY - 80, randFrame, dwTime);
+        m_pEffectSpr[156]->put_trans_sprite70(sX + 70, sY - 50, randFrame, dwTime);
+        m_pEffectSpr[157]->put_trans_sprite70(sX - 30, sY, randFrame, dwTime);
+        m_pEffectSpr[158]->put_trans_sprite70(sX - 60, sY + 90, randFrame, dwTime);
+        m_pEffectSpr[159]->put_trans_sprite70(sX + 65, sY + 85, randFrame, dwTime);
+        switch (_tmp_cDir)
+        {
+            case 1:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 108, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 50, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 2:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 70, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 3:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 105, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 90, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 4:
+                m_pEffectSpr[153]->put_trans_sprite70(sX - 35, sY + 100, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 80, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 5:
+                m_pEffectSpr[153]->put_trans_sprite70(sX, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 65, sY - 5, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 6:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 45, sY + 95, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 31, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 7:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 40, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 30, sY + 10, _tmp_iEffectFrame % 15, dwTime);
+                break;
+            case 8:
+                m_pEffectSpr[153]->put_trans_sprite70(sX + 20, sY + 110, _tmp_iEffectFrame % 28, dwTime);
+                m_pEffectSpr[164]->put_trans_sprite70(sX - 20, sY + 16, _tmp_iEffectFrame % 15, dwTime);
+                break;
+        }
+    }
+
+    DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
+
+
+
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -6313,17 +6800,16 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
 bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
 {
-    int dx{}, dy{};
-    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iWeaponIndex{}, iShieldIndex{}, iHelmIndex{}, iR{}, iG{}, iB{}, iMantleIndex{};
+    int dx, dy;
+    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iWeaponIndex, iShieldIndex, iHelmIndex, iR, iG, iB, iMantleIndex;
     bool bInv = false;
-    int iWeaponGlare{}, iShieldGlare{};
-    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iWeaponGlare, iShieldGlare;
+    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
     int iSkirtDraw = 0;
-
-
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-
+    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -6350,11 +6836,17 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
     iWeaponGlare = (_tmp_sAppr4 & 0x000C) >> 2;
     iShieldGlare = (_tmp_sAppr4 & 0x0003);
 
-    if ((_tmp_sStatus & 0x10) != 0)
+    if ((_tmp_iStatus & 0x10) != 0)
     {
         if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
-        else if (_iGetFOE(_tmp_sStatus) == 1) bInv = true;
-        else return false;
+        else
+#ifndef DEF_HACKCLIENT
+            if (_iGetFOE(_tmp_iStatus) == 1)
+#endif
+                bInv = true;
+#ifndef DEF_HACKCLIENT
+            else return false;//Change Invis hack?
+#endif
     }
 
     switch (_tmp_sOwnerType)
@@ -6363,96 +6855,95 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
         case 2:
         case 3:
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (4 * 8);
-            iUndiesIndex = 4580 + (_tmp_sAppr1 & 0x000F) * 15 + 4;
-            iHairIndex = 4820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 4;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_M + (_tmp_sAppr1 & 0x000F) * 15 + 4;
+            iHairIndex = DEF_SPRID_HAIR_M + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 4;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 5060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 4;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_M + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 4;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 5300 + (_tmp_sAppr3 & 0x000F) * 15 + 4;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_M + (_tmp_sAppr3 & 0x000F) * 15 + 4;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 5540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 4;
+            else iPantsIndex = DEF_SPRID_LEGS_M + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 4;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 5780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 4;
+            else iBootsIndex = DEF_SPRID_BOOT_M + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 4;
 
             if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                 iWeaponIndex = -1;
             else
             {
-                iWeaponIndex = 6020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 6 + (_tmp_cDir - 1);
+                iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 6 + (_tmp_cDir - 1);
             }
 
             if ((_tmp_sAppr2 & 0x000F) == 0)
                 iShieldIndex = -1;
-            else iShieldIndex = 9100 + (_tmp_sAppr2 & 0x000F) * 8 + 6;
+            else iShieldIndex = DEF_SPRID_SHIELD_M + (_tmp_sAppr2 & 0x000F) * 8 + 6;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 9230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 4;
+            else iMantleIndex = DEF_SPRID_CAPE_M + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 4;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 9300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 4;
+            else iHelmIndex = DEF_SPRID_HEAD_M + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 4;
             break;
 
         case 4:
         case 5:
         case 6:
-
             if (((_tmp_sAppr3 & 0x0F00) >> 8) == 1) iSkirtDraw = 1;
 
             iBodyIndex = 500 + (_tmp_sOwnerType - 1) * 8 * 15 + (4 * 8);
 
-            iUndiesIndex = 14580 + (_tmp_sAppr1 & 0x000F) * 15 + 4;
-            iHairIndex = 14820 + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 4;
+            iUndiesIndex = DEF_SPRID_UNDERWEAR_W + (_tmp_sAppr1 & 0x000F) * 15 + 4;
+            iHairIndex = DEF_SPRID_HAIR_W + ((_tmp_sAppr1 & 0x0F00) >> 8) * 15 + 4;
 
             if ((_tmp_sAppr4 & 0x80) == 0)
             {
                 if (((_tmp_sAppr3 & 0xF000) >> 12) == 0)
                     iBodyArmorIndex = -1;
-                else iBodyArmorIndex = 15060 + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 4;
+                else iBodyArmorIndex = DEF_SPRID_ARMOR_W + ((_tmp_sAppr3 & 0xF000) >> 12) * 15 + 4;
             }
 
             if ((_tmp_sAppr3 & 0x000F) == 0)
                 iArmArmorIndex = -1;
-            else iArmArmorIndex = 15300 + (_tmp_sAppr3 & 0x000F) * 15 + 4;
+            else iArmArmorIndex = DEF_SPRID_HAUBERK_W + (_tmp_sAppr3 & 0x000F) * 15 + 4;
 
             if ((_tmp_sAppr3 & 0x0F00) == 0)
                 iPantsIndex = -1;
-            else iPantsIndex = 15540 + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 4;
+            else iPantsIndex = DEF_SPRID_LEGS_W + ((_tmp_sAppr3 & 0x0F00) >> 8) * 15 + 4;
 
             if (((_tmp_sAppr4 & 0xF000) >> 12) == 0)
                 iBootsIndex = -1;
-            else iBootsIndex = 15780 + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 4;
+            else iBootsIndex = DEF_SPRID_BOOT_W + ((_tmp_sAppr4 & 0xF000) >> 12) * 15 + 4;
 
             if (((_tmp_sAppr2 & 0x0FF0) >> 4) == 0)
                 iWeaponIndex = -1;
             else
             {
-                iWeaponIndex = 16020 + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 6 + (_tmp_cDir - 1);
+                iWeaponIndex = DEF_SPRID_WEAPON_W + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 6 + (_tmp_cDir - 1);
             }
 
             if ((_tmp_sAppr2 & 0x000F) == 0)
                 iShieldIndex = -1;
-            else iShieldIndex = 19100 + (_tmp_sAppr2 & 0x000F) * 8 + 6;
+            else iShieldIndex = DEF_SPRID_SHIELD_W + (_tmp_sAppr2 & 0x000F) * 8 + 6;
 
             if ((_tmp_sAppr4 & 0x0F00) == 0)
                 iMantleIndex = -1;
-            else iMantleIndex = 19230 + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 4;
+            else iMantleIndex = DEF_SPRID_CAPE_W + ((_tmp_sAppr4 & 0x0F00) >> 8) * 15 + 4;
 
             if ((_tmp_sAppr3 & 0x00F0) == 0)
                 iHelmIndex = -1;
-            else iHelmIndex = 19300 + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 4;
+            else iHelmIndex = DEF_SPRID_HEAD_W + ((_tmp_sAppr3 & 0x00F0) >> 4) * 15 + 4;
             break;
 
         default:
@@ -6484,10 +6975,9 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
 
-
+    CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
     if (_tmp_iEffectType != 0)
     {
-
         switch (_tmp_iEffectType)
         {
             case 1: m_pEffectSpr[26]->put_trans_sprite(sX + dx, sY + dy, _tmp_iEffectFrame, dwTime); break; // Special Ability: Attack Effect
@@ -6499,7 +6989,6 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
     {
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {
-
             if (iWeaponIndex != -1)
             {
                 if (bInv) m_pSprite[iWeaponIndex]->put_trans_sprite25(sX + dx, sY + dy, _tmp_cFrame, dwTime);
@@ -6510,7 +6999,9 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -6518,6 +7009,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     case 2: m_pSprite[iWeaponIndex]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iWeaponIndex]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
                 }
+
             }
 
             switch (_tmp_sOwnerType)
@@ -6541,19 +7033,18 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
             }
 
             if (bInv == true)
-                //m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->PutTransSprite2(sX+dx, sY+dy, _tmp_cFrame, dwTime);
+                //m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite2(sX+dx, sY+dy, _tmp_cFrame, dwTime);
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6573,7 +7064,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -6643,7 +7134,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                 }
             }
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6665,12 +7156,11 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -6714,15 +7204,14 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite2(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             else
             {
-                if ((_tmp_sStatus & 0x40) != 0)
+                if ((_tmp_iStatus & 0x40) != 0)
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-
             SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-
+            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6742,7 +7231,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
 
             if ((iHairIndex != -1) && (iHelmIndex == -1))
             {
-                _GetHairColorColor(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
+                _GetHairColorRGB(((_tmp_sAppr1 & 0x00F0) >> 4), &iR, &iG, &iB);
                 m_pSprite[iHairIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
@@ -6834,12 +7323,11 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-
+                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
-                        //case 1: m_pSprite[iShieldIndex]->PutTransSpriteColor(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
-
+                        //case 1: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX, sY,  (_tmp_cDir-1) * 8 + _tmp_cFrame, m_iDrawFlag, 0, 0, dwTime); break; // Red Glare
                     case 1: m_pEffectSpr[45]->put_trans_sprite(sX - 13 + dx, sY - 34 + dy, 0, dwTime);
                     case 2: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
@@ -6867,7 +7355,9 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
+                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -6879,26 +7369,24 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
         }
 
         // Berserk 
-        if ((_tmp_sStatus & 0x20) != 0)
+        if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, -5, -5, dwTime);
     }
     else if (strlen(_tmp_cName) > 0)
     {
-        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_sStatus);
-        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_sStatus);
+        if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+        else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
     }
 
     if (_tmp_iChatIndex != 0)
     {
         if ((m_pChatMsgList[_tmp_iChatIndex] != 0) && (m_pChatMsgList[_tmp_iChatIndex]->m_iObjectID == _tmp_wObjectID))
         {
-
             m_pChatMsgList[_tmp_iChatIndex]->m_sX = sX + dx;
             m_pChatMsgList[_tmp_iChatIndex]->m_sY = sY + dy;
         }
         else
         {
-
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
@@ -6907,6 +7395,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
     _tmp_dy = dy;
 
 
+    DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -6914,246 +7403,4 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX)) return true;
 
     return false;
-}
-
-void CGame::DrawObjectFOE(int ix, int iy, int iFrame)
-{
-    if (_iGetFOE(_tmp_sStatus) < 0)
-    {
-        if (iFrame <= 4) m_pEffectSpr[38]->put_trans_sprite(ix, iy, iFrame, G_dwGlobalTime);
-    }
-}
-
-void CGame::DrawObjectName(short sX, short sY, char * pName, int sStatus)
-{
-    char cTxt[64], cTxt2[64];
-    short sR, sG, sB;
-    int i, iGuildIndex, iFOE, iAddY = 0;
-    bool bPK, bCitizen, bAresden, bHunter;
-
-    sY += 14;
-
-    iFOE = _iGetFOE(sStatus);
-    if (iFOE < 0)
-    {
-        sR = 255; sG = 0; sB = 0;
-    }
-    else if (iFOE == 0)
-    {
-        sR = 50; sG = 50; sB = 255;
-    }
-    else
-    {
-        sR = 30; sG = 200; sB = 30;
-    }
-
-    memset(cTxt, 0, sizeof(cTxt));
-    memset(cTxt2, 0, sizeof(cTxt2));
-
-    if (m_iIlusionOwnerH == 0)
-    {
-        if (m_bIsCrusadeMode == false) format_to_local(cTxt, "{}", pName);
-        else
-        {
-            if (_tmp_wObjectID >= 10000) strcpy(cTxt, NPC_NAME_MERCENARY);
-            else
-            {
-                if (iFOE == -1) format_to_local(cTxt, "{}", _tmp_wObjectID);
-                else strcpy(cTxt, pName);
-            }
-        }
-        if (m_iPartyStatus != 0)
-        {
-            for (i = 0; i < DEF_MAXPARTYMEMBERS; i++)
-            {
-                if (strcmp(m_stPartyMemberNameList[i].cName, pName) == 0)
-                {
-                    strcat(cTxt, BGET_NPC_NAME23);
-                    break;
-                }
-            }
-        }
-    }
-    else strcpy(cTxt, "?????");
-
-    if ((sStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
-    if ((sStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
-
-    put_under_entity_string(sX, sY, cTxt, Color(255, 255, 255));
-
-    //PutString2(sX, sY, cTxt, 255, 255, 255);
-    memset(cTxt, 0, sizeof(cTxt));
-
-    if (memcmp(m_cPlayerName, pName, 10) == 0)
-    {
-        if (m_iGuildRank == 0)
-        {
-            format_to_local(G_cTxt, DEF_MSG_GUILDMASTER, m_cGuildName);
-            put_under_entity_string(sX, sY + 14, G_cTxt, Color(180, 180, 180));
-            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
-            iAddY = 14;
-        }
-        if (m_iGuildRank > 0)
-        {
-            format_to_local(G_cTxt, DEF_MSG_GUILDSMAN, m_cGuildName);
-            put_under_entity_string(sX, sY + 14, G_cTxt, Color(180, 180, 180));
-            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
-            iAddY = 14;
-        }
-        if (m_iPKCount != 0)
-        {
-            bPK = true;
-            sR = 255; sG = 0; sB = 0;
-        }
-        else
-        {
-            bPK = false;
-            sR = 30; sG = 200; sB = 30;
-        }
-        bCitizen = m_bCitizen;
-        bAresden = m_bAresden;
-        bHunter = m_bHunter;
-    }
-    else
-    {
-        if (sStatus & 0x8000) bPK = true;
-        else bPK = false;
-        if (sStatus & 0x4000) bCitizen = true;
-        else bCitizen = false;
-        if (sStatus & 0x2000) bAresden = true;
-        else bAresden = false;
-        if (sStatus & 0x1000) bHunter = true;
-        else bHunter = false;
-        if (m_bIsCrusadeMode == false || iFOE >= 0)
-        {
-            if (FindGuildName(pName, &iGuildIndex) == true)
-            {
-                if (m_stGuildName[iGuildIndex].cGuildName[0] != 0)
-                {
-                    if (strcmp(m_stGuildName[iGuildIndex].cGuildName, "NONE") != 0)
-                    {
-                        if (m_stGuildName[iGuildIndex].iGuildRank == 0)
-                        {
-                            format_to_local(G_cTxt, DEF_MSG_GUILDMASTER, m_stGuildName[iGuildIndex].cGuildName);
-                            put_under_entity_string(sX, sY + 14, G_cTxt, Color(180, 180, 180));
-                            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
-                            m_stGuildName[iGuildIndex].dwRefTime = m_dwCurTime;
-                            iAddY = 14;
-                        }
-                        else if (m_stGuildName[iGuildIndex].iGuildRank > 0)
-                        {
-                            format_to_local(G_cTxt, DEF_MSG_GUILDSMAN, m_stGuildName[iGuildIndex].cGuildName);
-                            put_under_entity_string(sX, sY + 14, G_cTxt, Color(180, 180, 180));
-                            //PutString2(sX, sY + 14, G_cTxt, 180, 180, 180);
-                            m_stGuildName[iGuildIndex].dwRefTime = m_dwCurTime;
-                            iAddY = 14;
-                        }
-                    }
-                    else
-                    {
-                        m_stGuildName[iGuildIndex].dwRefTime = 0;
-                    }
-                }
-            }
-            else bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_REQGUILDNAME, 0, _tmp_wObjectID, iGuildIndex, 0, 0);
-        }
-    }
-
-    if (bCitizen == false)	strcpy(cTxt, DRAW_OBJECT_NAME60);
-    else
-    {
-        if (bAresden)
-        {
-            //#if DEF_LANGUAGE > 2		// Korea 2.19
-            if (bHunter == true) strcpy(cTxt, DEF_MSG_ARECIVIL);
-            else strcpy(cTxt, DEF_MSG_ARESOLDIER);
-            //#else
-
-            //#endif
-        }
-        else
-        {
-            //#if DEF_LANGUAGE > 2		// Korea 2.19
-            if (bHunter == true) strcpy(cTxt, DEF_MSG_ELVCIVIL);
-            else strcpy(cTxt, DEF_MSG_ELVSOLDIER);
-            //#else
-
-            //#endif
-        }
-    }
-    if (bPK == true)
-    {
-        if (bCitizen == false) strcpy(cTxt, DEF_MSG_PK);
-        else
-        {
-            if (bAresden) strcpy(cTxt, DEF_MSG_AREPK);
-            else strcpy(cTxt, DEF_MSG_ELVPK);
-        }
-    }
-    //PutString2(sX, sY + 14 + iAddY, cTxt, sR, sG, sB);
-    put_under_entity_string(sX, sY + 14 + iAddY, cTxt, Color(sR, sG, sB));
-}
-
-void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int sStatus)
-{
-    char cTxt[32], cTxt2[64];
-    memset(cTxt, 0, sizeof(cTxt));
-    memset(cTxt2, 0, sizeof(cTxt2));
-
-    GetNpcName(sOwnerType, cTxt);
-    if ((sStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
-    if ((sStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
-
-    sY += 14;
-
-    put_under_entity_string(sX, sY, cTxt, Color(255, 255, 255));
-
-    //PutString2(sX, sY, cTxt, 255, 255, 255);
-
-    if (m_bIsObserverMode == true) put_string2(sX, sY + 14, cTxt, 50, 50, 255);
-    else if (m_bIsConfusion || (m_iIlusionOwnerH != 0))
-    {
-        memset(cTxt, 0, sizeof(cTxt));
-        strcpy(cTxt, DRAW_OBJECT_NAME87);
-        put_under_entity_string(sX, sY + 14, cTxt, Color(150, 150, 150));
-        //PutString2(sX, sY + 14, cTxt, 150, 150, 150);
-    }
-    else
-    {
-        switch (_iGetFOE(sStatus))
-        {
-            case -2:
-                put_under_entity_string(sX, sY + 14, DRAW_OBJECT_NAME90, Color(255, 0, 0));
-                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
-                break;
-            case -1:
-                put_under_entity_string(sX, sY + 14, DRAW_OBJECT_NAME90, Color(255, 0, 0));
-                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME90, 255, 0, 0);
-                break;
-            case 0:
-                put_under_entity_string(sX, sY + 14, DRAW_OBJECT_NAME88, Color(50, 50, 255));
-                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME88, 50, 50, 255);
-                break;
-            case 1:
-                put_under_entity_string(sX, sY + 14, DRAW_OBJECT_NAME89, Color(30, 255, 30));
-                //PutString2(sX, sY + 14, DRAW_OBJECT_NAME89, 30, 255, 30);
-                break;
-        }
-    }
-
-    switch ((sStatus & 0x0F00) >> 8)
-    {
-        case 0: break;
-        case 1: strcpy(cTxt2, DRAW_OBJECT_NAME52); break;//"Clairvoyant"
-        case 2: strcpy(cTxt2, DRAW_OBJECT_NAME53); break;//"Destruction of Magic Protection"
-        case 3: strcpy(cTxt2, DRAW_OBJECT_NAME54); break;//"Anti-Physical Damage"
-        case 4: strcpy(cTxt2, DRAW_OBJECT_NAME55); break;//"Anti-Magic Damage"
-        case 5: strcpy(cTxt2, DRAW_OBJECT_NAME56); break;//"Poisonous"
-        case 6: strcpy(cTxt2, DRAW_OBJECT_NAME57); break;//"Critical Poisonous" 
-        case 7: strcpy(cTxt2, DRAW_OBJECT_NAME58); break;//"Explosive"  
-        case 8: strcpy(cTxt2, DRAW_OBJECT_NAME59); break;//"Critical Explosive"
-    }
-    //     if (m_Misc.bCheckIMEString(cTxt2)) PutString_SprFont3(sX, sY + 28, cTxt2, m_wR[13] * 4, m_wG[13] * 4, m_wB[13] * 4, false, 2);
-    //     else PutString2(sX, sY + 28, cTxt2, 240, 240, 70);
-    put_under_entity_string(sX, sY + 28, cTxt2, Color(240, 240, 70));
 }

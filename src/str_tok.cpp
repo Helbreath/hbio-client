@@ -4,7 +4,7 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "StrTok.h"
+#include "str_tok.h"
 #include <memory>
 
 CStrTok::CStrTok(char * pData, char * pSeps)

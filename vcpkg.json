@@ -8,7 +8,8 @@
     "sfml",
     "openssl",
     "zlib",
-    "fmt",
+    "spdlog",
+    "nlohmann-json",
     "libsodium"
   ],
   "builtin-baseline": "423d9f01a7195a9fd13998500d57f532344eae38"

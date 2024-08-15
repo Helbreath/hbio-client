@@ -5,7 +5,7 @@
 //
 
 #include "Game.h"
-#include "StrTok.h"
+#include "str_tok.h"
 #include "Item.h"
 #include "ItemNAme.h"
 #include "Msg.h"
@@ -95,7 +95,7 @@ bool CGame::__bDecodeContentsAndBuildItemForSaleList(char * pBuffer)
     char cReadModeA = 0;
     char cReadModeB = 0;
     int  iItemForSaleListIndex = 0;
-    class CStrTok * pStrTok;
+    CStrTok * pStrTok;
 
     pContents = pBuffer;
 
@@ -407,7 +407,7 @@ bool CGame::__bDecodeBuildItemContents(char * pBuffer)
     char cReadModeA = 0;
     char cReadModeB = 0;
     int  iIndex = 0;
-    class CStrTok * pStrTok;
+    CStrTok * pStrTok;
 
     pContents = pBuffer;
 

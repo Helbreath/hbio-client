@@ -21,15 +21,15 @@
 
 using sf::Color;
 
-using stBrush = struct stBrushtag
+typedef struct stBrushtag
 {
-    short sx;
-    short sy;
-    short szx;
-    short szy;
-    short pvx;
-    short pvy;
-};
+	short sx;
+	short sy;
+	short szx;
+	short szy;
+	short pvx;
+	short pvy;
+} stBrush;
 
 class sprite
 {
@@ -37,8 +37,6 @@ public:
     bool make_sprite_surface_();
     sf::Texture _localimage;
     sf::Image _image;
-    //sf::Texture * _localshadow;
-    //sf::Texture ** subtextures;
 
     sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true);
     ~sprite();
@@ -89,7 +87,7 @@ public:
     bool check_collison(int sX, int sY, short sFrame, int msX, int msY);
     void get_sprite_rect(int sX, int sY, int sFrame);
     bool open_sprite_() { return make_sprite_surface_(); }
-    void close_sprite_() { }
+    void close_sprite_() {}
 
     RECT m_rcBound{};
     uint64_t m_dwRefTime = 0;

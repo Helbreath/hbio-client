@@ -7,25 +7,19 @@
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
+#include <queue>
 #include <fmt/format.h>
+#include "sprite.h"
+#include "sprite_id.h"
+#include "CharInfo.h"
+#include "MouseInterface.h"
+#include "action_id.h"
 #include "Item.h"
-#include "Magic.h"
-#include "Msg.h"
-#include "ActionID.h"
-#include "Skill.h"
 #include "MapData.h"
-
-#if DEF_LANGUAGE == 1
-#include "lan_tai.h"
-#elif DEF_LANGUAGE == 2
-#include "lan_chi.h"
-#elif DEF_LANGUAGE == 3
-#include "lan_kor.h"
-#elif DEF_LANGUAGE == 4
 #include "lan_eng.h"
-#elif DEF_LANGUAGE == 5
-#include "lan_jap.h"
-#endif
+#include "Skill.h"
+#include "Magic.h"
+#include "msg.h"
 
 extern char G_cSpriteAlphaDegree;
 
@@ -35,7 +29,7 @@ extern char _cMantleDrawingOrderOnRun[];
 
 
 extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
-extern int _tmp_sStatus;
+extern int _tmp_iStatus;
 extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
 extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
 extern uint16_t  _tmp_wObjectID;
@@ -44,686 +38,16 @@ extern uint16_t  wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
 extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
-extern int sFocusStatus;
+extern int iFocusStatus;
 extern int   iFocusApprColor;
-
-
-void CGame::NotifyMsg_BanGuildMan(char * pData)
-{
-    char * cp, cName[24], cLocation[12];
-
-    memset(cName, 0, sizeof(cName));
-    memset(cLocation, 0, sizeof(cLocation));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    cp += 2;
-
-
-    memcpy(cLocation, cp, 10);
-    cp += 10;
-
-
-    memset(m_cGuildName, 0, sizeof(m_cGuildName));
-    m_iGuildRank = -1;
-
-
-    memset(m_cLocation, 0, sizeof(m_cLocation));
-    memcpy(m_cLocation, cLocation, 10);
-    if (memcmp(m_cLocation, "aresden", 7) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else if (memcmp(m_cLocation, "elvine", 6) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else
-    {
-        m_bAresden = true;
-        m_bCitizen = false;
-        m_bHunter = true;
-    }
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 8);
-}
-
-void CGame::NotifyMsg_AdminInfo(char * pData)
-{
-    char * cp, cStr[256];
-    int * ip, iV1, iV2, iV3, iV4, iV5;
-
-    cp = (char *)(pData + 6);
-
-    ip = (int *)cp;
-    iV1 = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    iV2 = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    iV3 = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    iV4 = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    iV5 = *ip;
-    cp += 4;
-
-    memset(cStr, 0, sizeof(cStr));
-    format_to_local(cStr, "{} {} {} {} {}", iV1, iV2, iV3, iV4, iV5);
-    AddEventList(cStr);
-}
-
-void CGame::NotifyMsg_SetExchangeItem(char * pData)
-{
-    short * sp, sDir, sSprite, sSpriteFrame, sCurLife, sMaxLife, sPerformance;
-    int * ip, iAmount;
-    char * cp, cColor, cItemName[24], cCharName[12];
-    uint32_t * dwp, dwAttribute;
-
-
-    memset(cItemName, 0, sizeof(cItemName));
-    memset(cCharName, 0, sizeof(cCharName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    sp = (short *)cp;
-    sDir = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sSprite = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sSpriteFrame = *sp;
-    cp += 2;
-
-    ip = (int *)cp;
-    iAmount = *ip;
-    cp += 4;
-
-    cColor = *cp;
-    cp++;
-
-    sp = (short *)cp;
-    sCurLife = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sMaxLife = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sPerformance = *sp;
-    cp += 2;
-
-    memcpy(cItemName, cp, 20);
-    cp += 20;
-
-    memcpy(cCharName, cp, 10);
-    cp += 10;
-
-
-    dwp = (uint32_t *)cp;
-    dwAttribute = *dwp;
-    cp += 4;
-
-    if (sDir == 0)
-    {
-        m_stDialogBoxInfo[27].sV1 = sSprite;
-        m_stDialogBoxInfo[27].sV2 = sSpriteFrame;
-        m_stDialogBoxInfo[27].sV3 = iAmount;
-        m_stDialogBoxInfo[27].sV4 = cColor;
-        m_stDialogBoxInfo[27].sV9 = (int)sCurLife;
-        m_stDialogBoxInfo[27].sV10 = (int)sMaxLife;
-        m_stDialogBoxInfo[27].sV11 = (int)sPerformance;
-
-        memcpy(m_stDialogBoxInfo[27].cStr, cItemName, 20);
-        memcpy(m_stDialogBoxInfo[27].cStr2, cCharName, 10);
-
-        m_stDialogBoxInfo[27].dwV1 = dwAttribute;
-    }
-    else
-    {
-        m_stDialogBoxInfo[27].sV5 = sSprite;
-        m_stDialogBoxInfo[27].sV6 = sSpriteFrame;
-        m_stDialogBoxInfo[27].sV7 = iAmount;
-        m_stDialogBoxInfo[27].sV8 = cColor;
-        m_stDialogBoxInfo[27].sV12 = (int)sCurLife;
-        m_stDialogBoxInfo[27].sV13 = (int)sMaxLife;
-        m_stDialogBoxInfo[27].sV14 = (int)sPerformance;
-
-        memcpy(m_stDialogBoxInfo[27].cStr3, cItemName, 20);
-        memcpy(m_stDialogBoxInfo[27].cStr4, cCharName, 10);
-
-        m_stDialogBoxInfo[27].dwV2 = dwAttribute;
-    }
-}
-
-void CGame::NotifyMsg_DismissGuildApprove(char * pData)
-{
-    char * cp, cName[24], cLocation[12];
-    memset(cName, 0, sizeof(cName));
-    memset(cLocation, 0, sizeof(cLocation));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    cp += 2;
-
-
-    memcpy(cLocation, cp, 10);
-    cp += 10;
-
-
-    memset(m_cGuildName, 0, sizeof(m_cGuildName));
-    m_iGuildRank = -1;
-
-
-    memset(m_cLocation, 0, sizeof(m_cLocation));
-    memcpy(m_cLocation, cLocation, 10);
-    if (memcmp(m_cLocation, "aresden", 7) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else if (memcmp(m_cLocation, "elvine", 6) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else
-    {
-        m_bAresden = true;
-        m_bCitizen = false;
-        m_bHunter = true;
-    }
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 5);
-}
-
-void CGame::NotifyMsg_DismissGuildReject(char * pData)
-{
-    char * cp, cName[21];
-
-    memset(cName, 0, sizeof(cName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 6);
-}
-
-void CGame::NotifyMsg_DownSkillIndexSet(char * pData)
-{
-    uint16_t * wp;
-    short sSkillIndex;
-    char * cp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    wp = (uint16_t *)cp;
-    sSkillIndex = (short)*wp;
-    cp += 2;
-
-    m_iDownSkillIndex = sSkillIndex;
-
-
-    m_stDialogBoxInfo[15].bFlag = false;
-}
-
-void CGame::NotifyMsg_FishChance(char * pData)
-{
-    int iFishChance;
-    char * cp;
-    uint16_t * wp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    wp = (uint16_t *)cp;
-
-    iFishChance = (int)*wp;
-    cp += 2;
-
-    m_stDialogBoxInfo[24].sV1 = iFishChance;
-}
-
-void CGame::NotifyMsg_GuildDisbanded(char * pData)
-{
-    char * cp, cName[24], cLocation[12];
-    memset(cName, 0, sizeof(cName));
-    memset(cLocation, 0, sizeof(cLocation));
-
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    memcpy(cLocation, cp, 10);
-    cp += 10;
-
-    m_Misc.ReplaceString(cName, '_', ' ');
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 7);
-
-
-    memset(m_cGuildName, 0, sizeof(m_cGuildName));
-    m_iGuildRank = -1;
-    memset(m_cLocation, 0, sizeof(m_cLocation));
-    memcpy(m_cLocation, cLocation, 10);
-    if (memcmp(m_cLocation, "aresden", 7) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else if (memcmp(m_cLocation, "elvine", 6) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else
-    {
-        m_bAresden = true;
-        m_bCitizen = false;
-        m_bHunter = true;
-    }
-}
-
-void CGame::NotifyMsg_WhetherChange(char * pData)
-{
-    char * cp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    m_cWhetherStatus = *cp;
-    cp++;
-
-    if (m_cWhetherStatus != 0)
-        SetWhetherStatus(true, m_cWhetherStatus);
-    else SetWhetherStatus(false, 0);
-}
-
-void CGame::NotifyMsg_TimeChange(char * pData)
-{
-    char * cp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    G_cSpriteAlphaDegree = *cp;
-
-    switch (G_cSpriteAlphaDegree)
-    {
-        case 1:	PlaySound('E', 32, 0); break;
-        case 2: PlaySound('E', 31, 0); break;
-    }
-
-    m_cGameModeCount = 1;
-
-    m_bIsRedrawPDBGS = true;
-}
-
-void CGame::NotifyMsg_RepairItemPrice(char * pData)
-{
-    char * cp, cName[21];
-    uint32_t * dwp, wV1, wV2, wV3, wV4;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    dwp = (uint32_t *)cp;
-    wV1 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV2 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV3 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV4 = *dwp;
-    cp += 4;
-
-    memset(cName, 0, sizeof(cName));
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-
-
-
-    EnableDialogBox(23, 2, wV1, wV2);
-    m_stDialogBoxInfo[23].sV3 = wV3;
-
-}
-
-void CGame::NotifyMsg_SellItemPrice(char * pData)
-{
-    char * cp, cName[21];
-    uint32_t * dwp, wV1, wV2, wV3, wV4;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    dwp = (uint32_t *)cp;
-    wV1 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV2 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV3 = *dwp;
-    cp += 4;
-
-    dwp = (uint32_t *)cp;
-    wV4 = *dwp;
-    cp += 4;
-
-    memset(cName, 0, sizeof(cName));
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-
-
-    EnableDialogBox(23, 1, wV1, wV2);
-    m_stDialogBoxInfo[23].sV3 = wV3;
-    m_stDialogBoxInfo[23].sV4 = wV4;
-}
-
-void CGame::NotifyMsg_QueryDismissGuildPermission(char * pData)
-{
-    char * cp, cName[12];
-
-    memset(cName, 0, sizeof(cName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 10);
-    cp += 10;
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 2);
-}
-
-void CGame::NotifyMsg_QueryJoinGuildPermission(char * pData)
-{
-    char * cp, cName[12];
-
-    memset(cName, 0, sizeof(cName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 10);
-    cp += 10;
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 1);
-}
-
-void CGame::NotifyMsg_QuestContents(char * pData)
-{
-    short * sp;
-    char * cp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    sp = (short *)cp;
-    m_stQuest.sWho = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sQuestType = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sContribution = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sTargetType = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sTargetCount = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sX = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sY = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.sRange = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    m_stQuest.bIsQuestCompleted = (bool)*sp;
-    cp += 2;
-
-    memset(m_stQuest.cTargetName, 0, sizeof(m_stQuest.cTargetName));
-    memcpy(m_stQuest.cTargetName, cp, 20);
-    cp += 20;
-
-    // v2.05
-    //AddEventList(m_pGameMsgList[92]->m_pMsg, 10);
-}
-
-void CGame::NotifyMsg_PlayerProfile(char * pData)
-{
-    char * cp;
-    char cTemp[500];
-    int i;
-
-    memset(cTemp, 0, sizeof(cTemp));
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    strcpy(cTemp, cp);
-
-    for (i = 0; i < 500; i++)
-        if (cTemp[i] == '_') cTemp[i] = ' ';
-
-    AddEventList(cTemp, 10);
-}
-
-void CGame::NotifyMsg_NoticeMsg(char * pData)
-{
-    char * cp, cMsg[1000];
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    strcpy(cMsg, cp);
-    AddEventList(cMsg, 10);
-}
-
-void CGame::NotifyMsg_OpenExchageWindow(char * pData)
-{
-    short * sp, sDir, sSprite, sSpriteFrame, sCurLife, sMaxLife, sPerformance;
-    int * ip, iAmount;
-    char * cp, cColor, cItemName[24], cCharName[12];
-    uint32_t * dwp, dwAttribute;
-
-    memset(cItemName, 0, sizeof(cItemName));
-    memset(cCharName, 0, sizeof(cCharName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    sp = (short *)cp;
-    sDir = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sSprite = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sSpriteFrame = *sp;
-    cp += 2;
-
-    ip = (int *)cp;
-    iAmount = *ip;
-    cp += 4;
-
-    cColor = *cp;
-    cp++;
-
-    sp = (short *)cp;
-    sCurLife = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sMaxLife = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sPerformance = *sp;
-    cp += 2;
-
-
-    memcpy(cItemName, cp, 20);
-    cp += 20;
-
-    memcpy(cCharName, cp, 10);
-    cp += 10;
-
-
-    dwp = (uint32_t *)cp;
-    dwAttribute = *dwp;
-    cp += 4;
-
-    EnableDialogBox(27, 1, 0, 0, 0);
-    if (sDir == 0)
-    {
-        m_stDialogBoxInfo[27].sV1 = sSprite;
-        m_stDialogBoxInfo[27].sV2 = sSpriteFrame;
-        m_stDialogBoxInfo[27].sV3 = iAmount;
-        m_stDialogBoxInfo[27].sV4 = (int)cColor;
-        m_stDialogBoxInfo[27].sV9 = (int)sCurLife;
-        m_stDialogBoxInfo[27].sV10 = (int)sMaxLife;
-        m_stDialogBoxInfo[27].sV11 = (int)sPerformance;
-
-        memcpy(m_stDialogBoxInfo[27].cStr, cItemName, 20);
-        memcpy(m_stDialogBoxInfo[27].cStr2, cCharName, 10);
-
-        m_stDialogBoxInfo[27].dwV1 = dwAttribute;
-    }
-    else
-    {
-        m_stDialogBoxInfo[27].sV5 = sSprite;
-        m_stDialogBoxInfo[27].sV6 = sSpriteFrame;
-        m_stDialogBoxInfo[27].sV7 = iAmount;
-        m_stDialogBoxInfo[27].sV8 = (int)cColor;
-        m_stDialogBoxInfo[27].sV12 = (int)sCurLife;
-        m_stDialogBoxInfo[27].sV13 = (int)sMaxLife;
-        m_stDialogBoxInfo[27].sV14 = (int)sPerformance;
-
-        memcpy(m_stDialogBoxInfo[27].cStr3, cItemName, 20);
-        memcpy(m_stDialogBoxInfo[27].cStr4, cCharName, 10);
-
-        m_stDialogBoxInfo[27].dwV2 = dwAttribute;
-    }
-}
-
-void CGame::NotifyMsg_JoinGuildApprove(char * pData)
-{
-    char * cp, cName[21]{};
-    short * sp;
-
-    memset(cName, 0, sizeof(cName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    sp = (short *)cp;
-    cp += 2;
-
-
-    memset(m_cGuildName, 0, sizeof(m_cGuildName));
-    strcpy(m_cGuildName, cName);
-    m_iGuildRank = *sp;
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 3);
-}
-
-void CGame::NotifyMsg_JoinGuildReject(char * pData)
-{
-    char * cp, cName[21]{};
-    memset(cName, 0, sizeof(cName));
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-    memcpy(cName, cp, 20);
-    cp += 20;
-
-    EnableDialogBox(8, 0, 0, 0);
-    _PutGuildOperationList(cName, 4);
-}
 
 void CGame::NotifyMsgHandler(char * pData)
 {
-    uint32_t * dwp, dwTime{}, dwTemp{};
-    uint16_t * wp, wEventType{};
-    char * cp, cTemp[510]{}, cTxt[120]{};
-    short * sp, sX{}, sY{}, sV1{}, sV2{}, sV3{}, sV4{}, sV5{}, sV6{}, sV7{}, sV8{}, sV9{};
-    int * ip, i{}, iV1{}, iV2{}, iV3{}, iV4{};
+    uint32_t * dwp, dwTime, dwTemp;
+    uint16_t * wp, wEventType;
+    char * cp, cTemp[510], cTxt[120], cTemp2[91];
+    short * sp, sX, sY, sV1, sV2, sV3, sV4, sV5, sV6, sV7, sV8, sV9;
+    int * ip, i, iV1, iV2, iV3, iV4;
 
     dwTime = unixtime();
 
@@ -732,6 +56,361 @@ void CGame::NotifyMsgHandler(char * pData)
 
     switch (wEventType)
     {
+        //////////////////////////////////////////////////////////////////////////
+        //Change 3.51+ additions slates, held, apoc, etc
+
+        case DEF_NOTIFY_SLATE_BERSERK:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_BERSERK, 10);//"Berserk magic casted!"
+            m_bUsingSlate = true;
+            break;
+
+        case DEF_NOTIFY_LOTERY_LOST:
+            AddEventList(DEF_MSG_NOTIFY_LOTTERY_LOST, 10);
+            break;
+
+        case DEF_NOTIFY_CRAFTING_SUCCESS:
+            m_iContribution -= m_iContributionPrice;
+            m_iContributionPrice = 0;
+            DisableDialogBox(25);
+            AddEventList(NOTIFY_MSG_HANDLER42, 10);		// "Item manufacture success!"
+            PlaySound('E', 23, 5);
+            switch (m_sPlayerType)
+            {
+                case 1:
+                case 2:
+                case 3:
+                    PlaySound('C', 21, 0);
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                    PlaySound('C', 22, 0);
+                    break;
+            }
+            break;
+
+        case DEF_NOTIFY_CRAFTING_FAIL:
+            m_iContributionPrice = 0;
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            iV1 = *ip; // Error reason
+            switch (iV1)
+            {
+                case 1:
+                    AddEventList(DEF_MSG_NOTIFY_CRAFTING_NO_PART, 10);		// "There is not enough material"
+                    PlaySound('E', 24, 5);
+                    break;
+                case 2:
+                    AddEventList(DEF_MSG_NOTIFY_CRAFTING_NO_CONTRIB, 10);	// "There is not enough Contribution Point"
+                    PlaySound('E', 24, 5);
+                    break;
+                default:
+                case 3:
+                    AddEventList(DEF_MSG_NOTIFY_CRAFTING_FAILED, 10);		// "Crafting failed"
+                    PlaySound('E', 24, 5);
+                    break;
+            }
+            break;
+
+        case DEF_NOTIFY_ANGELIC_STATS:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            m_iAngelicStr = *ip;  // m_iAngelicStr
+            cp += 4;
+            ip = (int *)cp;
+            m_iAngelicInt = *ip;  // m_iAngelicInt
+            cp += 4;
+            ip = (int *)cp;
+            m_iAngelicDex = *ip;  // m_iAngelicDex
+            cp += 4;
+            ip = (int *)cp;
+            m_iAngelicMag = *ip;  // m_iAngelicMag
+            break;
+
+        case DEF_NOTIFY_ITEM_CANT_RELEASE:
+            AddEventList(DEF_MSG_NOTIFY_NOT_RELEASED, 10);//"Item cannot be released"
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ItemEquipHandler(*cp);
+            break;
+
+        case DEF_NOTIFY_ANGEL_FAILED:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            iV1 = *ip;
+            switch (iV1)
+            {
+                case 1:
+                    AddEventList(DEF_MSG_NOTIFY_ANGEL_FAILED, 10); //"Tutelary Angel failed."
+                    break;
+                case 2: //
+                    AddEventList(DEF_MSG_NOTIFY_ANGEL_MAJESTIC, 10);//"You need additional Majesty Points."
+                    break;
+                case 3: //
+                    AddEventList(DEF_MSG_NOTIFY_ANGEL_LOW_LVL, 10); //"Only Majesty characters can receive Tutelary Angel"
+                    break;
+            }
+            break;
+
+        case DEF_NOTIFY_ANGEL_RECEIVED:
+            AddEventList(DEF_MSG_NOTIFY_ANGEL_RECEIVED, 10);// "You have received the Tutelary Angel."
+            break;
+
+        case DEF_NOTIFY_SPELL_SKILL:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            for (i = 0; i < DEF_MAXMAGICTYPE; i++)
+            {
+                m_cMagicMastery[i] = *cp;
+                cp++;
+            }
+            for (i = 0; i < DEF_MAXSKILLTYPE; i++)
+            {
+                m_cSkillMastery[i] = (unsigned char)*cp;
+                if (m_pSkillCfgList[i] != 0)
+                    m_pSkillCfgList[i]->m_iLevel = (int)*cp;
+                cp++;
+            }
+            break;
+
+        case DEF_NOTIFY_CONTRIBUTION:
+            ip = (int *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+            if ((*ip - m_iContribution) > 0)
+                format_to_local(G_cTxt, "Contribution increased by {} points.", *ip - m_iContribution);
+            else if ((*ip - m_iContribution) < 0)
+                format_to_local(G_cTxt, "Contribution decreased by {} points.", m_iContribution - *ip);
+
+            m_iContribution = *ip;
+
+            AddEventList(G_cTxt, 10);
+            break;
+
+        case DEF_NOTIFY_CHANGEVALUE:
+            wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)(pData + DEF_INDEX2_MSGTYPE + 4);
+            bool bincrease;
+            bincrease = true;
+            char ctemp[20];
+            int orig;
+            orig = 0;
+            memset(ctemp, 0, 20);
+
+            switch (*wp)
+            {
+                case DEF_CV_HP:
+                    if (m_iHP > *ip)
+                        bincrease = false;
+                    orig = m_iHP;
+                    m_iHP = *ip;
+                    strcpy(ctemp, "HP");
+                    break;
+                case DEF_CV_MP:
+                    if (m_iMP > *ip)
+                        bincrease = false;
+                    orig = m_iMP;
+                    m_iMP = *ip;
+                    strcpy(ctemp, "MP");
+                    break;
+                case DEF_CV_SP:
+                    if (m_iSP > *ip)
+                        bincrease = false;
+                    orig = m_iSP;
+                    m_iSP = *ip;
+                    strcpy(ctemp, "SP");
+                    break;
+                case DEF_CV_EK:
+                    if (m_iEnemyKillCount > *ip)
+                        bincrease = false;
+                    orig = m_iEnemyKillCount;
+                    m_iEnemyKillCount = *ip;
+                    strcpy(ctemp, "EKs");
+                    break;
+                case DEF_CV_PK:
+                    if (m_iPKCount > *ip)
+                        bincrease = false;
+                    orig = m_iPKCount;
+                    m_iPKCount = *ip;
+                    strcpy(ctemp, "PKs");
+                    break;
+                case DEF_CV_REP:
+                    if (m_iRating > *ip)
+                        bincrease = false;
+                    orig = m_iRating;
+                    m_iRating = *ip;
+                    strcpy(ctemp, "Rep");
+                    break;
+            }
+            format_to_local(G_cTxt, "Your {} has {} by {} point{}", ctemp, bincrease == true ? "increased" : "decreased", bincrease == true ? *ip - orig : orig - *ip, abs(*ip - orig) > 1 ? "s." : ".");
+            AddEventList(G_cTxt, 10);
+            break;
+
+        case DEF_NOTIFY_NORECALL:
+            AddEventList("You can not recall in this map.", 10);
+            break;
+
+        case DEF_NOTIFY_APOCGATESTARTMSG:
+            SetTopMsg("The portal to the Apocalypse is opened.", 10);
+            break;
+
+        case DEF_NOTIFY_APOCGATEENDMSG:
+            SetTopMsg("The portal to the Apocalypse is closed.", 10);
+            break;
+
+        case DEF_NOTIFY_APOCGATEOPEN:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            m_iGatePositX = *ip;
+            cp += 4;
+            ip = (int *)cp;
+            m_iGatePositY = *ip;
+            cp += 4;
+            memset(m_cGateMapName, 0, sizeof(m_cGateMapName));
+            memcpy(m_cGateMapName, cp, 10);
+            cp += 10;
+            break;
+
+        case DEF_NOTIFY_QUESTCOUNTER:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            m_stQuest.sCurrentCount = (short)*ip;
+            cp += 4;
+            break;
+
+        case DEF_NOTIFY_MONSTERCOUNT:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            sp = (short *)cp;
+            sV1 = *sp;
+            cp += 2;
+            format_to_local(cTxt, "Rest Monster :{}", sV1);
+            AddEventList(cTxt, 10);
+            break;
+
+        case DEF_NOTIFY_APOCGATECLOSE:
+            m_iGatePositX = m_iGatePositY = -1;
+            memset(m_cGateMapName, 0, sizeof(m_cGateMapName));
+            break;
+
+        case DEF_NOTIFY_APOCFORCERECALLPLAYERS:
+            AddEventList("You are recalled by force, because the Apocalypse is started.", 10);
+            break;
+
+        case DEF_NOTIFY_ABADDONKILLED:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            memset(cTxt, 0, sizeof(cTxt));
+            memcpy(cTxt, cp, 10);
+            cp += 10;
+            format_to_local(G_cTxt, "Abaddon is destroyed by {}", cTxt);
+            AddEventList(G_cTxt, 10);
+            break;
+
+        case DEF_NOTIFY_RESURRECTPLAYER:
+            EnableDialogBox(50, 0, 0, 0);
+            break;
+
+        case DEF_NOTIFY_HELDENIANTELEPORT:
+            SetTopMsg("Teleport to Heldenian field is available from now. Magic casting is forbidden until real battle.", 10);
+            break;
+
+        case DEF_NOTIFY_HELDENIANEND:
+            SetTopMsg("Heldenian holy war has been closed.", 10);
+            break;
+
+        case DEF_NOTIFY_0BE8:
+            SetTopMsg("Characters will be recalled by force as Heldenian begins.", 10);
+            break;
+
+        case DEF_NOTIFY_HELDENIANSTART:
+            SetTopMsg("Heldenian real battle has been started form now on.", 10);
+            break;
+
+        case DEF_NOTIFY_HELDENIANVICTORY:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            sp = (short *)cp;
+            sV1 = *sp;
+            cp += 2;
+            ShowHeldenianVictory(sV1);
+            m_iHeldenianAresdenLeftTower = -1;
+            m_iHeldenianElvineLeftTower = -1;
+            m_iHeldenianAresdenFlags = -1;
+            m_iHeldenianElvineFlags = -1;
+            break;
+
+        case DEF_NOTIFY_HELDENIANCOUNT:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            sp = (short *)cp;
+            m_iHeldenianAresdenLeftTower = (int)*sp;
+            cp += 2;
+            sp = (short *)cp;
+            m_iHeldenianElvineLeftTower = (int)*sp;
+            cp += 2;
+            sp = (short *)cp;
+            m_iHeldenianAresdenFlags = (int)*sp;
+            cp += 2;
+            sp = (short *)cp;
+            m_iHeldenianElvineFlags = (int)*sp;
+            cp += 2;
+            break;
+
+        case DEF_NOTIFY_SLATE_CREATESUCCESS:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_CREATESUCCESS, 10);
+            break;
+        case DEF_NOTIFY_SLATE_CREATEFAIL:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_CREATEFAIL, 10);
+            break;
+        case DEF_NOTIFY_SLATE_INVINCIBLE:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_INVINCIBLE, 10);
+            m_bUsingSlate = true;
+            break;
+        case DEF_NOTIFY_SLATE_MANA:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_MANA, 10);
+            m_bUsingSlate = true;
+            break;
+        case DEF_NOTIFY_SLATE_EXP:
+            AddEventList(DEF_MSG_NOTIFY_SLATE_EXP, 10);
+            m_bUsingSlate = true;
+            break;
+        case DEF_NOTIFY_SLATE_STATUS:
+            AddEventList(DEF_MSG_NOTIFY_SLATECLEAR, 10); // "The effect of the prophecy-slate is disappeared."
+            m_bUsingSlate = false;
+            break;
+
+        case DEF_NOTIFY_STATECHANGE_SUCCESS:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            for (i = 0; i < DEF_MAXMAGICTYPE; i++)
+            {
+                m_cMagicMastery[i] = *cp;
+                cp++;
+            }
+            for (i = 0; i < DEF_MAXSKILLTYPE; i++)
+            {
+                m_cSkillMastery[i] = (unsigned char)*cp;
+                if (m_pSkillCfgList[i] != 0)
+                    m_pSkillCfgList[i]->m_iLevel = (int)*cp;
+                //else m_pSkillCfgList[i]->m_iLevel = 0;
+                cp++;
+            }
+            m_iStr += m_cLU_Str;
+            m_iVit += m_cLU_Vit;
+            m_iDex += m_cLU_Dex;
+            m_iInt += m_cLU_Int;
+            m_iMag += m_cLU_Mag;
+            m_iCharisma += m_cLU_Char;
+            m_iLU_Point = (m_iLevel - 1) * 3 - ((m_iStr + m_iVit + m_iDex + m_iInt + m_iMag + m_iCharisma) - 70);
+            m_cLU_Str = m_cLU_Vit = m_cLU_Dex = m_cLU_Int = m_cLU_Mag = m_cLU_Char = 0;
+            m_iGizonItemUpgradeLeft--;
+            AddEventList("Your stat has been changed.", 10); // "Your stat has been changed."
+            break;
+
+        case DEF_NOTIFY_STATECHANGE_FAILED:		// 0x0BB6
+            m_cLU_Str = m_cLU_Vit = m_cLU_Dex = m_cLU_Int = m_cLU_Mag = m_cLU_Char = 0;
+            m_iLU_Point = (m_iLevel - 1) * 3 - ((m_iStr + m_iVit + m_iDex + m_iInt + m_iMag + m_iCharisma) - 70);
+            AddEventList("Your stat has not been changed.", 10);
+            break;
+
+
+            //////////////////////////////////////////////////////////////////////////
+
+
+
         case DEF_NOTIFY_AGRICULTURENOAREA:
             AddEventList(DEF_MSG_NOTIFY_AGRICULTURENOAREA, 10);
             break;
@@ -793,7 +472,7 @@ void CGame::NotifyMsgHandler(char * pData)
             AddEventList(DEF_MSG_GAMEMODE_CHANGED, 10);
             break;
 
-
+            // v2.171
         case DEF_NOTIFY_REQGUILDNAMEANSWER:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             sp = (short *)cp;
@@ -812,7 +491,41 @@ void CGame::NotifyMsgHandler(char * pData)
             for (i = 0; i < 20; i++) if (m_stGuildName[sV2].cGuildName[i] == '_') m_stGuildName[sV2].cGuildName[i] = ' ';
             break;
 
+        case DEF_NOTIFY_REQPLAYERNAMEANSWER:
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            sp = (short *)cp;
+            sV1 = *sp;
+            cp += 2;
+            sp = (short *)cp;
+            sV2 = *sp;
+            cp += 2;
+            sp = (short *)cp;
+            sV3 = *sp;
+            cp += 2;
+            sp = (short *)cp;
+            sV4 = *sp;
+            cp += 2;
+            memset(cTemp, 0, sizeof(cTemp));
+            memcpy(cTemp, cp, 10);
+            cp += 10;
+            memset(cTemp2, 0, sizeof(cTemp2));
+            memcpy(cTemp2, cp, 90);
+            cp += 90;
 
+            m_stPKList[sV1].m_bIsEnabled = sV4;
+
+            memset(m_stPKList[sV1].m_cCharName, 0, sizeof(m_stPKList[sV1].m_cCharName));
+            strcpy(m_stPKList[sV1].m_cCharName, cTemp);
+
+            memset(m_stPKList[sV1].m_cDisplayInfo, 0, sizeof(m_stPKList[sV1].m_cDisplayInfo));
+            strcpy(m_stPKList[sV1].m_cDisplayInfo, cTemp2);
+
+            m_stPKList[sV1].m_iGM = sV2;
+            m_stPKList[sV1].m_iPKs = sV3;
+            for (i = 0; i < 90; i++) if (m_stPKList[sV1].m_cDisplayInfo[i] == '_') m_stPKList[sV1].m_cDisplayInfo[i] = ' ';
+            break;
+
+            // v2.17 2002-7-15
         case DEF_NOTIFY_FORCERECALLTIME:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
@@ -845,8 +558,7 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             cp += 4;
             break;
-
-        case DEF_NOTIFY_GIZONEITEMCHANGE:
+        case DEF_NOTIFY_GIZONITEMCHANGE:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
             sp = (short *)cp;
@@ -881,13 +593,11 @@ void CGame::NotifyMsgHandler(char * pData)
             memset(m_pItemList[sV1]->m_cName, 0, sizeof(m_pItemList[sV1]->m_cName));
             memcpy(m_pItemList[sV1]->m_cName, cp, 20);
             cp += 20;
-
             if (m_bIsDialogEnabled[34] == true)
             {
                 m_stDialogBoxInfo[34].cMode = 3;
             }
             PlaySound('E', 23, 5);
-
             switch (m_sPlayerType)
             {
                 case 1:
@@ -904,8 +614,6 @@ void CGame::NotifyMsgHandler(char * pData)
             }
 
             break;
-
-
         case DEF_NOTIFY_ITEMATTRIBUTECHANGE:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             sp = (short *)cp;
@@ -917,7 +625,6 @@ void CGame::NotifyMsgHandler(char * pData)
             dwp = (uint32_t *)cp;
             m_pItemList[sV1]->m_dwAttribute = *dwp;
             cp += 4;
-
             dwp = (uint32_t *)cp;
             if (*dwp != 0) m_pItemList[sV1]->m_sItemSpecEffectValue1 = (short)*dwp;
             cp += 4;
@@ -927,7 +634,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if (dwTemp == m_pItemList[sV1]->m_dwAttribute)
             {
-
                 if (m_bIsDialogEnabled[34] == true)
                 {
                     m_stDialogBoxInfo[34].cMode = 4;
@@ -936,13 +642,11 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             else
             {
-
                 if (m_bIsDialogEnabled[34] == true)
                 {
                     m_stDialogBoxInfo[34].cMode = 3;
                 }
                 PlaySound('E', 23, 5);
-
                 switch (m_sPlayerType)
                 {
                     case 1:
@@ -960,7 +664,7 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             break;
 
-
+            // v2.17 2002-7-21 
         case DEF_NOTIFY_ITEMUPGRADEFAIL:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             sp = (short *)cp;
@@ -1015,7 +719,6 @@ void CGame::NotifyMsgHandler(char * pData)
                             EnableDialogBox(32, 0, 0, 0);
                             m_stDialogBoxInfo[32].cMode = 8;
                             for (i = 0; i < DEF_MAXPARTYMEMBERS; i++) memset(m_stPartyMemberNameList[i].cName, 0, sizeof(m_stPartyMemberNameList[i].cName));
-
                             bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_REQUEST_JOINPARTY, 0, 2, 0, 0, m_cMCName);
                             break;
                     }
@@ -1051,7 +754,6 @@ void CGame::NotifyMsgHandler(char * pData)
                             else
                             {
                                 format_to_local(G_cTxt, NOTIFY_MSG_HANDLER1, cTxt);
-
                                 AddEventList(G_cTxt, 10);
                             }
 
@@ -1061,6 +763,27 @@ void CGame::NotifyMsgHandler(char * pData)
                                 {
                                     memset(m_stPartyMemberNameList[i].cName, 0, sizeof(m_stPartyMemberNameList[i].cName));
                                     memcpy(m_stPartyMemberNameList[i].cName, cTxt, 10);
+                                    ip = (int *)cp;//Change Party list 0x0106
+                                    m_stPartyMemberNameList[i].iHP = *ip;
+                                    cp += 4;
+                                    ip = (int *)cp;
+                                    m_stPartyMemberNameList[i].iMaxHP = *ip;
+                                    cp += 4;
+                                    ip = (int *)cp;
+                                    m_stPartyMemberNameList[i].iMP = *ip;
+                                    cp += 4;
+                                    ip = (int *)cp;
+                                    m_stPartyMemberNameList[i].iMaxMP = *ip;
+                                    cp += 4;
+                                    ip = (int *)cp;
+                                    m_stPartyMemberNameList[i].iLevel = *ip;
+                                    cp += 4;
+                                    wp = (uint16_t *)cp;
+                                    m_stPartyMemberNameList[i].x = *wp;
+                                    cp += 2;
+                                    wp = (uint16_t *)cp;
+                                    m_stPartyMemberNameList[i].y = *wp;
+                                    cp += 2;
                                     goto NMH_LOOPBREAK1;
                                 }
                             NMH_LOOPBREAK1:;
@@ -1082,6 +805,30 @@ void CGame::NotifyMsgHandler(char * pData)
                         memset(m_stPartyMemberNameList[i - 1].cName, 0, sizeof(m_stPartyMemberNameList[i - 1].cName));
                         memcpy(m_stPartyMemberNameList[i - 1].cName, cp, 10);
                         cp += 11;
+                    }
+                    for (i = 1; i <= sV3; i++)
+                    {
+                        ip = (int *)cp;
+                        m_stPartyMemberNameList[i - 1].iHP = *ip;
+                        cp += 4;//Change Party list 0x0106
+                        ip = (int *)cp;
+                        m_stPartyMemberNameList[i - 1].iMaxHP = *ip;
+                        cp += 4;
+                        ip = (int *)cp;
+                        m_stPartyMemberNameList[i - 1].iMP = *ip;
+                        cp += 4;
+                        ip = (int *)cp;
+                        m_stPartyMemberNameList[i - 1].iMaxMP = *ip;
+                        cp += 4;
+                        ip = (int *)cp;
+                        m_stPartyMemberNameList[i - 1].iLevel = *ip;
+                        cp += 4;
+                        wp = (uint16_t *)cp;
+                        m_stPartyMemberNameList[i - 1].x = *wp;
+                        cp += 2;
+                        wp = (uint16_t *)cp;
+                        m_stPartyMemberNameList[i - 1].y = *wp;
+                        cp += 2;
                     }
                     break;
 
@@ -1113,7 +860,6 @@ void CGame::NotifyMsgHandler(char * pData)
                             else
                             {
                                 format_to_local(G_cTxt, NOTIFY_MSG_HANDLER2, cTxt);
-
                                 AddEventList(G_cTxt, 10);
                             }
                             for (i = 0; i < DEF_MAXPARTYMEMBERS; i++)
@@ -1199,7 +945,6 @@ void CGame::NotifyMsgHandler(char * pData)
             {
                 if ((sV1 > m_iConstructionPoint) && (sV2 > m_iWarContribution))
                 {
-
                     format_to_local(G_cTxt, "{} +{}, {} +{}", m_pGameMsgList[13]->message, (sV1 - m_iConstructionPoint), m_pGameMsgList[21]->message, (sV2 - m_iWarContribution));
                     SetTopMsg(G_cTxt, 5);
                     PlaySound('E', 23, 0, 0);
@@ -1207,10 +952,8 @@ void CGame::NotifyMsgHandler(char * pData)
 
                 if ((sV1 > m_iConstructionPoint) && (sV2 == m_iWarContribution))
                 {
-
                     if (m_iCrusadeDuty == 3)
                     {
-
                         format_to_local(G_cTxt, "{} +{}", m_pGameMsgList[13]->message, sV1 - m_iConstructionPoint);
                         SetTopMsg(G_cTxt, 5);
                         PlaySound('E', 23, 0, 0);
@@ -1219,7 +962,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
                 if ((sV1 == m_iConstructionPoint) && (sV2 > m_iWarContribution))
                 {
-
                     format_to_local(G_cTxt, "{} +{}", m_pGameMsgList[21]->message, sV2 - m_iWarContribution);
                     SetTopMsg(G_cTxt, 5);
                     PlaySound('E', 23, 0, 0);
@@ -1229,7 +971,6 @@ void CGame::NotifyMsgHandler(char * pData)
                 {
                     if (m_iCrusadeDuty == 3)
                     {
-
                         format_to_local(G_cTxt, "{} -{}", m_pGameMsgList[13]->message, m_iConstructionPoint - sV1);
                         SetTopMsg(G_cTxt, 5);
                         PlaySound('E', 25, 0, 0);
@@ -1238,7 +979,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
                 if (sV2 < m_iWarContribution)
                 {
-
                     format_to_local(G_cTxt, "{} -{}", m_pGameMsgList[21]->message, m_iWarContribution - sV2);
                     SetTopMsg(G_cTxt, 5);
                     PlaySound('E', 24, 0, 0);
@@ -1250,7 +990,6 @@ void CGame::NotifyMsgHandler(char * pData)
             break;
 
         case DEF_NOTIFY_NOMORECRUSADESTRUCTURE:
-
             SetTopMsg(m_pGameMsgList[12]->message, 5);
             PlaySound('E', 25, 0, 0);
             break;
@@ -1277,13 +1016,9 @@ void CGame::NotifyMsgHandler(char * pData)
             wp = (uint16_t *)cp;
             sV4 = *wp;
             cp += 2;
-
-
             wp = (uint16_t *)cp;
             sV5 = *wp;
             cp += 2;
-
-
             if (sV5 > 0)
             {
                 wp = (uint16_t *)cp;
@@ -1335,7 +1070,7 @@ void CGame::NotifyMsgHandler(char * pData)
         case DEF_NOTIFY_METEORSTRIKEHIT:
             SetTopMsg(m_pGameMsgList[17]->message, 5);
             //StartMeteorStrikeEffect
-            for (i = 0; i < 36; i++) bAddNewEffect(60, m_sViewPointX + (rand() % 640), m_sViewPointY + (rand() % 480), 0, 0, -(rand() % 80));
+            for (i = 0; i < 36; i++) bAddNewEffect(60, m_sViewPointX + (rand() % get_virtual_width()), m_sViewPointY + (rand() % get_virtual_height()), 0, 0, -(rand() % 80));
             break;
 
         case DEF_NOTIFY_MAPSTATUSNEXT:
@@ -1383,29 +1118,19 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if (m_bIsCrusadeMode == false)
             {
-
                 if (iV1 != 0)
                 {
-
                     m_bIsCrusadeMode = true;
                     m_iCrusadeDuty = iV2;
-
-
-
                     if ((m_iCrusadeDuty != 3) && (m_bCitizen == true))
                         _RequestMapStatus("middleland", 3);
 
                     if (m_iCrusadeDuty != 0)
                         EnableDialogBox(33, 2, iV2, 0);
                     else EnableDialogBox(33, 1, 0, 0);
-
-
                     if (m_bCitizen == false) EnableDialogBox(18, 800, 0, 0);
                     else if (m_bAresden == true) EnableDialogBox(18, 801, 0, 0);
                     else if (m_bAresden == false) EnableDialogBox(18, 802, 0, 0);
-
-
-
                     if (m_bCitizen == false) SetTopMsg(NOTIFY_MSG_CRUSADESTART_NONE, 10);
                     else SetTopMsg(m_pGameMsgList[9]->message, 10);
 
@@ -1414,36 +1139,28 @@ void CGame::NotifyMsgHandler(char * pData)
 
                 if (iV3 != 0)
                 {
-
-
                     CrusadeContributionResult(iV3);
                 }
 
                 if (iV4 == -1)
                 {
-
                     CrusadeContributionResult(0);
                 }
             }
             else
             {
-
                 if (iV1 == 0)
                 {
-
                     m_bIsCrusadeMode = false;
                     m_iCrusadeDuty = 0;
-
 
                     CrusadeWarResult(iV4);
                     SetTopMsg(m_pGameMsgList[57]->message, 8);
                 }
                 else
                 {
-
                     if (m_iCrusadeDuty != iV2)
                     {
-
                         m_iCrusadeDuty = iV2;
                         EnableDialogBox(33, 2, iV2, 0);
                         PlaySound('E', 25, 0, 0);
@@ -1452,7 +1169,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
                 if (iV4 == -1)
                 {
-
                     CrusadeContributionResult(0);
                 }
             }
@@ -1475,7 +1191,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if (sV1 == 1)
             {
-
                 PlaySound('E', 35, 0);
                 AddEventList(NOTIFY_MSG_HANDLER4, 10);
                 switch (sV2)
@@ -1493,10 +1208,8 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             else if (sV1 == 2)
             {
-
                 if (m_iSpecialAbilityType != (int)sV2)
                 {
-
                     PlaySound('E', 34, 0);
                     AddEventList(NOTIFY_MSG_HANDLER13, 10);
 
@@ -1535,7 +1248,6 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             else if (sV1 == 3)
             {
-
                 m_bIsSpecialAbilityEnabled = false;
                 AddEventList(NOTIFY_MSG_HANDLER30, 10);
 
@@ -1544,25 +1256,21 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             else if (sV1 == 4)
             {
-
                 AddEventList(NOTIFY_MSG_HANDLER31, 10);
                 m_iSpecialAbilityType = 0;
             }
             break;
 
         case DEF_NOTIFY_SPECIALABILITYENABLED:
-
             if (m_bIsSpecialAbilityEnabled == false)
             {
                 PlaySound('E', 30, 5);
-
                 AddEventList(NOTIFY_MSG_HANDLER32, 10);
             }
             m_bIsSpecialAbilityEnabled = true;
             break;
 
         case DEF_NOTIFY_ENERGYSPHEREGOALIN:
-
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             sp = (short *)cp;
             sV1 = *sp;
@@ -1581,11 +1289,9 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if (sV2 == sV3)
             {
-
                 PlaySound('E', 24, 0);
                 if (strcmp(cTxt, m_cPlayerName) == 0)
                 {
-
                     AddEventList(NOTIFY_MSG_HANDLER33, 10);
                     m_iContribution -= 10;
                     if (m_iContribution < 0) m_iContribution = 0;
@@ -1600,11 +1306,9 @@ void CGame::NotifyMsgHandler(char * pData)
             }
             else
             {
-
                 PlaySound('E', 23, 0);
                 if (strcmp(cTxt, m_cPlayerName) == 0)
                 {
-
                     switch (m_sPlayerType)
                     {
                         case 1:
@@ -1624,13 +1328,11 @@ void CGame::NotifyMsgHandler(char * pData)
                     memset(G_cTxt, 0, sizeof(G_cTxt));
                     if (sV3 == 1)
                     {
-
                         format_to_local(G_cTxt, NOTIFY_MSG_HANDLER36, cTxt);
                         AddEventList(G_cTxt, 10);
                     }
                     else if (sV3 == 2)
                     {
-
                         format_to_local(G_cTxt, NOTIFY_MSG_HANDLER37, cTxt);
                         AddEventList(G_cTxt, 10);
                     }
@@ -1668,12 +1370,10 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if ((bool)*sp == true)
             {
-
                 m_stDialogBoxInfo[32].cMode = 2;
             }
             else
             {
-
                 m_stDialogBoxInfo[32].cMode = 3;
             }
             break;
@@ -1698,18 +1398,16 @@ void CGame::NotifyMsgHandler(char * pData)
                 AddEventList(NOTIFY_MSG_HANDLER40);//"Observer Mode On. Press 'SHIFT + ESC' to Log Out..."  
                 m_bIsObserverMode = true;
                 m_dwObserverCamTime = unixtime();
-
                 char cName[12];
                 memset(cName, 0, sizeof(cName));
                 memcpy(cName, m_cPlayerName, 10);
-                m_pMapData->set_owner(m_sPlayerObjectID, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, cName, 0, 0, 0, 0);
+                m_pMapData->bSetOwner(m_sPlayerObjectID, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, cName, 0, 0, 0, 0);
             }
             else
             {
                 AddEventList(NOTIFY_MSG_HANDLER41);//"Observer Mode Off"
                 m_bIsObserverMode = false;
-
-                m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir, m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, m_sPlayerStatus, m_cPlayerName, DEF_OBJECTSTOP, 0, 0, 0);
+                m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir, m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, m_iPlayerStatus, m_cPlayerName, DEF_OBJECTSTOP, 0, 0, 0);
             }
             break;
 
@@ -1727,7 +1425,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
             if (sV1 < 10000)
             {
-
                 EnableDialogBox(26, 6, 1, sV1, 0);
                 m_stDialogBoxInfo[26].sV1 = sV2;
             }
@@ -1741,8 +1438,6 @@ void CGame::NotifyMsgHandler(char * pData)
 
             AddEventList(NOTIFY_MSG_HANDLER42, 10);
             PlaySound('E', 23, 5);
-
-
             switch (m_sPlayerType)
             {
                 case 1:
@@ -1763,7 +1458,6 @@ void CGame::NotifyMsgHandler(char * pData)
             DisableDialogBox(26);
             EnableDialogBox(26, 6, 0, 0);
             AddEventList(NOTIFY_MSG_HANDLER43, 10);
-
             PlaySound('E', 24, 5);
             break;
 
@@ -1817,6 +1511,7 @@ void CGame::NotifyMsgHandler(char * pData)
         case DEF_NOTIFY_EXCHANGEITEMCOMPLETE:
             AddEventList(NOTIFYMSG_EXCHANGEITEM_COMPLETE1, 10);
             DisableDialogBox(27);
+            DisableDialogBox(41);
             PlaySound('E', 23, 5);
             break;
 
@@ -1824,6 +1519,7 @@ void CGame::NotifyMsgHandler(char * pData)
             PlaySound('E', 24, 5);
             AddEventList(NOTIFYMSG_CANCEL_EXCHANGEITEM1, 10);
             AddEventList(NOTIFYMSG_CANCEL_EXCHANGEITEM2, 10);
+            DisableDialogBox(41);
             DisableDialogBox(27);
             break;
 
@@ -1880,19 +1576,19 @@ void CGame::NotifyMsgHandler(char * pData)
             NpcTalkHandler(pData);
             break;
 
-        case DEF_NOTIFY_PORTIONSUCCESS:
+        case DEF_NOTIFY_POTIONSUCCESS:
             AddEventList(NOTIFY_MSG_HANDLER46, 10);
             break;
 
-        case DEF_NOTIFY_PORTIONFAIL:
+        case DEF_NOTIFY_POTIONFAIL:
             AddEventList(NOTIFY_MSG_HANDLER47, 10);
             break;
 
-        case DEF_NOTIFY_LOWPORTIONSKILL:
+        case DEF_NOTIFY_LOWPOTIONSKILL:
             AddEventList(NOTIFY_MSG_HANDLER48, 10);
             break;
 
-        case DEF_NOTIFY_NOMATCHINGPORTION:
+        case DEF_NOTIFY_NOMATCHINGPOTION:
             AddEventList(NOTIFY_MSG_HANDLER49, 10);
             break;
 
@@ -1970,7 +1666,6 @@ void CGame::NotifyMsgHandler(char * pData)
             AddEventList(NOTIFY_MSG_HANDLER55, 10);
             PlaySound('E', 23, 5);
             PlaySound('E', 17, 5);
-
             switch (m_sPlayerType)
             {
                 case 1:
@@ -2013,14 +1708,10 @@ void CGame::NotifyMsgHandler(char * pData)
             break;
 
         case DEF_NOTIFY_ADMINUSERLEVELLOW:
-
             break;
-
-
         case DEF_NOTIFY_NOGUILDMASTERLEVEL:
             AddEventList(NOTIFY_MSG_HANDLER59, 10);
             break;
-
         case DEF_NOTIFY_SUCCESSBANGUILDMAN:
             AddEventList(NOTIFY_MSG_HANDLER60, 10);
             break;
@@ -2204,14 +1895,12 @@ void CGame::NotifyMsgHandler(char * pData)
         case DEF_NOTIFY_CANNOTCARRYMOREITEM:
             AddEventList(NOTIFY_MSG_HANDLER65, 10);
             AddEventList(NOTIFY_MSG_HANDLER66, 10);
-
             m_stDialogBoxInfo[14].cMode = 0;
             break;
 
         case DEF_NOTIFY_NOTENOUGHGOLD:
             DisableDialogBox(23);
             AddEventList(NOTIFY_MSG_HANDLER67, 10);
-
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             if (*cp >= 0)
             {
@@ -2228,10 +1917,16 @@ void CGame::NotifyMsgHandler(char * pData)
         case DEF_NOTIFY_SP:
             NotifyMsg_SP(pData);
             break;
-        case DEF_NOTIFY_SETTING_SUCCESS:
         case DEF_NOTIFY_LEVELUP:
             NotifyMsg_LevelUp(pData);
             break;
+        case DEF_NOTIFY_SETTING_SUCCESS://Change Added -- Levelup system - 3.51
+            NotifyMsg_SettingSuccess(pData);
+            break;
+        case DEF_NOTIFY_SETTING_FAILED:
+            format_to_local(cTxt, "Failed to change stats.");
+            AddEventList(cTxt, 10);
+            break;//End
         case DEF_NOTIFY_KILLED:
             NotifyMsg_Killed(pData);
             break;
@@ -2251,24 +1946,19 @@ void CGame::NotifyMsgHandler(char * pData)
             NotifyMsg_DismissGuildsMan(pData);
             break;
         case DEF_NOTIFY_MAGICSTUDYSUCCESS:
-
             NotifyMsg_MagicStudySuccess(pData);
             break;
         case DEF_NOTIFY_MAGICSTUDYFAIL:
-
             NotifyMsg_MagicStudyFail(pData);
             break;
         case DEF_NOTIFY_SKILLTRAINSUCCESS:
-
             NotifyMsg_SkillTrainSuccess(pData);
             break;
         case DEF_NOTIFY_SKILLTRAINFAIL:
-
             break;
         case DEF_NOTIFY_FORCEDISCONN:
             NotifyMsg_ForceDisconn(pData);
             break;
-
         case DEF_NOTIFY_FIGHTZONERESERVE:
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             ip = (int *)cp;
@@ -2328,14 +2018,10 @@ void CGame::NotifyMsg_CannotGiveItem(char * pData)
     memcpy(cName, cp, 20);
     cp += 20;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[wItemIndex], cStr1, cStr2, cStr3, 64);
     if (iAmount == 1) format_to_local(cTxt, NOTIFYMSG_CANNOT_GIVE_ITEM2, cStr1, cName);
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
     else format_to_local(cTxt, NOTIFYMSG_CANNOT_GIVE_ITEM1, iAmount, cStr1, cName);
-#else
-    else format_to_local(cTxt, NOTIFYMSG_CANNOT_GIVE_ITEM1, cStr1, iAmount, cName);
-#endif
 
     AddEventList(cTxt, 10);
 }
@@ -2355,13 +2041,9 @@ void CGame::NotifyMsg_DropItemFin_CountChanged(char * pData)
     iAmount = *ip;
     cp += 4;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[wItemIndex]->m_cName, m_pItemList[wItemIndex]->m_dwAttribute, cStr1, cStr2, cStr3, 64);
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
     format_to_local(cTxt, NOTIFYMSG_THROW_ITEM1, iAmount, cStr1);
-#else
-    format_to_local(cTxt, NOTIFYMSG_THROW_ITEM1, cStr1, iAmount);
-#endif
     AddEventList(cTxt, 10);
 }
 
@@ -2377,6 +2059,8 @@ void CGame::NotifyMsg_CannotJoinMoreGuildsMan(char * pData)
     AddEventList(cTxt, 10);
     AddEventList(NOTIFYMSG_CANNOT_JOIN_MOREGUILDMAN2, 10);
 }
+
+
 
 void CGame::NotifyMsg_DismissGuildsMan(char * pData)
 {
@@ -2410,7 +2094,7 @@ void CGame::NotifyMsg_CannotRating(char * pData)
 
 void CGame::NotifyMsg_CannotRepairItem(char * pData)
 {
-    char * cp, cTxt[120]{}, cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char * cp, cTxt[120], cStr1[64], cStr2[64], cStr3[64];
     uint16_t * wp, wV1, wV2;
 
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
@@ -2423,6 +2107,9 @@ void CGame::NotifyMsg_CannotRepairItem(char * pData)
     wV2 = *wp;
     cp += 2;
 
+    memset(cStr1, 0, sizeof(cStr1));
+    memset(cStr2, 0, sizeof(cStr2));
+    memset(cStr3, 0, sizeof(cStr3));
     GetItemName(m_pItemList[wV1], cStr1, cStr2, cStr3, 64);
 
     switch (wV2)
@@ -2437,14 +2124,12 @@ void CGame::NotifyMsg_CannotRepairItem(char * pData)
             AddEventList(cTxt, 10);
             break;
     }
-
-
     m_bIsItemDisabled[wV1] = false;
 }
 
 void CGame::NotifyMsg_CannotSellItem(char * pData)
 {
-    char * cp, cTxt[120]{}, cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char * cp, cTxt[120], cStr1[64], cStr2[64], cStr3[64];
     uint16_t * wp, wV1, wV2;
 
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
@@ -2457,6 +2142,9 @@ void CGame::NotifyMsg_CannotSellItem(char * pData)
     wV2 = *wp;
     cp += 2;
 
+    memset(cStr1, 0, sizeof(cStr1));
+    memset(cStr2, 0, sizeof(cStr2));
+    memset(cStr3, 0, sizeof(cStr3));
     GetItemName(m_pItemList[wV1], cStr1, cStr2, cStr3, 64);
 
     switch (wV2)
@@ -2482,8 +2170,6 @@ void CGame::NotifyMsg_CannotSellItem(char * pData)
             AddEventList(NOTIFYMSG_CANNOT_SELL_ITEM6, 10);
             break;
     }
-
-
     m_bIsItemDisabled[wV1] = false;
 }
 
@@ -2528,7 +2214,7 @@ void CGame::NotifyMsg_DropItemFin_EraseItem(char * pData)
     iAmount = *ip;
     cp += 4;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[sItemIndex], cStr1, cStr2, cStr3, 64);
 
     memset(cTxt, 0, sizeof(cTxt));
@@ -2536,7 +2222,7 @@ void CGame::NotifyMsg_DropItemFin_EraseItem(char * pData)
     {
         format_to_local(cTxt, ITEM_EQUIPMENT_RELEASED, cStr1);
         AddEventList(cTxt, 10);
-
+        // v1.42
         m_sItemEquipmentStatus[m_pItemList[sItemIndex]->m_cEquipPos] = -1;
         m_bIsItemEquipped[sItemIndex] = false;
     }
@@ -2550,20 +2236,19 @@ void CGame::NotifyMsg_DropItemFin_EraseItem(char * pData)
             format_to_local(cTxt, NOTIFYMSG_DROPITEMFIN_ERASEITEM3, cStr1);
         else
         {
-#if DEF_LANGUAGE % 2 == 0	
+#if DEF_LANGUAGE % 2 == 0
             format_to_local(cTxt, NOTIFYMSG_DROPITEMFIN_ERASEITEM4, iAmount, cStr1);
-#else 
+#else
             format_to_local(cTxt, NOTIFYMSG_DROPITEMFIN_ERASEITEM4, cStr1, iAmount);
 #endif
         }
     }
     AddEventList(cTxt, 10);
-
-
     EraseItem((char)sItemIndex);
-
+    // v1.41 
     _bCheckBuildItemStatus();
 }
+
 
 void CGame::NotifyMsg_EnemyKillReward(char * pData)
 {
@@ -2595,26 +2280,22 @@ void CGame::NotifyMsg_EnemyKillReward(char * pData)
 
     if (iWarContribution > m_iWarContribution)
     {
-
         format_to_local(G_cTxt, "{} +{}!", m_pGameMsgList[21]->message, iWarContribution - m_iWarContribution);
         SetTopMsg(G_cTxt, 5);
     }
     else if (iWarContribution < m_iWarContribution)
     {
-
     }
     m_iWarContribution = iWarContribution;
 
     if (sGuildRank == -1)
     {
-
         format_to_local(cTxt, NOTIFYMSG_ENEMYKILL_REWARD1, cName);
         AddEventList(cTxt, 10);
     }
     else
     {
-
-        format_to_local(cTxt, NOTIFYMSG_ENEMYKILL_REWARD2, cGuildName, cName);
+        format_to_local(cTxt, NOTIFYMSG_ENEMYKILL_REWARD2, cName, cGuildName);
         AddEventList(cTxt, 10);
     }
 
@@ -2649,7 +2330,6 @@ void CGame::NotifyMsg_EventFishMode(char * pData)
     short sSprite, sSpriteFrame;
     char * cp, cName[21];
     uint16_t * wp, wPrice;
-
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
     wp = (uint16_t *)cp;
@@ -2688,7 +2368,7 @@ void CGame::NotifyMsg_Exp(char * pData)
     cp += 4;
 
     ip = (int *)cp;
-    //	m_iRating = *ip;
+    m_iRating = *ip;
     cp += 4;
 
     if (m_iExp > iPrevExp)
@@ -2724,7 +2404,7 @@ void CGame::NotifyMsg_ForceDisconn(char * pData)
         if (m_bSoundFlag) m_pESound[38].stop();
 
         if ((m_bSoundFlag) && (m_bMusicStat == true)) m_pBGM.stop();
-        change_game_mode(DEF_GAMEMODE_ONMAINMENU);
+        ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
     }
 }
 
@@ -2747,14 +2427,10 @@ void CGame::NotifyMsg_GiveItemFin_CountChanged(char * pData)
     memcpy(cName, cp, 20);
     cp += 20;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[wItemIndex]->m_cName, m_pItemList[wItemIndex]->m_dwAttribute, cStr1, cStr2, cStr3, 64);
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
     if (iAmount == 1) format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_COUNTCHANGED1, cStr1, cName);
     format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_COUNTCHANGED2, iAmount, cStr1, cName);
-#else
-    format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_COUNTCHANGED1, cStr1, iAmount, cName);
-#endif
     AddEventList(cTxt, 10);
 }
 
@@ -2762,9 +2438,9 @@ void CGame::NotifyMsg_GiveItemFin_EraseItem(char * pData)
 {
     char * cp;
     uint16_t * wp;
-    int * ip, iAmount{};
-    short  sItemIndex{};
-    char cName[21]{}, cTxt[250]{};
+    int * ip, iAmount;
+    short  sItemIndex;
+    char cName[21], cTxt[250];
 
 
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
@@ -2781,7 +2457,7 @@ void CGame::NotifyMsg_GiveItemFin_EraseItem(char * pData)
     memcpy(cName, cp, 20);
     cp += 20;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[sItemIndex]->m_cName, m_pItemList[sItemIndex]->m_dwAttribute, cStr1, cStr2, cStr3, 64);
 
     if (m_bIsItemEquipped[sItemIndex] == true)
@@ -2789,11 +2465,10 @@ void CGame::NotifyMsg_GiveItemFin_EraseItem(char * pData)
         format_to_local(cTxt, ITEM_EQUIPMENT_RELEASED, cStr1);
         AddEventList(cTxt, 10);
 
-
+        // v1.42
         m_sItemEquipmentStatus[m_pItemList[sItemIndex]->m_cEquipPos] = -1;
         m_bIsItemEquipped[sItemIndex] = false;
     }
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
     if (strlen(cName) == 0) format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM2, iAmount, cStr1);
     else
     {
@@ -2807,27 +2482,10 @@ void CGame::NotifyMsg_GiveItemFin_EraseItem(char * pData)
             format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM7, iAmount, cStr1);
         else format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM8, iAmount, cStr1, cName);
     }
-#else
-    if (strlen(cName) == 0) format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM2, cStr1, iAmount);
-    else
-    {
-        if (strcmp(cName, "Howard") == 0)
-            format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM3, cStr1, iAmount);
-        else if (strcmp(cName, "William") == 0)
-            format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM4, cStr1, iAmount);
-        else if (strcmp(cName, "Kennedy") == 0)
-            format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM5, cStr1, iAmount);
-        else if (strcmp(cName, "Tom") == 0)
-            format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM7, cStr1, iAmount);
-        else format_to_local(cTxt, NOTIFYMSG_GIVEITEMFIN_ERASEITEM8, cStr1, iAmount, cName);
-    }
-#endif
     AddEventList(cTxt, 10);
-
-
     EraseItem((char)sItemIndex);
 
-
+    // v1.41 
     _bCheckBuildItemStatus();
 }
 
@@ -2851,6 +2509,7 @@ void CGame::NotifyMsg_GlobalAttackMode(char * pData)
     cp++;
 }
 
+
 void CGame::NotifyMsg_HP(char * pData)
 {
     uint32_t * dwp;
@@ -2868,7 +2527,6 @@ void CGame::NotifyMsg_HP(char * pData)
 
     if (m_iHP > iPrevHP)
     {
-
         if ((m_iHP - iPrevHP) < 10) return;
         format_to_local(cTxt, NOTIFYMSG_HP_UP, m_iHP - iPrevHP);
         AddEventList(cTxt, 10);
@@ -2881,11 +2539,8 @@ void CGame::NotifyMsg_HP(char * pData)
             m_cLogOutCount = -1;
             AddEventList(NOTIFYMSG_HP2, 10);
         }
-
-
         m_dwDamagedTime = unixtime();
         if (m_iHP < 20) AddEventList(NOTIFYMSG_HP3, 10);
-
         if ((iPrevHP - m_iHP) < 10) return;
         format_to_local(cTxt, NOTIFYMSG_HP_DOWN, iPrevHP - m_iHP);
         AddEventList(cTxt, 10);
@@ -2924,7 +2579,7 @@ void CGame::NotifyMsg_ItemColorChange(char * pData)
 
     if (m_pItemList[sItemIndex] != 0)
     {
-        char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+        char cStr1[64], cStr2[64], cStr3[64];
         GetItemName(m_pItemList[sItemIndex], cStr1, cStr2, cStr3, 64);
         if (sItemColor != -1)
         {
@@ -2959,7 +2614,7 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
 
     memset(cTxt, 0, sizeof(cTxt));
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[sItemIndex], cStr1, cStr2, cStr3, 64);
 
     if (m_bIsItemEquipped[sItemIndex] == true)
@@ -2967,7 +2622,7 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
         format_to_local(cTxt, ITEM_EQUIPMENT_RELEASED, cStr1);
         AddEventList(cTxt, 10);
 
-
+        // v1.42
         m_sItemEquipmentStatus[m_pItemList[sItemIndex]->m_cEquipPos] = -1;
         m_bIsItemEquipped[sItemIndex] = false;
     }
@@ -2989,11 +2644,9 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
         }
         else if (m_pItemList[sItemIndex]->m_cItemType == DEF_ITEMTYPE_EAT)
         {
-
             if (bIsUseItemResult == true)
             {
                 format_to_local(cTxt, NOTIFYMSG_ITEMDEPlETED_ERASEITEM4, cStr1);
-
                 if ((m_sPlayerType >= 1) && (m_sPlayerType <= 3))
                     PlaySound('C', 19, 0);
                 if ((m_sPlayerType >= 4) && (m_sPlayerType <= 6))
@@ -3005,7 +2658,6 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
             if (bIsUseItemResult == true)
             {
                 format_to_local(cTxt, NOTIFYMSG_ITEMDEPlETED_ERASEITEM3, cStr1);
-
             }
         }
         else
@@ -3013,7 +2665,6 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
             if (bIsUseItemResult == true)
             {
                 format_to_local(cTxt, NOTIFYMSG_ITEMDEPlETED_ERASEITEM6, cStr1);
-
                 PlaySound('E', 10, 0);
             }
         }
@@ -3023,7 +2674,6 @@ void CGame::NotifyMsg_ItemDepleted_EraseItem(char * pData)
 
     if (bIsUseItemResult == true)
         m_bItemUsingStatus = false;
-
 
     EraseItem((char)sItemIndex);
 
@@ -3045,12 +2695,10 @@ void CGame::NotifyMsg_ItemLifeSpanEnd(char * pData)
     sItemIndex = *sp;
     cp += 2;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[sItemIndex], cStr1, cStr2, cStr3, 64);
     format_to_local(cTxt, NOTIFYMSG_ITEMLIFE_SPANEND1, cStr1);
-
     AddEventList(cTxt, 10);
-
     m_sItemEquipmentStatus[m_pItemList[sItemIndex]->m_cEquipPos] = -1;
     m_bIsItemEquipped[sItemIndex] = false;
 
@@ -3073,9 +2721,6 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
     short sSprite, sSpriteFrame, sLevelLimit, sSpecialEV2;
     char  cTxt[120], cGenderLimit, cItemColor;
     uint16_t * wp, wWeight, wCurLifeSpan;
-
-
-
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
     cp++;
@@ -3134,27 +2779,21 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
     cp++;
     */
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(cName, dwAttribute, cStr1, cStr2, cStr3, 64);
 
     memset(cTxt, 0, sizeof(cTxt));
     if (dwCount == 1) format_to_local(cTxt, NOTIFYMSG_ITEMOBTAINED2, cStr1);
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
     else format_to_local(cTxt, NOTIFYMSG_ITEMOBTAINED1, dwCount, cStr1);
-#else
-    else format_to_local(cTxt, NOTIFYMSG_ITEMOBTAINED1, cStr1, dwCount);
-#endif
     AddEventList(cTxt, 10);
 
     PlaySound('E', 20, 0);
 
     if ((cItemType == DEF_ITEMTYPE_CONSUME) || (cItemType == DEF_ITEMTYPE_ARROW))
     {
-
         for (i = 0; i < DEF_MAXITEMS; i++)
             if ((m_pItemList[i] != 0) && (memcmp(m_pItemList[i]->m_cName, cName, 20) == 0))
             {
-
                 m_pItemList[i]->m_dwCount += dwCount;
 
 
@@ -3162,8 +2801,6 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
                 return;
             }
     }
-
-
     short nX, nY;
     for (i = 0; i < DEF_MAXITEMS; i++)
     {
@@ -3182,7 +2819,6 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
         }
     }
 
-
     for (i = 0; i < DEF_MAXITEMS; i++)
         if (m_pItemList[i] == 0)
         {
@@ -3197,8 +2833,6 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
             m_pItemList[i]->m_cItemType = cItemType;
             m_pItemList[i]->m_cEquipPos = cEquipPos;
             m_bIsItemDisabled[i] = false;
-
-
             m_bIsItemEquipped[i] = false;
             m_pItemList[i]->m_sLevelLimit = sLevelLimit;
             m_pItemList[i]->m_cGenderLimit = cGenderLimit;
@@ -3213,7 +2847,6 @@ void CGame::NotifyMsg_ItemObtained(char * pData)
 
 
             _bCheckBuildItemStatus();
-
 
             for (j = 0; j < DEF_MAXITEMS; j++)
                 if (m_cItemOrder[j] == -1)
@@ -3239,8 +2872,6 @@ void CGame::NotifyMsg_ItemPurchased(char * pData)
     short sSprite, sSpriteFrame, sLevelLimit;
     uint16_t  wCost, wWeight, wCurLifeSpan;
     char  cTxt[120], cItemColor;
-
-
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
     cp++;
@@ -3293,24 +2924,20 @@ void CGame::NotifyMsg_ItemPurchased(char * pData)
 
 
     memset(cTxt, 0, sizeof(cTxt));
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(cName, 0, cStr1, cStr2, cStr3, 64);
     format_to_local(cTxt, NOTIFYMSG_ITEMPURCHASED, cStr1, wCost);
     AddEventList(cTxt, 10);
 
     if ((cItemType == DEF_ITEMTYPE_CONSUME) || (cItemType == DEF_ITEMTYPE_ARROW))
     {
-
         for (i = 0; i < DEF_MAXITEMS; i++)
             if ((m_pItemList[i] != 0) && (memcmp(m_pItemList[i]->m_cName, cName, 20) == 0))
             {
-
                 m_pItemList[i]->m_dwCount += dwCount;
                 return;
             }
     }
-
-
     short nX, nY;
     for (i = 0; i < DEF_MAXITEMS; i++)
     {
@@ -3327,7 +2954,6 @@ void CGame::NotifyMsg_ItemPurchased(char * pData)
         }
     }
 
-
     for (i = 0; i < DEF_MAXITEMS; i++)
         if (m_pItemList[i] == 0)
         {
@@ -3342,7 +2968,6 @@ void CGame::NotifyMsg_ItemPurchased(char * pData)
             m_pItemList[i]->m_cItemType = cItemType;
             m_pItemList[i]->m_cEquipPos = cEquipPos;
             m_bIsItemDisabled[i] = false;
-
             m_bIsItemEquipped[i] = false;
             m_pItemList[i]->m_sLevelLimit = sLevelLimit;
             m_pItemList[i]->m_cGenderLimit = cGenderLimit;
@@ -3378,14 +3003,11 @@ void CGame::NotifyMsg_ItemReleased(char * pData)
     sItemIndex = *sp;
     cp += 2;
 
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[sItemIndex], cStr1, cStr2, cStr3, 64);
 
     format_to_local(cTxt, ITEM_EQUIPMENT_RELEASED, cStr1);
-
     AddEventList(cTxt, 10);
-
-
     m_bIsItemEquipped[sItemIndex] = false;
     m_sItemEquipmentStatus[m_pItemList[sItemIndex]->m_cEquipPos] = -1;
 
@@ -3408,14 +3030,11 @@ void CGame::NotifyMsg_ItemRepaired(char * pData)
     cp += 4;
 
     m_pItemList[dwItemID]->m_wCurLifeSpan = (uint16_t)dwLife;
-
-
     m_bIsItemDisabled[dwItemID] = false;
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(m_pItemList[dwItemID], cStr1, cStr2, cStr3, 64);
 
     format_to_local(cTxt, NOTIFYMSG_ITEMREPAIRED1, cStr1);
-
 
     AddEventList(cTxt, 10);
 }
@@ -3493,9 +3112,7 @@ void CGame::NotifyMsg_ItemToBank(char * pData)
 
     sItemSpecEffectValue2 = (short)*cp;
     cp++;
-
-
-    char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
+    char cStr1[64], cStr2[64], cStr3[64];
     GetItemName(cName, dwAttribute, cStr1, cStr2, cStr3, 64);
 
 
@@ -3522,31 +3139,23 @@ void CGame::NotifyMsg_ItemToBank(char * pData)
 
         memset(cTxt, 0, sizeof(cTxt));
         if (dwCount == 1) format_to_local(cTxt, NOTIFYMSG_ITEMTOBANK3, cStr1);
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
         else format_to_local(cTxt, NOTIFYMSG_ITEMTOBANK2, dwCount, cStr1);
-#else
-        else format_to_local(cTxt, NOTIFYMSG_ITEMTOBANK2, cStr1, dwCount);
-#endif
         if (m_bIsDialogEnabled[14] == true) m_stDialogBoxInfo[14].sView = DEF_MAXBANKITEMS - 12;
         AddEventList(cTxt, 10);
     }
 }
 
+
 void CGame::NotifyMsg_Killed(char * pData)
 {
     char * cp, cAttackerName[21];
-
 
     m_bCommandAvailable = false;
     m_cCommand = DEF_OBJECTSTOP;
 
     m_iHP = 0;
     m_cCommand = -1;
-
-
     m_bItemUsingStatus = false;
-
-
     ClearSkillUsingStatus();
 
     memset(cAttackerName, 0, sizeof(cAttackerName));
@@ -3555,16 +3164,13 @@ void CGame::NotifyMsg_Killed(char * pData)
     cp += 20;
 
     AddEventList(NOTIFYMSG_KILLED1, 10);
-
-
-    /*	if (strlen(cAttackerName) == 0)
-            AddEventList(NOTIFYMSG_KILLED1, 10);
-
-        else {
-            format_to_local(G_cTxt, NOTIFYMSG_KILLED2, cAttackerName);
-
-            AddEventList(G_cTxt, 10);
-        }*/
+    if (strlen(cAttackerName) == 0) //Change Uncommented\/ //
+        AddEventList(NOTIFYMSG_KILLED1, 10);
+    else
+    {
+        format_to_local(G_cTxt, NOTIFYMSG_KILLED2, cAttackerName);
+        AddEventList(G_cTxt, 10);
+    }//Change Uncommented/\ //
     AddEventList(NOTIFYMSG_KILLED3, 10);
     AddEventList(NOTIFYMSG_KILLED4, 10);
 }
@@ -3608,6 +3214,8 @@ void CGame::NotifyMsg_LevelUp(char * pData)
     m_iCharisma = *ip;
     cp += 4;
 
+    m_iLU_Point += 3;
+
     format_to_local(cTxt, NOTIFYMSG_LEVELUP1, m_iLevel);
     AddEventList(cTxt, 10);
 
@@ -3644,7 +3252,63 @@ void CGame::NotifyMsg_LevelUp(char * pData)
             return;
         }
 }
+//Change added 3.51 level up system
+void CGame::NotifyMsg_SettingSuccess(char * pData)
+{
+    char * cp;
+    int * ip;
+    int iPrevLevel;
+    char cTxt[120];
+    bool bTest = false;
 
+    iPrevLevel = m_iLevel;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    ip = (int *)cp;
+    m_iLevel = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iStr) bTest = true;
+    m_iStr = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iVit) bTest = true;
+    m_iVit = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iDex) bTest = true;
+    m_iDex = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iInt) bTest = true;
+    m_iInt = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iMag) bTest = true;
+    m_iMag = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    if (*ip != m_iCharisma) bTest = true;
+    m_iCharisma = *ip;
+    cp += 4;
+
+    if (bTest == true)
+    {
+        format_to_local(cTxt, "Stats changed.");
+        AddEventList(cTxt, 10);
+    }
+
+    m_iLU_Point = (m_iLevel - 1) * 3 - ((m_iStr + m_iVit + m_iDex + m_iInt + m_iMag + m_iCharisma) - 70);
+    m_cLU_Str = m_cLU_Vit = m_cLU_Dex = m_cLU_Int = m_cLU_Mag = m_cLU_Char = 0;
+}
+//End
 void CGame::NotifyMsg_MagicEffectOff(char * pData)
 {
     char * cp;
@@ -3669,21 +3333,17 @@ void CGame::NotifyMsg_MagicEffectOff(char * pData)
             switch (sMagicEffect)
             {
                 case 1:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_OFF1, 10);
                     break;
 
                 case 2:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_OFF2, 10);
                     break;
 
                 case 3:
                 case 4:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_OFF3, 10);
                     break;
-
                 case 5:
                     AddEventList(NOTIFYMSG_MAGICEFFECT_OFF14, 10);
                     break;
@@ -3730,6 +3390,12 @@ void CGame::NotifyMsg_MagicEffectOff(char * pData)
                     AddEventList(NOTIFYMSG_MAGICEFFECT_OFF9, 10);
                     m_iIlusionOwnerH = 0;
                     break;
+
+                case 4: //Change Illusion Movement
+                    AddEventList(NOTIFYMSG_MAGICEFFECT_OFF15, 10);
+                    m_bIllusionMVT = false;
+                    break;
+
             }
             break;
 
@@ -3793,25 +3459,20 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
             switch (sMagicEffect)
             {
                 case 1:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON1, 10);
                     break;
 
                 case 2:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON2, 10);
                     break;
 
                 case 3:
                 case 4:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON3, 10);
                     break;
-
-
                 case 5:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON14, 10);
+                    m_iLastAmp = unixtime() + 80000;
                     break;
             }
             break;
@@ -3820,7 +3481,6 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
             switch (sMagicEffect)
             {
                 case 1:
-
                     m_bParalyze = true;
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON4, 10);
                     break;
@@ -3836,7 +3496,6 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
             switch (sMagicEffect)
             {
                 case 1:
-
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON6, 10);
                     break;
             }
@@ -3860,6 +3519,11 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON9, 10);
                     _SetIlusionEffect(sOwnerH);
                     break;
+
+                case 4:
+                    AddEventList(NOTIFYMSG_MAGICEFFECT_ON15, 10);
+                    m_bIllusionMVT = true;
+                    break;
             }
             break;
 
@@ -3874,6 +3538,7 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
                 case 1:
 
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON11, 10);
+                    m_iLastBerserk = unixtime() + 40000;
                     break;
             }
             break;
@@ -3961,7 +3626,6 @@ void CGame::NotifyMsg_MP(char * pData)
     iPrevMP = m_iMP;
     dwp = (uint32_t *)(pData + DEF_INDEX2_MSGTYPE + 2);
     m_iMP = (int)*dwp;
-
 
     if (abs(m_iMP - iPrevMP) < 10) return;
 
@@ -4114,7 +3778,7 @@ void CGame::NotifyMsg_PlayerShutUp(char * pData)
 
 void CGame::NotifyMsg_PlayerStatus(bool bOnGame, char * pData)
 {
-    char cName[12]{}, cMapName[12]{}, * cp;
+    char cName[12], cMapName[12], * cp;
     uint16_t * wp;
     uint16_t  dx = 1, dy = 1;
 
@@ -4170,7 +3834,6 @@ void CGame::NotifyMsg_QuestReward(char * pData)
     memcpy(cRewardName, cp, 20);
     cp += 20;
 
-
     iPreCon = m_iContribution;
 
     ip = (int *)cp;
@@ -4179,7 +3842,6 @@ void CGame::NotifyMsg_QuestReward(char * pData)
 
     if (sFlag == 1)
     {
-
         m_stQuest.sWho = 0;
         m_stQuest.sQuestType = 0;
         m_stQuest.sContribution = 0;
@@ -4194,7 +3856,6 @@ void CGame::NotifyMsg_QuestReward(char * pData)
 
         EnableDialogBox(21, 0, sWho + 110, 0);
 
-
         iIndex = m_stDialogBoxInfo[21].sV1;
         m_pMsgTextList2[iIndex] = new CMsg(0, "  ", 0);
         iIndex++;
@@ -4206,11 +3867,7 @@ void CGame::NotifyMsg_QuestReward(char * pData)
         }
         else
         {
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
             format_to_local(cTxt, NOTIFYMSG_QUEST_REWARD2, iAmount, cRewardName);
-#else
-            format_to_local(cTxt, NOTIFYMSG_QUEST_REWARD2, cRewardName, iAmount);
-#endif
         }
 
         m_pMsgTextList2[iIndex] = new CMsg(0, cTxt, 0);
@@ -4232,7 +3889,7 @@ void CGame::NotifyMsg_QuestReward(char * pData)
 
 void CGame::NotifyMsg_RatingPlayer(char * pData)
 {
-    // int * ip;
+    int * ip;
     char * cp, cName[12];
     uint16_t  cValue;
 
@@ -4245,8 +3902,8 @@ void CGame::NotifyMsg_RatingPlayer(char * pData)
     memcpy(cName, cp, 10);
     cp += 10;
 
-    //	ip = (int *)cp;
-    //	m_iRating = *ip;
+    ip = (int *)cp;
+    m_iRating = *ip;
     cp += 4;
 
     memset(G_cTxt, 0, sizeof(G_cTxt));
@@ -4423,12 +4080,10 @@ void CGame::NotifyMsg_SkillUsingEnd(char * pData)
     {
         case 0:
             AddEventList(NOTIFYMSG_SKILL_USINGEND1, 10);
-
             break;
 
         case 1:
             AddEventList(NOTIFYMSG_SKILL_USINGEND2, 10);
-
             break;
     }
 
@@ -4443,7 +4098,6 @@ void CGame::NotifyMsg_SP(char * pData)
     iPrevSP = m_iSP;
     dwp = (uint32_t *)(pData + DEF_INDEX2_MSGTYPE + 2);
     m_iSP = (int)*dwp;
-
 
     if (abs(m_iSP - iPrevSP) < 10) return;
 
@@ -4466,8 +4120,8 @@ void CGame::NotifyMsg_TotalUsers(char * pData)
     int iTotal;
     wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE + 2);
     iTotal = (int)*wp;
-    format_to_local(G_cTxt, NOTIFYMSG_TOTAL_USER1, iTotal);
-    AddEventList(G_cTxt, 10);
+    m_iTotalUsers = (int)*wp;
+    //	AddEventList(G_cTxt, 10);
 }
 
 void CGame::NotifyMsg_WhisperMode(bool bActive, char * pData)
@@ -4495,4 +4149,621 @@ void CGame::NotifyMsg_WhisperMode(bool bActive, char * pData)
     else format_to_local(G_cTxt, NOTIFYMSG_WHISPERMODE2, cName);
 
     AddEventList(G_cTxt, 10);
+}
+
+
+void CGame::NotifyMsg_BanGuildMan(char * pData)
+{
+    char * cp, cName[24], cLocation[12];
+
+    memset(cName, 0, sizeof(cName));
+    memset(cLocation, 0, sizeof(cLocation));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    cp += 2;
+    memcpy(cLocation, cp, 10);
+    cp += 10;
+    memset(m_cGuildName, 0, sizeof(m_cGuildName));
+    m_iGuildRank = -1;
+    memset(m_cLocation, 0, sizeof(m_cLocation));
+    memcpy(m_cLocation, cLocation, 10);
+    if (memcmp(m_cLocation, "aresden", 7) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else if (memcmp(m_cLocation, "elvine", 6) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else
+    {
+        m_bAresden = true;
+        m_bCitizen = false;
+        m_bHunter = true;
+    }
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 8);
+}
+
+void CGame::NotifyMsg_AdminInfo(char * pData)
+{
+    char * cp, cStr[256];
+    int * ip, iV1, iV2, iV3, iV4, iV5;
+
+    cp = (char *)(pData + 6);
+
+    ip = (int *)cp;
+    iV1 = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    iV2 = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    iV3 = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    iV4 = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    iV5 = *ip;
+    cp += 4;
+
+    memset(cStr, 0, sizeof(cStr));
+    format_to_local(cStr, "{} {} {} {} {}", iV1, iV2, iV3, iV4, iV5);
+    AddEventList(cStr);
+}
+
+/////////////////
+void CGame::NotifyMsg_SetExchangeItem(char * pData)
+{
+    short * sp, sDir, sSprite, sSpriteFrame, sCurLife, sMaxLife, sPerformance;
+    int * ip, iAmount, i;
+    char * cp, cColor, cItemName[24], cCharName[12];
+    uint32_t * dwp, dwAttribute;
+    memset(cItemName, 0, sizeof(cItemName));
+    memset(cCharName, 0, sizeof(cCharName));
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    sp = (short *)cp;
+    sDir = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sSprite = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sSpriteFrame = *sp;
+    cp += 2;
+    ip = (int *)cp;
+    iAmount = *ip;
+    cp += 4;
+    cColor = *cp;
+    cp++;
+    sp = (short *)cp;
+    sCurLife = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sMaxLife = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sPerformance = *sp;
+    cp += 2;
+    memcpy(cItemName, cp, 20);
+    cp += 20;
+    memcpy(cCharName, cp, 10);
+    cp += 10;
+    dwp = (uint32_t *)cp;
+    dwAttribute = *dwp;
+    cp += 4;
+
+    if (sDir >= 1000)  // Set the item I want to exchange
+    {
+        i = 0;
+        while (m_stDialogBoxExchangeInfo[i].sV1 != -1)
+        {
+            i++;
+            if (i >= 4) return; // Error situation
+        }
+    }
+    else // Set the item he proposes me.
+    {
+        i = 4;
+        while (m_stDialogBoxExchangeInfo[i].sV1 != -1)
+        {
+            i++;
+            if (i >= 8) return; // Error situation
+        }
+    }
+    m_stDialogBoxExchangeInfo[i].sV1 = sSprite;
+    m_stDialogBoxExchangeInfo[i].sV2 = sSpriteFrame;
+    m_stDialogBoxExchangeInfo[i].sV3 = iAmount;
+    m_stDialogBoxExchangeInfo[i].sV4 = cColor;
+    m_stDialogBoxExchangeInfo[i].sV5 = (int)sCurLife;
+    m_stDialogBoxExchangeInfo[i].sV6 = (int)sMaxLife;
+    m_stDialogBoxExchangeInfo[i].sV7 = (int)sPerformance;
+    memcpy(m_stDialogBoxExchangeInfo[i].cStr1, cItemName, 20);
+    memcpy(m_stDialogBoxExchangeInfo[i].cStr2, cCharName, 10);
+    m_stDialogBoxExchangeInfo[i].dwV1 = dwAttribute;
+    //if (i<4) m_stDialogBoxExchangeInfo[i].sItemID = sDir -1000;
+}
+void CGame::NotifyMsg_DismissGuildApprove(char * pData)
+{
+    char * cp, cName[24], cLocation[12];
+    memset(cName, 0, sizeof(cName));
+    memset(cLocation, 0, sizeof(cLocation));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    cp += 2;
+    memcpy(cLocation, cp, 10);
+    cp += 10;
+    memset(m_cGuildName, 0, sizeof(m_cGuildName));
+    m_iGuildRank = -1;
+    memset(m_cLocation, 0, sizeof(m_cLocation));
+    memcpy(m_cLocation, cLocation, 10);
+    if (memcmp(m_cLocation, "aresden", 7) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else if (memcmp(m_cLocation, "elvine", 6) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else
+    {
+        m_bAresden = true;
+        m_bCitizen = false;
+        m_bHunter = true;
+    }
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 5);
+}
+
+void CGame::NotifyMsg_DismissGuildReject(char * pData)
+{
+    char * cp, cName[21];
+
+    memset(cName, 0, sizeof(cName));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 6);
+}
+
+void CGame::NotifyMsg_DownSkillIndexSet(char * pData)
+{
+    uint16_t * wp;
+    short sSkillIndex;
+    char * cp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    wp = (uint16_t *)cp;
+    sSkillIndex = (short)*wp;
+    cp += 2;
+
+    m_iDownSkillIndex = sSkillIndex;
+    m_stDialogBoxInfo[15].bFlag = false;
+}
+
+void CGame::NotifyMsg_FishChance(char * pData)
+{
+    int iFishChance;
+    char * cp;
+    uint16_t * wp;
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    wp = (uint16_t *)cp;
+
+    iFishChance = (int)*wp;
+    cp += 2;
+
+    m_stDialogBoxInfo[24].sV1 = iFishChance;
+}
+
+void CGame::NotifyMsg_GuildDisbanded(char * pData)
+{
+    char * cp, cName[24], cLocation[12];
+    memset(cName, 0, sizeof(cName));
+    memset(cLocation, 0, sizeof(cLocation));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    memcpy(cLocation, cp, 10);
+    cp += 10;
+
+    m_Misc.ReplaceString(cName, '_', ' ');
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 7);
+    memset(m_cGuildName, 0, sizeof(m_cGuildName));
+    m_iGuildRank = -1;
+    memset(m_cLocation, 0, sizeof(m_cLocation));
+    memcpy(m_cLocation, cLocation, 10);
+    if (memcmp(m_cLocation, "aresden", 7) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else if (memcmp(m_cLocation, "elvine", 6) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else
+    {
+        m_bAresden = true;
+        m_bCitizen = false;
+        m_bHunter = true;
+    }
+}
+
+void CGame::NotifyMsg_WhetherChange(char * pData)
+{
+    char * cp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    m_cWhetherStatus = *cp;
+    cp++;
+
+    if (m_cWhetherStatus != 0)
+        SetWhetherStatus(true, m_cWhetherStatus);
+    else SetWhetherStatus(false, 0);
+}
+
+void CGame::NotifyMsg_TimeChange(char * pData)
+{
+    char * cp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    G_cSpriteAlphaDegree = *cp;
+
+    switch (G_cSpriteAlphaDegree)
+    {
+        case 1:	PlaySound('E', 32, 0); break;
+        case 2: PlaySound('E', 31, 0); break;
+    }
+
+    m_cGameModeCount = 1;
+
+    m_bIsRedrawPDBGS = true;
+}
+
+void CGame::NotifyMsg_RepairItemPrice(char * pData)
+{
+    char * cp, cName[21];
+    uint32_t * dwp, wV1, wV2, wV3, wV4;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    dwp = (uint32_t *)cp;
+    wV1 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV2 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV3 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV4 = *dwp;
+    cp += 4;
+
+    memset(cName, 0, sizeof(cName));
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+
+    EnableDialogBox(23, 2, wV1, wV2);
+    m_stDialogBoxInfo[23].sV3 = wV3;
+
+}
+
+void CGame::NotifyMsg_SellItemPrice(char * pData)
+{
+    char * cp, cName[21];
+    uint32_t * dwp, wV1, wV2, wV3, wV4;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    dwp = (uint32_t *)cp;
+    wV1 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV2 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV3 = *dwp;
+    cp += 4;
+
+    dwp = (uint32_t *)cp;
+    wV4 = *dwp;
+    cp += 4;
+
+    memset(cName, 0, sizeof(cName));
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    EnableDialogBox(23, 1, wV1, wV2);
+    m_stDialogBoxInfo[23].sV3 = wV3;
+    m_stDialogBoxInfo[23].sV4 = wV4;
+}
+
+
+void CGame::NotifyMsg_QueryDismissGuildPermission(char * pData)
+{
+    char * cp, cName[12];
+
+    memset(cName, 0, sizeof(cName));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 10);
+    cp += 10;
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 2);
+}
+
+
+void CGame::NotifyMsg_QueryJoinGuildPermission(char * pData)
+{
+    char * cp, cName[12];
+
+    memset(cName, 0, sizeof(cName));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 10);
+    cp += 10;
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 1);
+}
+
+
+void CGame::NotifyMsg_QuestContents(char * pData)
+{
+    short * sp;
+    char * cp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    sp = (short *)cp;
+    m_stQuest.sWho = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sQuestType = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sContribution = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sTargetType = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sTargetCount = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sX = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sY = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.sRange = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    m_stQuest.bIsQuestCompleted = (bool)*sp;
+    cp += 2;
+
+    memset(m_stQuest.cTargetName, 0, sizeof(m_stQuest.cTargetName));
+    memcpy(m_stQuest.cTargetName, cp, 20);
+    cp += 20;
+
+    // v2.05
+    //AddEventList(m_pGameMsgList[92]->m_pMsg, 10);
+}
+
+void CGame::NotifyMsg_PlayerProfile(char * pData)
+{
+    char * cp;
+    char cTemp[500];
+    int i;
+
+    memset(cTemp, 0, sizeof(cTemp));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    strcpy(cTemp, cp);
+
+    for (i = 0; i < 500; i++)
+        if (cTemp[i] == '_') cTemp[i] = ' ';
+
+    AddEventList(cTemp, 10);
+}
+
+void CGame::NotifyMsg_NoticeMsg(char * pData)
+{
+    char * cp, cMsg[1000];
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    strcpy(cMsg, cp);
+    AddEventList(cMsg, 10);
+}
+
+void CGame::NotifyMsg_OpenExchageWindow(char * pData)
+{
+    short * sp, sDir, sSprite, sSpriteFrame, sCurLife, sMaxLife, sPerformance;
+    int * ip, iAmount;
+    char * cp, cColor, cItemName[24], cCharName[12];
+    uint32_t * dwp, dwAttribute;
+    memset(cItemName, 0, sizeof(cItemName));
+    memset(cCharName, 0, sizeof(cCharName));
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    sp = (short *)cp;
+    sDir = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sSprite = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sSpriteFrame = *sp;
+    cp += 2;
+    ip = (int *)cp;
+    iAmount = *ip;
+    cp += 4;
+    cColor = *cp;
+    cp++;
+    sp = (short *)cp;
+    sCurLife = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sMaxLife = *sp;
+    cp += 2;
+    sp = (short *)cp;
+    sPerformance = *sp;
+    cp += 2;
+    memcpy(cItemName, cp, 20);
+    cp += 20;
+    memcpy(cCharName, cp, 10);
+    cp += 10;
+    dwp = (uint32_t *)cp;
+    dwAttribute = *dwp;
+    cp += 4;
+
+    EnableDialogBox(27, 1, 0, 0, 0);
+    int i;
+    if (sDir >= 1000)  // Set the item I want to exchange
+    {
+        i = 0;
+        while (m_stDialogBoxExchangeInfo[i].sV1 != -1)
+        {
+            i++;
+            if (i >= 4) return; // Error situation
+        }
+        if ((sDir > 1000) && (i == 0))
+        {
+            m_bIsItemDisabled[sDir - 1000] = true;
+            m_stDialogBoxExchangeInfo[0].sItemID = sDir - 1000;
+        }
+    }
+    else // Set the item he proposes me.
+    {
+        i = 4;
+        while (m_stDialogBoxExchangeInfo[i].sV1 != -1)
+        {
+            i++;
+            if (i >= 8) return; // Error situation
+        }
+    }
+    m_stDialogBoxExchangeInfo[i].sV1 = sSprite;
+    m_stDialogBoxExchangeInfo[i].sV2 = sSpriteFrame;
+    m_stDialogBoxExchangeInfo[i].sV3 = iAmount;
+    m_stDialogBoxExchangeInfo[i].sV4 = cColor;
+    m_stDialogBoxExchangeInfo[i].sV5 = (int)sCurLife;
+    m_stDialogBoxExchangeInfo[i].sV6 = (int)sMaxLife;
+    m_stDialogBoxExchangeInfo[i].sV7 = (int)sPerformance;
+    memcpy(m_stDialogBoxExchangeInfo[i].cStr1, cItemName, 20);
+    memcpy(m_stDialogBoxExchangeInfo[i].cStr2, cCharName, 10);
+    m_stDialogBoxExchangeInfo[i].dwV1 = dwAttribute;
+}
+
+void CGame::NotifyMsg_JoinGuildApprove(char * pData)
+{
+    char * cp, cName[21];
+    short * sp;
+
+    memset(cName, 0, sizeof(cName));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    sp = (short *)cp;
+    cp += 2;
+    memset(m_cGuildName, 0, sizeof(m_cGuildName));
+    strcpy(m_cGuildName, cName);
+    m_iGuildRank = *sp;
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 3);
+}
+
+
+void CGame::NotifyMsg_JoinGuildReject(char * pData)
+{
+    char * cp, cName[21];
+    memset(cName, 0, sizeof(cName));
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    memcpy(cName, cp, 20);
+    cp += 20;
+
+    EnableDialogBox(8, 0, 0, 0);
+    _PutGuildOperationList(cName, 4);
 }

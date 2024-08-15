@@ -21,7 +21,7 @@
 #include <ixwebsocket/IXWebSocket.h>
 
 #include "sprite.h"
-#include "SpriteID.h"
+#include "sprite_id.h"
 
 char G_cSpriteAlphaDegree;
 CGame * game;

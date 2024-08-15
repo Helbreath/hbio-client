@@ -625,6 +625,8 @@ void sprite::put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame,
 
 void sprite::put_reverse_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
 {
+    if (this == nullptr || (m_bIsSurfaceEmpty && open_sprite_() == false) || sFrame >= m_iTotalFrame)
+        return;
     sf::Vector2f scale = sprite_[sFrame].getScale();
     sprite_[sFrame].setScale({ scale.x * -1.0f, scale.y });
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));

@@ -10,7 +10,7 @@
 CMouseInterface::CMouseInterface()
 {
     m_cPrevPress = 0;
-    for (int i = 1; i < DEF_MAXRECTS; i++)
+    for (int i = 0; i < DEF_MAXRECTS; i++)
         m_pRect[i] = 0;
     m_dwTime = unixtime();
 }
@@ -34,6 +34,8 @@ void CMouseInterface::AddRect(long sx, long sy, long dx, long dy)
 
 int CMouseInterface::iGetStatus(int msX, int msY, char cLB, char * pResult)
 {
+    // @bug
+    if (m_cPrevPress < 0) m_cPrevPress = 0;
     int i, iRet;
     if (cLB != 0)
     {

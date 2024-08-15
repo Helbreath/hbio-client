@@ -7,25 +7,20 @@
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
+#include <queue>
 #include <fmt/format.h>
+#include "sprite.h"
+#include "sprite_id.h"
+#include "CharInfo.h"
+#include "MouseInterface.h"
+#include "action_id.h"
+#include "Item.h"
 #include "MapData.h"
-#include "ActionID.h"
-#include "Msg.h"
-#include "Magic.h"
+#include "lan_eng.h"
+#include "msg.h"
 #include "Tile.h"
 #include "TileSpr.h"
-
-#if DEF_LANGUAGE == 1
-#include "lan_tai.h"
-#elif DEF_LANGUAGE == 2
-#include "lan_chi.h"
-#elif DEF_LANGUAGE == 3
-#include "lan_kor.h"
-#elif DEF_LANGUAGE == 4
-#include "lan_eng.h"
-#elif DEF_LANGUAGE == 5
-#include "lan_jap.h"
-#endif
+#include "Magic.h"
 
 extern char G_cSpriteAlphaDegree;
 
@@ -35,7 +30,7 @@ extern char _cMantleDrawingOrderOnRun[];
 
 
 extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
-extern int _tmp_sStatus;
+extern int _tmp_iStatus;
 extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
 extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
 extern uint16_t  _tmp_wObjectID;
@@ -44,58 +39,49 @@ extern uint16_t  wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
 extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
-extern int sFocusStatus;
+extern int iFocusStatus;
 extern int   iFocusApprColor;
-
-
 
 void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, char cLB, char cRB)
 {
-    char   cDir{}, absX{}, absY{}, cName[12]{};
-    short  sX{}, sY{}, sObjectType{}, tX{}, tY{};
-    int sObjectStatus{};
-    int    iRet{};
+    char   cDir, absX, absY, cName[12];
+    short  sX, sY, sObjectType, tX, tY;
+    int iObjectStatus;
+    int    iRet;
     uint32_t  dwTime = unixtime();
     uint16_t   wType = 0;
-    int i{};//, iFOE;
-    char   cTxt[120]{};
+    int i;//, iFOE;
+    char   cTxt[120];
 
-    char  pDstName[21]{};
-    short sDstOwnerType{};
-    int sDstOwnerStatus{};
-    bool  bGORet{};
+    char  pDstName[21];
+    short sDstOwnerType;
+    int  iDstOwnerStatus;
+    bool  bGORet;
+    m_ssX = msX;
+    m_ssY = msY;
     if ((m_bIsObserverCommanded == false) && (m_bIsObserverMode == true))
     {
-
         if ((msX == 0) && (msY == 0) && (m_sViewDstX > 32 * 21) && (m_sViewDstY > 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 8, 0, 0, 0, 0);
-        else if ((msX == 640) && (msY == 0) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21) && (m_sViewDstY > 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 2, 0, 0, 0, 0);
-        else if ((msX == 640) && (msY == 480) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21) && (m_sViewDstY < 32 * m_pMapData->m_sMapSizeY - 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 4, 0, 0, 0, 0);
-        else if ((msX == 0) && (msY == 480)) bSendCommand(MSGID_REQUEST_PANNING, 0, 6, 0, 0, 0, 0);
+        else if ((msX == get_virtual_width()) && (msY == 0) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21) && (m_sViewDstY > 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 2, 0, 0, 0, 0);
+        else if ((msX == get_virtual_width()) && (msY == get_virtual_height()) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21) && (m_sViewDstY < 32 * m_pMapData->m_sMapSizeY - 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 4, 0, 0, 0, 0);
+        else if ((msX == 0) && (msY == get_virtual_height())) bSendCommand(MSGID_REQUEST_PANNING, 0, 6, 0, 0, 0, 0);
         else if ((msX == 0) && (m_sViewDstX > 32 * 21)) bSendCommand(MSGID_REQUEST_PANNING, 0, 7, 0, 0, 0, 0);
-        else if ((msX == 640) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21)) bSendCommand(MSGID_REQUEST_PANNING, 0, 3, 0, 0, 0, 0);
+        else if ((msX == get_virtual_width()) && (m_sViewDstX < 32 * m_pMapData->m_sMapSizeX - 32 * 21)) bSendCommand(MSGID_REQUEST_PANNING, 0, 3, 0, 0, 0, 0);
         else if ((msY == 0) && (m_sViewDstY > 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 1, 0, 0, 0, 0);
-        else if ((msY == 480) && (m_sViewDstY < 32 * m_pMapData->m_sMapSizeY - 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 5, 0, 0, 0, 0);
+        else if ((msY == get_virtual_height()) && (m_sViewDstY < 32 * m_pMapData->m_sMapSizeY - 32 * 16)) bSendCommand(MSGID_REQUEST_PANNING, 0, 5, 0, 0, 0, 0);
         else return;
 
         m_bIsObserverCommanded = true;
         m_cArrowPressed = 0;
         return;
     }
-
-
     if (m_bIsObserverMode == true) return;
-
-
-    if (GetAsyncKeyState(VK_MENU) >> 15)
+    if (m_altPressed)
         m_bSuperAttackMode = true;
     else m_bSuperAttackMode = false;
-
-
     switch (m_stMCursor.cPrevStatus)
     {
         case DEF_CURSORSTATUS_NULL:
-
-
             if (cLB != 0)
             {
                 iRet = _iCheckDlgBoxFocus(msX, msY, 1);
@@ -105,10 +91,21 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     return;
                 }
                 else if (iRet == 0)
+                {
                     m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_PRESSED;
+                    if ((msX > get_virtual_width() - 80) && (msX < get_virtual_width() - 20) && (msY > get_virtual_height() - 90) && (msY < get_virtual_height() - 75) && (m_iLU_Point > 0)) //tofix
+                    {
+                        if (m_bIsDialogEnabled[12] != true)
+                        {
+                            EnableDialogBox(12, 0, 0, 0);
+                            PlaySound('E', 14, 5);
+                        }
+                        m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
+                        return;
+                    }
+                }
                 else if (iRet == -1)
                 {
-
                     return;
                 }
             }
@@ -122,7 +119,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
         case DEF_CURSORSTATUS_PRESSED:
             if (cLB == 0)
             {
-
                 m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
             }
             break;
@@ -147,10 +143,8 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
                 m_stMCursor.dwSelectClickTime = dwTime;
                 m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
-
                 if (m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_ITEM)
                 {
-
                     _bCheckDraggingItemRelease(msX, msY);
 
                     m_stMCursor.cSelectedObjectType = 0;
@@ -160,8 +154,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             }
             if (cLB != 0)
             {
-
-                if ((m_pMapData->is_teleport(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0)) goto CP_SKIPMOUSEBUTTONSTATUS;
+                if ((m_pMapData->bIsTeleportLoc(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0)) goto CP_SKIPMOUSEBUTTONSTATUS;
 
                 if ((m_stMCursor.sPrevX != msX) || (m_stMCursor.sPrevY != msY))
                 {
@@ -169,28 +162,32 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     m_stMCursor.sPrevX = msX;
                     m_stMCursor.sPrevY = msY;
 
+                    //Change movable icon panel
                     if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
-                        ((m_stMCursor.sSelectedObjectID == 30) || (m_stMCursor.sSelectedObjectID == 29)))
+                        (((m_stMCursor.sSelectedObjectID == 30) && (m_stDialogBoxInfo[30].sV14 == true)) || (m_stMCursor.sSelectedObjectID == 29)))
                     {
-
                         m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
                     }
-
-
 
                     if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
                         (m_stMCursor.sSelectedObjectID == 7) && (m_stDialogBoxInfo[7].cMode == 1))
                     {
-
                         EndInputString();
                         m_stDialogBoxInfo[7].cMode = 20;
+                    }
+
+                    //Change Admin Panel
+                    if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
+                        (m_stMCursor.sSelectedObjectID == 71) && (m_stDialogBoxInfo[71].sV1 == 1))
+                    {
+                        EndInputString();
+                        m_stDialogBoxInfo[71].sV1 = 20;
                     }
 
 
                     if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
                         (m_stMCursor.sSelectedObjectID == 17) && (m_stDialogBoxInfo[17].cMode == 1))
                     {
-
                         EndInputString();
                         m_stDialogBoxInfo[17].cMode = 20;
                     }
@@ -204,12 +201,10 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             if (cLB != 0)
             {
 
-
-                if ((m_pMapData->is_teleport(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0)) goto CP_SKIPMOUSEBUTTONSTATUS;
+                if ((m_pMapData->bIsTeleportLoc(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0)) goto CP_SKIPMOUSEBUTTONSTATUS;
 
                 if (m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX)
                 {
-
                     m_stDialogBoxInfo[m_stMCursor.sSelectedObjectID].sX = msX - m_stMCursor.sDistX;
                     m_stDialogBoxInfo[m_stMCursor.sSelectedObjectID].sY = msY - m_stMCursor.sDistY;
                 }
@@ -221,36 +216,46 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             }
             if (cLB == 0)
             {
-
                 switch (m_stMCursor.cSelectedObjectType)
                 {
                     case DEF_SELECTEDOBJTYPE_DLGBOX:
                         if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
                             (m_stMCursor.sSelectedObjectID == 7) && (m_stDialogBoxInfo[7].cMode == 20))
                         {
-
                             sX = m_stDialogBoxInfo[7].sX;
                             sY = m_stDialogBoxInfo[7].sY;
-                            start_input_string(sX + 75, sY + 140, 21, m_cGuildName);
+                            StartInputString(sX + 75, sY + 140, 21, m_cGuildName);
                             m_stDialogBoxInfo[7].cMode = 1;
                         }
+
+#ifdef DEF_ADMINCLIENT
+                        if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
+                            (m_stMCursor.sSelectedObjectID == 71) && (m_stDialogBoxInfo[71].sV1 == 20))
+                        {
+                            //Change Admin Panel
+                            sX = m_stDialogBoxInfo[71].sX;
+                            sY = m_stDialogBoxInfo[71].sY;
+                            StartInputString(sX + 105, sY + 65, 10, m_cRefreshRate);
+                            m_bInputStatus = false;
+                            m_stDialogBoxInfo[7].sV1 = 1;
+                        }
+#endif
 
                         if ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_DLGBOX) &&
                             (m_stMCursor.sSelectedObjectID == 17) && (m_stDialogBoxInfo[17].cMode == 20))
                         {
-
                             sX = m_stDialogBoxInfo[17].sX;
                             sY = m_stDialogBoxInfo[17].sY;
-                            start_input_string(sX + 40, sY + 57, 11, m_cAmountString);
+                            StartInputString(sX + 40, sY + 57, 11, m_cAmountString);
                             m_stDialogBoxInfo[17].cMode = 1;
                         }
 
                         if (m_stMCursor.sSelectedObjectID == 9)
                         {
-                            if (msX < 320) m_stDialogBoxInfo[9].sX = 0;
-                            else m_stDialogBoxInfo[9].sX = 640 - m_stDialogBoxInfo[9].sSizeX;
-                            if (msY < 213) m_stDialogBoxInfo[9].sY = 0;
-                            else m_stDialogBoxInfo[9].sY = 427 - m_stDialogBoxInfo[9].sSizeY;
+                            if (msX < get_virtual_width() / 2) m_stDialogBoxInfo[9].sX = 0;
+                            else m_stDialogBoxInfo[9].sX = get_virtual_width() - m_stDialogBoxInfo[9].sSizeX;
+                            if (msY < (get_virtual_height() - 53) / 2) m_stDialogBoxInfo[9].sY = 0;
+                            else m_stDialogBoxInfo[9].sY = (get_virtual_height()) - m_stDialogBoxInfo[9].sSizeY - 53;
                         }
 
                         m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
@@ -259,7 +264,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         break;
 
                     case DEF_SELECTEDOBJTYPE_ITEM:
-
                         _bCheckDraggingItemRelease(msX, msY);
                         m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_NULL;
                         m_stMCursor.cSelectedObjectType = 0;
@@ -278,84 +282,61 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
     }
 
     CP_SKIPMOUSEBUTTONSTATUS:;
-
     if (m_bCommandAvailable == false) return;
-    // 	if ((dwTime - m_dwCommandTime) < 300)
-    // 	{
-    //         socketmode(0);
-    //         close(1000, "speedhack");
-    //         m_bEscPressed = false;
-    //         PlaySound('E', 14, 5);
-    //         if (m_bSoundFlag)
-    //             m_pESound[38].stop();
-    //         if ((m_bSoundFlag) && (m_bMusicStat == true))
-    //         {
-    //             m_pBGM.stop();
-    //         }
-    //         isItemLoaded = false;
-    //         ChangeGameMode(GAMEMODE_ONMAINMENU);
-    //         return;
-    // 	}
-    // 
+#ifdef DEF_HACKCLIENT
+    if ((dwTime - m_dwCommandTime) < 0)
+    {
+        return;
+    }
+#else
+    if ((dwTime - m_dwCommandTime) < 300)
+    {
+        return;
+    }
+#endif
 
-    //     if (m_bCommandAvailable == false) return;
-    //     if ((dwTime - m_dwCommandTime) < 300)
-    //     {
-
-    //         delete m_pGSock;
-    //         m_pGSock = 0;
-    //         m_bEscPressed = false;
-    // 
-    //         PlaySound('E', 14, 5);
-
-    //         if (m_bSoundFlag) m_pESound[38].stop();
-
-    //         if ((m_bSoundFlag) && (m_bMusicStat == true))
-    //         {
-    //             if (m_pBGM != 0) m_pBGM.stop();
-    //         }
-    // 
-
-    //         if (strlen(G_cCmdLineTokenA) != 0)
-    //             ChangeGameMode(DEF_GAMEMODE_ONQUIT);
-    //         else
-    //         {
-    //             ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
-    //         }
-    //         return;
-    //     }
     if (m_iHP <= 0) return;
-
-
     if (m_sDamageMove != 0)
     {
+#ifndef DEF_HACKCLIENT
         m_cCommand = DEF_OBJECTDAMAGEMOVE;
         goto MOTION_COMMAND_PROCESS;
+#endif
     }
-
-
-    if ((m_pMapData->is_teleport(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0))
+    if ((m_pMapData->bIsTeleportLoc(m_sPlayerX, m_sPlayerY) == true) && (m_cCommandCount == 0))
         RequestTeleportAndWaitData();
-
-
     if (cLB != 0)
     {
-
-
         if (m_bIsGetPointingMode == true)
         {
-
             if ((m_sMCX != 0) || (m_sMCY != 0))
                 PointCommandHandler(m_sMCX, m_sMCY);
             else PointCommandHandler(indexX, indexY);
 
-            m_bCommandAvailable = false;
-            m_dwCommandTime = unixtime();
-            m_bIsGetPointingMode = false;
+#ifdef DEF_HACKCLIENT
+            if (m_stConfigList.bFastCast == true)//Change config
+            {
+                m_bCommandAvailable = true;//Change false
+                m_bIsGetPointingMode = true;//Change false
+            }
+            else
+            {
+#endif
+                m_bCommandAvailable = false;
+                m_bIsGetPointingMode = false;
+                ClearCoords();
+#ifdef DEF_HACKCLIENT
+            }
+#endif
+            m_dwCommandTime =
+#ifdef DEF_HACKCLIENT
+                m_stConfigList.dwFastCast =
+#endif
+                unixtime();
             return;
         }
 
-        m_pMapData->get_owner(m_sMCX, m_sMCY - 1, cName, &sObjectType, &sObjectStatus, &m_wCommObjectID);
+        m_pMapData->bGetOwner(m_sMCX, m_sMCY - 1, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
         //m_pMapData->m_pData[dX][dY].m_sItemSprite
         if (memcmp(m_cMCName, m_cPlayerName, 10) == 0 && (sObjectType <= 6 || m_pMapData->m_pData[m_sPlayerX][m_sPlayerY].m_sItemSprite != 0))
         {
@@ -370,17 +351,15 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
         else
         {
             if (memcmp(m_cMCName, m_cPlayerName, 10) == 0) m_sMCY -= 1;
-
             if ((m_sMCX != 0) && (m_sMCY != 0))
             {
-
                 if (m_bCtrlPressed == true)
                 {
 
-                    m_pMapData->get_owner(m_sMCX, m_sMCY, cName, &sObjectType, &sObjectStatus, &m_wCommObjectID);
-
-
-                    if ((sObjectStatus & 0x10) != 0) return;
+                    m_pMapData->bGetOwner(m_sMCX, m_sMCY, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
+#ifndef DEF_HACKCLIENT
+                    if ((iObjectStatus & 0x10) != 0) return;
+#endif
                     if ((sObjectType == 15) || (sObjectType == 20) || (sObjectType == 24)) return;
 
                     m_stMCursor.sCursorFrame = 3;
@@ -388,10 +367,20 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     absX = abs(m_sPlayerX - m_sMCX);
                     absY = abs(m_sPlayerY - m_sMCY);
 
+                    //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
+                    //0x0101
+                    if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
+                    {
+                        absX -= 1;
+                        if (absX < 0)
+                            absX = 0;
+                        absY -= 1;
+                        if (absY < 0)
+                            absY = 0;
+                    }
+
                     if ((absX <= 1) && (absY <= 1))
                     {
-
-
                         wType = _iGetAttackType();
                         m_cCommand = DEF_OBJECTATTACK;
                         m_sCommX = m_sMCX;
@@ -399,7 +388,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     }
                     else
                     {
-
                         switch (_iGetWeaponSkillType())
                         {
                             case 6:
@@ -452,16 +440,31 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 8:
                                 if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                 {
-
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
                                     m_sCommY = m_sMCY;
                                     wType = _iGetAttackType();
                                 }
+                                else if ((absX <= 5) && (absY <= 5) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
+                                    && (_iGetAttackType() == 30))  // Crit with Storm Bringer
+                                {
+                                    wType = _iGetAttackType();
+                                    m_cCommand = DEF_OBJECTATTACK;
+                                    m_sCommX = m_sMCX;
+                                    m_sCommY = m_sMCY;
+                                }
+                                else if ((absX <= 3) && (absY <= 3) && (_iGetAttackType() == 5))  // Normal hit with Storm Bringer
+                                {
+                                    wType = _iGetAttackType();
+                                    m_cCommand = DEF_OBJECTATTACK;
+                                    m_sCommX = m_sMCX;
+                                    m_sCommY = m_sMCY;
+                                }
                                 else
                                 {
-
-                                    if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0)))
+                                    // No Storm Bringer dash
+                                    if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0))
+                                        && (_iGetAttackType() != 5))
                                     {
                                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                         {
@@ -503,7 +506,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 9:
                                 if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                 {
-
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
                                     m_sCommY = m_sMCY;
@@ -511,7 +513,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                 }
                                 else
                                 {
-
                                     if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0)))
                                     {
                                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
@@ -554,7 +555,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 10:
                                 if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                 {
-
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
                                     m_sCommY = m_sMCY;
@@ -562,7 +562,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                 }
                                 else
                                 {
-
                                     if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0)))
                                     {
                                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
@@ -604,7 +603,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 14:
                                 if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                 {
-
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
                                     m_sCommY = m_sMCY;
@@ -612,7 +610,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                 }
                                 else
                                 {
-
                                     if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0)))
                                     {
                                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
@@ -654,7 +651,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 21:
                                 if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                 {
-
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
                                     m_sCommY = m_sMCY;
@@ -662,7 +658,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                 }
                                 else
                                 {
-
                                     if (((absX == 2) && (absY == 2)) || ((absX == 0) && (absY == 2)) || ((absX == 2) && (absY == 0)))
                                     {
                                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
@@ -706,16 +701,13 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 }
                 else
                 {
-
-                    m_pMapData->get_owner(m_sMCX, m_sMCY, cName, &sObjectType, &sObjectStatus, &m_wCommObjectID);
+                    m_pMapData->bGetOwner(m_sMCX, m_sMCY, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
 
                     if (sObjectType >= 10 || ((sObjectType >= 1) && (sObjectType <= 6)))
                     {
-
                         switch (sObjectType)
                         {
                             case 15:
-
                                 switch (cName[0])
                                 {
                                     case '1':
@@ -723,9 +715,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 15;
@@ -741,9 +733,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 19;
@@ -759,9 +751,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 20;
@@ -784,9 +776,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 24;
@@ -807,9 +799,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 25;
@@ -825,9 +817,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         tX = msX - 117;
                                         tY = msY - 50;
                                         if (tX < 0) tX = 0;
-                                        if ((tX + 235) > 639) tX = 639 - 235;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                         if (tY < 0) tY = 0;
-                                        if ((tY + 100) > 479) tY = 479 - 100;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                         m_stDialogBoxInfo[20].sX = tX;
                                         m_stDialogBoxInfo[20].sY = tY;
                                         m_stDialogBoxInfo[20].sV3 = 26;
@@ -837,15 +829,15 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
                             case 21:
 
-                                if ((_iGetFOE(sObjectStatus) == 1) && (!m_bIsCombatMode))
+                                if ((_iGetFOE(iObjectStatus) == 1) && (!m_bIsCombatMode))
                                 {
                                     EnableDialogBox(20, 4, 0, 0);
                                     tX = msX - 117;
                                     tY = msY - 50;
                                     if (tX < 0) tX = 0;
-                                    if ((tX + 235) > 639) tX = 639 - 235;
+                                    if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                     if (tY < 0) tY = 0;
-                                    if ((tY + 100) > 479) tY = 479 - 100;
+                                    if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                     m_stDialogBoxInfo[20].sX = tX;
                                     m_stDialogBoxInfo[20].sY = tY;
                                     m_stDialogBoxInfo[20].sV3 = 21;
@@ -854,16 +846,15 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 67:
                             case 68:
                             case 69:
-
                                 if (!m_bIsCombatMode)
                                 {
                                     EnableDialogBox(20, 4, 0, 0);
                                     tX = msX - 117;
                                     tY = msY - 50;
                                     if (tX < 0) tX = 0;
-                                    if ((tX + 235) > 639) tX = 639 - 235;
+                                    if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                     if (tY < 0) tY = 0;
-                                    if ((tY + 100) > 479) tY = 479 - 100;
+                                    if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                     m_stDialogBoxInfo[20].sX = tX;
                                     m_stDialogBoxInfo[20].sY = tY;
                                     m_stDialogBoxInfo[20].sV3 = sObjectType;
@@ -878,27 +869,54 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                     tX = msX - 117;
                                     tY = msY - 50;
                                     if (tX < 0) tX = 0;
-                                    if ((tX + 235) > 639) tX = 639 - 235;
+                                    if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
                                     if (tY < 0) tY = 0;
-                                    if ((tY + 100) > 479) tY = 479 - 100;
+                                    if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
                                     m_stDialogBoxInfo[20].sX = tX;
                                     m_stDialogBoxInfo[20].sY = tY;
                                     m_stDialogBoxInfo[20].sV3 = 32;
                                 }
                                 break;
 
+
+                            case 90: //Change Gail
+                                switch (cName[0])
+                                {
+                                    case '1':
+                                        EnableDialogBox(20, 6, 0, 0);
+                                        tX = msX - 117;
+                                        tY = msY - 50;
+                                        if (tX < 0) tX = 0;
+                                        if ((tX + 235) > get_virtual_width() - 1) tX = get_virtual_width() - 1 - 235;
+                                        if (tY < 0) tY = 0;
+                                        if ((tY + 100) > get_virtual_height() - 1) tY = get_virtual_height() - 1 - 100;
+                                        m_stDialogBoxInfo[20].sX = tX;
+                                        m_stDialogBoxInfo[20].sY = tY;
+                                        m_stDialogBoxInfo[20].sV3 = 90;
+                                        break;
+                                }
+                                break;
+
                             default:
-
-
-                                if (_iGetFOE(sObjectStatus) >= 0) break;
+                                if (_iGetFOE(iObjectStatus) >= 0) break;
                                 if ((sObjectType >= 1) && (sObjectType <= 6) && (m_bForceAttack == false)) break;
                                 absX = abs(m_sPlayerX - m_sMCX);
                                 absY = abs(m_sPlayerY - m_sMCY);
 
+                                //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
+                                //0x0101
+                                if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
+                                {
+                                    absX -= 1;
+                                    if (absX < 0)
+                                        absX = 0;
+                                    absY -= 1;
+                                    if (absY < 0)
+                                        absY = 0;
+                                }
+
                                 if ((absX <= 1) && (absY <= 1))
                                 {
-
-
                                     wType = _iGetAttackType();
                                     m_cCommand = DEF_OBJECTATTACK;
                                     m_sCommX = m_sMCX;
@@ -906,7 +924,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                 }
                                 else
                                 {
-
                                     switch (_iGetWeaponSkillType())
                                     {
                                         case 6:
@@ -928,9 +945,8 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                             break;
 
                                         case 8:
-                                            if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                                            if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true) && (_iGetAttackType() != 30))
                                             {
-
                                                 if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                                     m_cCommand = DEF_OBJECTATTACKMOVE;
                                                 else m_cCommand = DEF_OBJECTATTACK;
@@ -938,11 +954,25 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                                 m_sCommY = m_sMCY;
                                                 wType = _iGetAttackType();
                                             }
+                                            else if ((absX <= 5) && (absY <= 5) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true) && (_iGetAttackType() == 30)) //Change
+                                            {
+                                                if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
+                                                    m_cCommand = DEF_OBJECTATTACKMOVE;
+                                                else m_cCommand = DEF_OBJECTATTACK;
+                                                m_sCommX = m_sMCX;
+                                                m_sCommY = m_sMCY;
+                                                wType = _iGetAttackType();
+                                            }
+                                            else if ((absX <= 3) && (absY <= 3) && (_iGetAttackType() == 5)) // Stormbringer Normal attack
+                                            {
+                                                m_cCommand = DEF_OBJECTATTACK;
+                                                m_sCommX = m_sMCX;
+                                                m_sCommY = m_sMCY;
+                                                wType = _iGetAttackType();
+                                            }
                                             else
                                             {
-
-                                                if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
-                                                    (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
+                                                if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) && (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                                                     m_cCommand = DEF_OBJECTRUN;
                                                 else m_cCommand = DEF_OBJECTMOVE;
                                                 m_sCommX = m_sMCX;
@@ -954,7 +984,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         case 9:
                                             if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                             {
-
                                                 if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                                     m_cCommand = DEF_OBJECTATTACKMOVE;
                                                 else m_cCommand = DEF_OBJECTATTACK;
@@ -964,7 +993,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                             }
                                             else
                                             {
-
                                                 if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                                                     (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                                                     m_cCommand = DEF_OBJECTRUN;
@@ -979,7 +1007,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         case 10:
                                             if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                             {
-
                                                 if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                                     m_cCommand = DEF_OBJECTATTACKMOVE;
                                                 else m_cCommand = DEF_OBJECTATTACK;
@@ -989,7 +1016,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                             }
                                             else
                                             {
-
                                                 if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                                                     (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                                                     m_cCommand = DEF_OBJECTRUN;
@@ -1002,7 +1028,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         case 14:
                                             if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                             {
-
                                                 if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                                     m_cCommand = DEF_OBJECTATTACKMOVE;
                                                 else m_cCommand = DEF_OBJECTATTACK;
@@ -1012,7 +1037,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                             }
                                             else
                                             {
-
                                                 if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                                                     (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                                                     m_cCommand = DEF_OBJECTRUN;
@@ -1025,7 +1049,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                         case 21:
                                             if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
                                             {
-
                                                 if ((absX <= 1) && (absY <= 1) && (m_bShiftPressed || m_bRunningMode) && (m_iSP > 0))
                                                     m_cCommand = DEF_OBJECTATTACKMOVE;
                                                 else m_cCommand = DEF_OBJECTATTACK;
@@ -1035,7 +1058,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                                             }
                                             else
                                             {
-
                                                 if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                                                     (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                                                     m_cCommand = DEF_OBJECTRUN;
@@ -1052,281 +1074,314 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     }
                     else
                     {
-
                         if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                             (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                             m_cCommand = DEF_OBJECTRUN;
                         else m_cCommand = DEF_OBJECTMOVE;
                         m_sCommX = m_sMCX;
                         m_sCommY = m_sMCY;
-
                         GetPlayerTurn();
                     }
                 }
             }
             else
             {
-
                 if ((m_bShiftPressed || m_bRunningMode) && (m_iSP > 0) &&
                     (m_sPlayerType >= 1) && (m_sPlayerType <= 6))
                     m_cCommand = DEF_OBJECTRUN;
                 else m_cCommand = DEF_OBJECTMOVE;
                 m_sCommX = indexX;
                 m_sCommY = indexY;
-
                 GetPlayerTurn();
             }
         }
     }
-    else
-        if (cRB != 0)
+    else if (cRB != 0)
+    {
+        m_cCommand = DEF_OBJECTSTOP;
+
+        if (m_bIsGetPointingMode == true)
         {
-            m_cCommand = DEF_OBJECTSTOP;
+            m_bIsGetPointingMode = false;
+            ClearCoords();
+            AddEventList(COMMAND_PROCESSOR1, 10);
+        }
 
-            if (m_bIsGetPointingMode == true)
+        if (m_bCommandAvailable == false) return;
+        if (m_cCommandCount >= 6) return;
+
+        if ((m_sMCX != 0) && (m_sMCY != 0))
+        {
+            absX = abs(m_sPlayerX - m_sMCX);
+            absY = abs(m_sPlayerY - m_sMCY);
+            if (absX == 0 && absY == 0) return;
+
+            if (m_bCtrlPressed == true)
             {
+                m_pMapData->bGetOwner(m_sMCX, m_sMCY, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
+#ifndef DEF_HACKCLIENT
+                if ((iObjectStatus & 0x10) != 0) return;
+#endif
+                if ((sObjectType == 15) || (sObjectType == 20) || (sObjectType == 24)) return;
 
-
-                m_bIsGetPointingMode = false;
-                AddEventList(COMMAND_PROCESSOR1, 10);
-            }
-
-            if (m_bCommandAvailable == false) return;
-            if (m_cCommandCount >= 6) return;
-
-            if ((m_sMCX != 0) && (m_sMCY != 0))
-            {
-
-                absX = abs(m_sPlayerX - m_sMCX);
-                absY = abs(m_sPlayerY - m_sMCY);
-                if (absX == 0 && absY == 0) return;
-
-                if (m_bCtrlPressed == true)
+                //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
+                //0x0101
+                if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
                 {
+                    absX -= 1;
+                    if (absX < 0)
+                        absX = 0;
+                    absY -= 1;
+                    if (absY < 0)
+                        absY = 0;
+                }
 
-                    m_pMapData->get_owner(m_sMCX, m_sMCY, cName, &sObjectType, &sObjectStatus, &m_wCommObjectID);
-
-                    if ((sObjectStatus & 0x10) != 0) return;
-                    if ((sObjectType == 15) || (sObjectType == 20) || (sObjectType == 24)) return;
-
-                    if ((absX <= 1) && (absY <= 1))
+                if ((absX <= 1) && (absY <= 1))
+                {
+                    wType = _iGetAttackType();
+                    m_cCommand = DEF_OBJECTATTACK;
+                    m_sCommX = m_sMCX;
+                    m_sCommY = m_sMCY;
+                }
+                else
+                {
+                    switch (_iGetWeaponSkillType())
                     {
+                        case 6:
+                            m_cCommand = DEF_OBJECTATTACK;
+                            m_sCommX = m_sMCX;
+                            m_sCommY = m_sMCY;
+                            wType = _iGetAttackType();
+                            break;
 
+                        case 5:
+                        case 7:
+                            break;
 
-                        wType = _iGetAttackType();
-                        m_cCommand = DEF_OBJECTATTACK;
-                        m_sCommX = m_sMCX;
-                        m_sCommY = m_sMCY;
-                    }
-                    else
-                    {
+                        case 8:
+                            //Change
+                            if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
+                                && (_iGetAttackType() != 30))
+                            {
+                                wType = _iGetAttackType();
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                            }
+                            else if ((absX <= 5) && (absY <= 5) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
+                                && (_iGetAttackType() == 30))
+                            {
+                                wType = _iGetAttackType();
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                            }
+                            else if ((absX <= 3) && (absY <= 3)
+                                && (_iGetAttackType() == 5))
+                            {
+                                wType = _iGetAttackType();
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                            }
+                            break;
 
-                        switch (_iGetWeaponSkillType())
-                        {
-                            case 6:
+                        case 9:
+                            if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                            {
                                 m_cCommand = DEF_OBJECTATTACK;
                                 m_sCommX = m_sMCX;
                                 m_sCommY = m_sMCY;
                                 wType = _iGetAttackType();
-                                break;
+                            }
+                            break;
 
-                            case 5:
-                            case 7:
-                                break;
+                        case 10:
+                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                            {
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                                wType = _iGetAttackType();
+                            }
+                            break;
 
-                            case 8:
-                                if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                {
-
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                    wType = _iGetAttackType();
-                                }
-                                break;
-
-                            case 9:
-                                if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                {
-
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                    wType = _iGetAttackType();
-                                }
-                                break;
-
-                            case 10:
-                                if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                {
-
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                    wType = _iGetAttackType();
-                                }
-                                break;
-
-                            case 14:
-                                if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                {
-
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                    wType = _iGetAttackType();
-                                }
-                                break;
-                            case 21:
-                                if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                {
-
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                    wType = _iGetAttackType();
-                                }
-                                break;
-                        }
-                    }
-                }
-                else
-                {
-
-                    absX = abs(m_sPlayerX - m_sMCX);
-                    absY = abs(m_sPlayerY - m_sMCY);
-
-                    m_pMapData->get_owner(m_sMCX, m_sMCY, cName, &sObjectType, &sObjectStatus, &m_wCommObjectID);
-
-
-
-                    if (sObjectType >= 10 || ((sObjectType >= 1) && (sObjectType <= 6)))
-                    {
-                        switch (sObjectType)
-                        {
-                            case 15:
-                            case 19:
-                            case 20:
-                            case 24:
-                            case 25:
-                            case 26:
-                                break;
-
-                            default:
-
-                                if (_iGetFOE(sObjectStatus) >= 0) break;
-                                if ((sObjectType >= 1) && (sObjectType <= 6) && (m_bForceAttack == false)) break;
-
-                                if ((absX <= 1) && (absY <= 1))
-                                {
-
-
-                                    wType = _iGetAttackType();
-                                    m_cCommand = DEF_OBJECTATTACK;
-                                    m_sCommX = m_sMCX;
-                                    m_sCommY = m_sMCY;
-                                }
-                                else
-                                {
-
-                                    switch (_iGetWeaponSkillType())
-                                    {
-                                        case 6:
-                                            m_cCommand = DEF_OBJECTATTACK;
-                                            m_sCommX = m_sMCX;
-                                            m_sCommY = m_sMCY;
-                                            wType = _iGetAttackType();
-                                            break;
-
-                                        case 5:
-                                        case 7:
-                                            break;
-
-                                        case 8:
-                                            if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                            {
-
-                                                m_cCommand = DEF_OBJECTATTACK;
-                                                m_sCommX = m_sMCX;
-                                                m_sCommY = m_sMCY;
-                                                wType = _iGetAttackType();
-                                            }
-                                            break;
-
-                                        case 9:
-                                            if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                            {
-
-                                                m_cCommand = DEF_OBJECTATTACK;
-                                                m_sCommX = m_sMCX;
-                                                m_sCommY = m_sMCY;
-                                                wType = _iGetAttackType();
-                                            }
-                                            break;
-
-                                        case 10:
-                                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                            {
-
-                                                m_cCommand = DEF_OBJECTATTACK;
-                                                m_sCommX = m_sMCX;
-                                                m_sCommY = m_sMCY;
-                                                wType = _iGetAttackType();
-                                            }
-                                            break;
-                                        case 14:
-                                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                            {
-
-                                                m_cCommand = DEF_OBJECTATTACK;
-                                                m_sCommX = m_sMCX;
-                                                m_sCommY = m_sMCY;
-                                                wType = _iGetAttackType();
-                                            }
-                                            break;
-                                        case 21:
-                                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
-                                            {
-
-                                                m_cCommand = DEF_OBJECTATTACK;
-                                                m_sCommX = m_sMCX;
-                                                m_sCommY = m_sMCY;
-                                                wType = _iGetAttackType();
-                                            }
-                                            break;
-
-                                    }
-                                }
-                                break;
-                        }
+                        case 14:
+                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                            {
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                                wType = _iGetAttackType();
+                            }
+                            break;
+                        case 21:
+                            if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                            {
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                                wType = _iGetAttackType();
+                            }
+                            break;
                     }
                 }
             }
             else
             {
-                cDir = m_Misc.cGetNextMoveDir(m_sPlayerX, m_sPlayerY, indexX, indexY);
 
+                absX = abs(m_sPlayerX - m_sMCX);
+                absY = abs(m_sPlayerY - m_sMCY);
 
-                if (m_iHP <= 0) return;
-                if (cDir == 0) return;
-                if (m_cPlayerDir == cDir) return;
+                m_pMapData->bGetOwner(m_sMCX, m_sMCY, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
 
+                //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
+                //0x0101
+                if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
+                {
+                    absX -= 1;
+                    if (absX < 0)
+                        absX = 0;
+                    absY -= 1;
+                    if (absY < 0)
+                        absY = 0;
+                }
 
-                ClearSkillUsingStatus();
+                if (sObjectType >= 10 || ((sObjectType >= 1) && (sObjectType <= 6)))
+                {
+                    switch (sObjectType)
+                    {
+                        case 15:
+                        case 19:
+                        case 20:
+                        case 24:
+                        case 25:
+                        case 26:
+                            break;
 
-                m_cPlayerDir = cDir;
-                bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTSTOP, m_cPlayerDir, 0, 0, 0, 0);
+                        default:
+                            if (_iGetFOE(iObjectStatus) >= 0) break;
+                            if ((sObjectType >= 1) && (sObjectType <= 6) && (m_bForceAttack == false)) break;
+                            if ((absX <= 1) && (absY <= 1))
+                            {
+                                wType = _iGetAttackType();
+                                m_cCommand = DEF_OBJECTATTACK;
+                                m_sCommX = m_sMCX;
+                                m_sCommY = m_sMCY;
+                            }
+                            else
+                            {
+                                switch (_iGetWeaponSkillType())
+                                {
+                                    case 6:
+                                        m_cCommand = DEF_OBJECTATTACK;
+                                        m_sCommX = m_sMCX;
+                                        m_sCommY = m_sMCY;
+                                        wType = _iGetAttackType();
+                                        break;
 
-                m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
-                    m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                    m_sPlayerStatus, m_cPlayerName,
-                    m_cCommand, 0, 0, 0, 0,
-                    10);
-                m_bCommandAvailable = false;
-                m_dwCommandTime = unixtime();
-                return;
+                                    case 5:
+                                    case 7:
+                                        break;
+
+                                    case 8:
+                                        if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
+                                            && (_iGetAttackType() != 30))
+                                        {
+                                            wType = _iGetAttackType();
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                        }
+                                        else if ((absX <= 5) && (absY <= 5) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
+                                            && (_iGetAttackType() == 30))
+                                        {
+                                            wType = _iGetAttackType();
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                        }
+                                        else if ((absX <= 3) && (absY <= 3)
+                                            && (_iGetAttackType() == 5))
+                                        {
+                                            wType = _iGetAttackType();
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                        }
+                                        break;
+
+                                    case 9:
+                                        if ((absX <= 4) && (absY <= 4) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                                        {
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                            wType = _iGetAttackType();
+                                        }
+                                        break;
+
+                                    case 10:
+                                        if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                                        {
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                            wType = _iGetAttackType();
+                                        }
+                                        break;
+                                    case 14:
+                                        if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                                        {
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                            wType = _iGetAttackType();
+                                        }
+                                        break;
+                                    case 21:
+                                        if ((absX <= 2) && (absY <= 2) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true))
+                                        {
+                                            m_cCommand = DEF_OBJECTATTACK;
+                                            m_sCommX = m_sMCX;
+                                            m_sCommY = m_sMCY;
+                                            wType = _iGetAttackType();
+                                        }
+                                        break;
+
+                                }
+                            }
+                            break;
+                    }
+                }
             }
         }
+        else
+        {
+            cDir = m_Misc.cGetNextMoveDir(m_sPlayerX, m_sPlayerY, indexX, indexY, m_bIllusionMVT);
+
+            //remove
+//			sprintf(G_cTxt, "New DIR: {}", cDir);
+//			AddEventList(G_cTxt, 10);
+
+            if (m_iHP <= 0) return;
+            if (cDir == 0) return;
+            if (m_cPlayerDir == cDir) return;
+            ClearSkillUsingStatus();
+
+            m_cPlayerDir = cDir;
+            bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTSTOP, m_cPlayerDir, 0, 0, 0, 0);
+
+            m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, // v1.4 
+                m_iPlayerStatus, m_cPlayerName,
+                m_cCommand, 0, 0, 0, 0,
+                10);
+            m_bCommandAvailable = false;
+            m_dwCommandTime = unixtime();
+            return;
+        }
+    }
 
     MOTION_COMMAND_PROCESS:;
 
@@ -1341,7 +1396,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
         if ((m_sPlayerType >= 0) && (m_sPlayerType > 6))
         {
-
             switch (m_cCommand)
             {
                 case DEF_OBJECTRUN:
@@ -1351,44 +1405,61 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     break;
             }
         }
-
-
         ClearSkillUsingStatus();
 
+#ifndef DEF_HACKCLIENT
         if (m_sDamageMove != 0)
         {
             m_cCommand = DEF_OBJECTDAMAGEMOVE;
             m_sCommX = m_sPlayerX;
             m_sCommY = m_sPlayerY;
 
-            switch (m_sDamageMove)
+            // todo: keep illusion movement flyback backwards? (target would fly towards you, the attacker)
+            if (m_bIllusionMVT == true)
             {
-                case 1: m_sCommY--; break;
-                case 2: m_sCommX++; m_sCommY--; break;
-                case 3: m_sCommX++; break;
-                case 4: m_sCommX++; m_sCommY++; break;
-                case 5: m_sCommY++; break;
-                case 6: m_sCommX--; m_sCommY++; break;
-                case 7: m_sCommX--; break;
-                case 8: m_sCommX--; m_sCommY--; break;
+                switch (m_sDamageMove)
+                {
+                    case 1: m_sCommY--; break;
+                    case 2: m_sCommX++; m_sCommY--; break;
+                    case 3: m_sCommX++; break;
+                    case 4: m_sCommX++; m_sCommY++; break;
+                    case 5: m_sCommY++; break;
+                    case 6: m_sCommX--; m_sCommY++; break;
+                    case 7: m_sCommX--; break;
+                    case 8: m_sCommX--; m_sCommY--; break;
+                }
             }
-
-
+            else
+            {
+                switch (m_sDamageMove)
+                {
+                    case 1: m_sCommY++; break;
+                    case 2: m_sCommX--; m_sCommY++; break;
+                    case 3: m_sCommX--; break;
+                    case 4: m_sCommX--; m_sCommY--; break;
+                    case 5: m_sCommY--; break;
+                    case 6: m_sCommX++; m_sCommY--; break;
+                    case 7: m_sCommX++; break;
+                    case 8: m_sCommX++; m_sCommY++; break;
+                }
+            }
             for (i = 1; i < DEF_MAXCHATMSGS; i++)
                 if (m_pChatMsgList[i] == 0)
                 {
                     memset(cTxt, 0, sizeof(cTxt));
                     if (m_sDamageMoveAmount > 0)
-                        format_to_local(cTxt, "-{}Pts", m_sDamageMoveAmount);
+                        format_to_local(cTxt, "-{}Pts", m_sDamageMoveAmount); //pts
                     else strcpy(cTxt, "Critical!");
 
-                    int iFontType{};
+                    int iFontType;
                     if ((m_sDamageMoveAmount >= 0) && (m_sDamageMoveAmount < 12))		iFontType = 21;
                     else if ((m_sDamageMoveAmount >= 12) && (m_sDamageMoveAmount < 40)) iFontType = 22;
                     else if ((m_sDamageMoveAmount >= 40) || (m_sDamageMoveAmount < 0))	iFontType = 23;
 
                     m_pChatMsgList[i] = new CMsg(iFontType, cTxt, m_dwCurTime);
                     m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
+
+                    m_stNPCList[m_sPlayerObjectID].m_iHP -= m_sDamageMoveAmount;//Change HP Bar
 
                     if (m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i) == false)
                     {
@@ -1399,7 +1470,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 }
             m_sDamageMove = 0;
         }
-
+#endif
 
         switch (m_cCommand)
         {
@@ -1408,20 +1479,18 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             case DEF_OBJECTDAMAGEMOVE:
 
                 if (m_bParalyze) return;
-                bGORet = m_pMapData->get_owner(m_sCommX, m_sCommY, pDstName, &sDstOwnerType, &sDstOwnerStatus, &m_wCommObjectID);
+                bGORet = m_pMapData->bGetOwner(m_sCommX, m_sCommY, pDstName, &sDstOwnerType, &iDstOwnerStatus, &m_wCommObjectID);
 
                 if ((m_sPlayerX == m_sCommX) && (m_sPlayerY == m_sCommY))
                     m_cCommand = DEF_OBJECTSTOP;
                 else if ((abs(m_sPlayerX - m_sCommX) <= 1) && (abs(m_sPlayerY - m_sCommY) <= 1) &&
                     (bGORet == true) && (sDstOwnerType != 0))
                     m_cCommand = DEF_OBJECTSTOP;
-
                 else if ((abs(m_sPlayerX - m_sCommX) <= 2) && (abs(m_sPlayerY - m_sCommY) <= 2) &&
                     (m_pMapData->m_tile[m_sCommX][m_sCommY].m_bIsMoveAllowed == false))
                     m_cCommand = DEF_OBJECTSTOP;
                 else
                 {
-
                     if (m_cCommand == DEF_OBJECTMOVE)
                     {
                         if (m_bRunningMode || m_bShiftPressed) m_cCommand = DEF_OBJECTRUN;
@@ -1432,7 +1501,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         if (m_iSP < 1) m_cCommand = DEF_OBJECTMOVE;
                     }
 
-                    cDir = cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY, true);
+                    cDir = cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY, m_bIllusionMVT);
                     if (cDir != 0)
                     {
 
@@ -1451,9 +1520,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 8:	m_sPlayerX--; m_sPlayerY--;	break;
                         }
 
-                        m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                        m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                             m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                            m_sPlayerStatus, m_cPlayerName,
+                            m_iPlayerStatus, m_cPlayerName,
                             m_cCommand, 0, 0, 0);
                         m_bCommandAvailable = false;
                         m_dwCommandTime = unixtime();
@@ -1465,31 +1534,28 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
                 if (m_cCommand == DEF_OBJECTDAMAGEMOVE)
                 {
-
+#ifndef DEF_HACKCLIENT
                     m_bIsGetPointingMode = false;
+                    ClearCoords();
                     m_iPointCommandType = -1;
-
                     m_stMCursor.sCursorFrame = 0;
-
                     ClearSkillUsingStatus();
 
                     m_cCommand = DEF_OBJECTSTOP;
+#endif
                 }
                 break;
 
             case DEF_OBJECTATTACK:
+                cDir = m_Misc.cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY, m_bIllusionMVT);
 
-                cDir = m_Misc.cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY);
                 if (cDir != 0)
                 {
-
                     if ((wType == 2) || (wType == 25))
                     {
-
                         if (_bCheckItemByType(DEF_ITEMTYPE_ARROW) == false)
                             wType = 0;
                     }
-
 
                     if (wType >= 20)
                     {
@@ -1500,9 +1566,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     m_cPlayerDir = cDir;
                     bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTATTACK, cDir, m_sCommX, m_sCommY, wType, 0, m_wCommObjectID);
 
-                    m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                    m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                         m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                        m_sPlayerStatus, m_cPlayerName,
+                        m_iPlayerStatus, m_cPlayerName,
                         DEF_OBJECTATTACK,
                         m_sCommX - m_sPlayerX, m_sCommY - m_sPlayerY, wType);
                     m_bCommandAvailable = false;
@@ -1513,9 +1579,8 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 break;
 
             case DEF_OBJECTATTACKMOVE:
-
                 if (m_bParalyze) return;
-                bGORet = m_pMapData->get_owner(m_sCommX, m_sCommY, pDstName, &sDstOwnerType, &sDstOwnerStatus, &m_wCommObjectID);
+                bGORet = m_pMapData->bGetOwner(m_sCommX, m_sCommY, pDstName, &sDstOwnerType, &iDstOwnerStatus, &m_wCommObjectID);
 
                 if ((m_sPlayerX == m_sCommX) && (m_sPlayerY == m_sCommY))
                     m_cCommand = DEF_OBJECTSTOP;
@@ -1524,10 +1589,10 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     m_cCommand = DEF_OBJECTSTOP;
                 else
                 {
-                    cDir = cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY, true);
+                    cDir = cGetNextMoveDir(m_sPlayerX, m_sPlayerY, m_sCommX, m_sCommY, true, m_bIllusionMVT);
+
                     if (cDir != 0)
                     {
-
                         m_cPlayerDir = cDir;
                         bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTATTACKMOVE, cDir, m_sCommX, m_sCommY, wType, 0, m_wCommObjectID);
 
@@ -1543,9 +1608,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 8:	m_sPlayerX--; m_sPlayerY--;	break;
                         }
 
-                        m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
-                            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                            m_sPlayerStatus, m_cPlayerName,
+                        m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, // v1.4
+                            m_iPlayerStatus, m_cPlayerName,
                             m_cCommand, m_sCommX - m_sPlayerX, m_sCommY - m_sPlayerY, wType);
                         m_bCommandAvailable = false;
                         m_dwCommandTime = unixtime();
@@ -1561,9 +1626,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             case DEF_OBJECTGETITEM:
                 bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTGETITEM, m_cPlayerDir, 0, 0, 0, 0);
 
-                m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                     m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                    m_sPlayerStatus, m_cPlayerName,
+                    m_iPlayerStatus, m_cPlayerName,
                     DEF_OBJECTGETITEM, 0, 0, 0);
                 m_bCommandAvailable = false;
                 m_cCommand = DEF_OBJECTSTOP;
@@ -1572,23 +1637,30 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             case DEF_OBJECTMAGIC:
                 bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTMAGIC, m_cPlayerDir, m_iCastingMagicType, 0, 0, 0);
 
-                m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+                m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                     m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                    m_sPlayerStatus, m_cPlayerName,
+                    m_iPlayerStatus, m_cPlayerName,
                     DEF_OBJECTMAGIC, m_iCastingMagicType, 0, 0);
-                m_bCommandAvailable = false;
+#ifdef DEF_HACKCLIENT
+                if (m_stConfigList.bFastCast == true)
+                    m_bCommandAvailable = true;//Change false
+                else
+#endif
+                    m_bCommandAvailable = false;
                 m_dwCommandTime = unixtime();
                 m_bIsGetPointingMode = true;
                 m_cCommand = DEF_OBJECTSTOP;
-
                 _RemoveChatMsgListByObjectID(m_sPlayerObjectID);
 
                 for (i = 1; i < DEF_MAXCHATMSGS; i++)
                     if (m_pChatMsgList[i] == 0)
                     {
                         memset(cTxt, 0, sizeof(cTxt));
-                        format_to_local(cTxt, "{}!", m_pMagicCfgList[m_iCastingMagicType]->m_cName);
-                        m_pChatMsgList[i] = new CMsg(chat_types::magic, cTxt, unixtime());
+                        if (m_iCastingMagicType < 0 || m_iCastingMagicType > 100 || m_pMagicCfgList[m_iCastingMagicType] == nullptr)
+                            format_to_local(cTxt, "Invalid Spell!");//Change Invalid Spell
+                        else
+                            format_to_local(cTxt, "{}!", m_pMagicCfgList[m_iCastingMagicType]->m_cName);
+                        m_pChatMsgList[i] = new CMsg(41, cTxt, unixtime());
                         m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
                         m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i);
