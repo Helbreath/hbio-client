@@ -427,8 +427,7 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 #define DEF_INDEX4_MSGID		0
 #define DEF_INDEX2_MSGTYPE		4
 
-// todo: fix spelling
-#define DEF_MAXWHETHEROBJECTS	600
+#define DEF_MAXWEATHEROBJECTS	600
 #define DEF_MAXBUILDITEMS		100
 
 #define DEF_MAXGAMEMSGS			300
@@ -1352,7 +1351,7 @@ static inline const char _tmp_cEmptyPosX[] = { 0, 1, 1, 0, -1, -1, -1, 0, 1, 2, 
 static inline const char _tmp_cEmptyPosY[] = { 0, 0, 1, 1, 1, 0, -1, -1, -1, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2 };
 #pragma endregion
 
-extern uint64_t unixtime();
+extern int64_t unixtime();
 extern int32_t unixseconds();
 
 #ifndef WIN32

@@ -28,23 +28,25 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 bool CGame::GameRecvMsgHandler(char * pData, uint32_t dwMsgSize)
 {
-    uint32_t * dwpMsgID;
-    uint32_t dwTimeSent, dwTimeRcv, * dwp;
+    uint32_t * dwpMsgID, * dwp{};
+    int64_t dwTimeSent{}, dwTimeRcv{};
     uint16_t * wp;
     char * cp, cName[11];
     int i, * ip, itmp, itmp2, itmp3;//, iTotalFriends;
@@ -578,7 +580,8 @@ void CGame::InitPlayerCharacteristics(char * pData)
     cp++;*/
 
     //m_iLU_Point = 3 - (m_cLU_Str + m_cLU_Vit + m_cLU_Dex + m_cLU_Int + m_cLU_Mag + m_cLU_Char);
-    m_iLU_Point = *cp;
+    uint16_t * wp = (uint16_t *)cp;
+    m_iLU_Point = *wp;
     cp += (5 + 2);
 
     ip = (int *)cp;
@@ -800,7 +803,7 @@ void CGame::LogEventHandler(char * pData)
     }
     _RemoveChatMsgListByObjectID(wObjectID);
 }
-void CGame::LogResponseHandler(char * pData, uint64_t size)
+void CGame::LogResponseHandler(char * pData, int64_t size)
 {
     stream_read sr(pData, size);
     uint16_t * wp, wResponse;
@@ -1364,7 +1367,7 @@ void CGame::ChatMsgHandler(char * pData, uint32_t size)
     int i, iObjectID, iLoc, iGM = 0;
     short sX, sY;
     char * cp, cMsgType, cName[21], cTemp[100], cMsg[100];
-    uint32_t dwTime;
+    int64_t dwTime;
     bool bFlag;
 
     char cHeadMsg[200];
@@ -1620,7 +1623,7 @@ void CGame::ResponsePanningHandler(char * pData)
     }
 
     m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
-    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height()) / 32) / 2;
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;
@@ -2032,8 +2035,8 @@ void CGame::MotionResponseHandler(char * pData)
             m_bIsGetPointingMode = false;
             ClearCoords();
 
-            m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32 - 32;
-            m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32 - 32;
+            m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32)- (get_virtual_width() / 2));
+            m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
             m_bIsRedrawPDBGS = true;
             break;
@@ -2070,7 +2073,7 @@ void CGame::MotionResponseHandler(char * pData)
                 {
                     format_to_local(G_cTxt, NOTIFYMSG_HP_DOWN, iPreHP - m_iHP);
                     AddEventList(G_cTxt, 10);
-                    m_dwDamagedTime = unixtime();
+                    m_dwDamagedTime = m_dwCurTime;
 
                     if ((m_cLogOutCount > 0) && (m_bForceDisconn == false))
                     {
@@ -2156,8 +2159,8 @@ void CGame::MotionResponseHandler(char * pData)
             m_bIsGetPointingMode = false;
             ClearCoords();
 
-            m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32 - 32;
-            m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32 - 32;
+            m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32)- (get_virtual_width() / 2));
+            m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
             m_bIsPrevMoveBlocked = true;
 
@@ -2234,11 +2237,11 @@ void CGame::InitDataResponseHandler(char * pData)
         m_pEffectList[i] = 0;
     }
 
-    for (i = 0; i < DEF_MAXWHETHEROBJECTS; i++)
+    for (i = 0; i < DEF_MAXWEATHEROBJECTS; i++)
     {
-        m_stWhetherObject[i].sX = 0;
-        m_stWhetherObject[i].sY = 0;
-        m_stWhetherObject[i].cStep = 0;
+        weather_object[i].sX = 0;
+        weather_object[i].sY = 0;
+        weather_object[i].cStep = 0;
     }
 
     for (i = 0; i < DEF_MAXGUILDNAMES; i++)
@@ -2364,11 +2367,11 @@ void CGame::InitDataResponseHandler(char * pData)
             DEF_OBJECTSTOP, 0, 0, 0);
     }
 
-    m_sViewDstX = m_sViewPointX = sX * 32 - (get_virtual_width() / 2);
-    m_sViewDstY = m_sViewPointY = sY * 32 - ((get_virtual_height() - 60) / 2) - 16;
+    m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32) - (get_virtual_width() / 2));
+    m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
     m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
-    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height()) / 32) / 2;
 
     _ReadMapData(sX, sY, cp);
 

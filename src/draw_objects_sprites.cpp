@@ -26,23 +26,25 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
 extern uint16_t  wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 
 void CGame::_Draw_CharacterBody(short sX, short sY, short sType)
 {
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int  iR, iG, iB;
 
     if (sType <= 3)
@@ -67,7 +69,7 @@ void CGame::_Draw_CharacterBody(short sX, short sY, short sType)
 bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int iPoint)
 {
     bool bFlag = true;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
     int i = 0;
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWCHAR, 0, 0, 0, true);
@@ -130,7 +132,7 @@ bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
     switch (m_cGender)
     {
         case 1:	_tmp_sOwnerType = 1; break;
-        case 2:	_tmp_sOwnerType = 4; break; //@@@@@@@@@@@@@@@@@!!!!!!!!!!!!!!!!!
+        case 2:	_tmp_sOwnerType = 4; break;
     }
     _tmp_sOwnerType += m_cSkinCol - 1;
     _tmp_cDir = m_cMenuDir;
@@ -152,15 +154,15 @@ bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
 
     i = 0;
 
-    put_string(445, 192, DEF_MSG_HITPOINT, Color(5, 5, 5));//"Hit Point"
+    put_string(445, 192, DEF_MSG_HITPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccVit * 3 + 2 + m_ccStr / 2);
     put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
-    put_string(445, 208, DEF_MSG_MANAPOINT, Color(5, 5, 5));//"Mana Point"
+    put_string(445, 208, DEF_MSG_MANAPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccMag * 2 + 2 + m_ccInt / 2);
     put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
-    put_string(445, 224, DEF_MSG_STAMINAPOINT, Color(5, 5, 5));//"Stamina Point"
+    put_string(445, 224, DEF_MSG_STAMINAPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccStr * 2 + 2);
     put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
@@ -168,17 +170,18 @@ bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
 }
 
 
-bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iWeapon, iAdd, iShieldIndex, iMantleIndex;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iWeapon{}, iAdd{}, iShieldIndex{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     //if(_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
-    // v1.4
+
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -213,7 +216,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
+                if (iWeapon == 0) iAdd = 6;
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
@@ -305,7 +308,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
+                if (iWeapon == 0) iAdd = 6;
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
@@ -443,9 +446,8 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -496,10 +498,14 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -557,7 +563,6 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -571,7 +576,6 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -629,10 +633,14 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -690,7 +698,6 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -704,7 +711,6 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -730,7 +736,6 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
 
                 DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -769,7 +774,8 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
-    //Change Abaddon Effects
+
+    //Abaddon Effects
     if (_tmp_sOwnerType == 81)
     {
         int randFrame = _tmp_cFrame % 12;
@@ -818,6 +824,7 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
 
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -828,20 +835,19 @@ bool   CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool b
     return false;
 }
 
-
-bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iWeapon, iAdd, iShieldIndex, iMantleIndex, dx, dy, dsx, dsy;
-    int cFrameMoveDots;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iWeapon{}, iAdd{}, iShieldIndex{}, iMantleIndex{}, dx{}, dy{}, dsx{}, dsy{};
+    int cFrameMoveDots{};
     bool bInv = false, bDashDraw = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
-    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
-    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
 
-    // v1.4
+    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Abaddon invis
+
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -877,7 +883,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -902,7 +908,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
+                if (iWeapon == 0) iAdd = 6;
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
@@ -994,7 +1000,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
             if ((_tmp_sAppr2 & 0xF000) != 0)
             {
                 iWeapon = ((_tmp_sAppr2 & 0x0FF0) >> 4);
-                if (iWeapon == 0) iAdd = 6;							// ¸Ç¼Õ 
+                if (iWeapon == 0) iAdd = 6;
                 if ((iWeapon >= 1) && (iWeapon <= 39)) iAdd = 6;
                 if ((iWeapon >= 40) && (iWeapon <= 59)) iAdd = 7;
 
@@ -1178,7 +1184,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
 
     if (bTrans == false)
     {
-
         CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
         if (_cDrawingOrder[_tmp_cDir] == 1)
@@ -1189,9 +1194,8 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -1199,7 +1203,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     case 2: m_pSprite[iWeaponIndex]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, m_iDrawFlag, 0, dwTime); break; // Green Glare
                     case 3: m_pSprite[iWeaponIndex]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, 0, m_iDrawFlag, dwTime); break; // Blue Glare
                 }
-
 
                 if (_tmp_cFrame == 3) m_pSprite[iWeaponIndex]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame - 1, m_wR[10] - (m_wR[0] / 3), m_wG[10] - (m_wG[0] / 3), m_wB[10] - (m_wB[0] / 3), dwTime);
             }
@@ -1244,10 +1247,14 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -1319,7 +1326,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -1380,10 +1386,14 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -1441,7 +1451,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -1455,7 +1464,6 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -1479,9 +1487,8 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -1532,6 +1539,7 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     _tmp_dy = dy;
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -1543,17 +1551,16 @@ bool   CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bo
     return false;
 }
 
-
-bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -1582,7 +1589,6 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
             bInv = true;
         else
         {
-            // v1.4 
             if (_tmp_iChatIndex != 0)
             {
                 if (m_pChatMsgList[_tmp_iChatIndex] != 0)
@@ -1595,7 +1601,6 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
                     m_pMapData->ClearChatMsg(indexX, indexY);
                 }
             }
-            // v1.4
 
             return false;
         }
@@ -1761,8 +1766,13 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
         }
-        SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
+
+        m_rcBodyRect = {
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+        };
 
         if (iUndiesIndex != -1) m_pSprite[iUndiesIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 16 + _tmp_cFrame, dwTime);
 
@@ -1843,12 +1853,13 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
         }
         else
         {
-            m_pMapData->ClearChatMsg(indexX, indexY);
+            //m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -1860,15 +1871,15 @@ bool   CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bT
 }
 
 
-bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -1901,7 +1912,7 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -2045,8 +2056,13 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
         }
-        SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
+
+        m_rcBodyRect = {
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+        };
 
         if (iUndiesIndex != -1)
         {
@@ -2165,6 +2181,7 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -2175,20 +2192,19 @@ bool   CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool 
     return false;
 }
 
-
-bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iWeaponIndex, iShieldIndex, iHelmIndex, iR, iG, iB;
-    int iAdd, iDrawMode, iMantleIndex;
-    char cFrame;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iWeaponIndex{}, iShieldIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iAdd{}, iDrawMode{}, iMantleIndex{};
+    char cFrame{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
-    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
-    if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
 
-    // v1.4
+    if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
+    if (_tmp_sOwnerType == 81) bInv = true; //Abaddon invis
+
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -2224,7 +2240,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -2517,9 +2533,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2576,10 +2591,14 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-                SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-                //
+                m_rcBodyRect = {
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+                };
+
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2637,7 +2656,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2651,7 +2669,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
@@ -2714,10 +2731,14 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-                SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-                //
+                m_rcBodyRect = {
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+                };
+
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2775,7 +2796,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2789,7 +2809,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
@@ -2813,9 +2832,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -2880,8 +2898,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         if (m_cDetailLevel != 0)
                         {
                             if (sX < 50)
-                                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, _tmp_cFrame, dwTime);
-                            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, _tmp_cFrame, dwTime);
+                                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite_clip(sX, sY, cFrame, dwTime);
+                            else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_shadow_sprite(sX, sY, cFrame, dwTime);
                         }
                         break;
                 }
@@ -2894,10 +2912,14 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-                SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-                //
+                m_rcBodyRect = {
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+                };
+
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
                     if (iMantleColor == 0)
@@ -2955,7 +2977,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -2969,7 +2990,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
@@ -3030,8 +3050,13 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                     else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
                 }
-                SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
+
+                m_rcBodyRect = {
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                    m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+                };
 
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
                 {
@@ -3090,7 +3115,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
 
-                //
                 if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
                 {
                     if (iMantleColor == 0)
@@ -3104,7 +3128,6 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iShieldIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, dwTime);
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                    //V1.432 Shield Glare
                     switch (iShieldGlare)
                     {
                         case 0: break;
@@ -3128,9 +3151,8 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
                         m_pSprite[iWeaponIndex]->put_sprite_fast(sX, sY, cFrame, dwTime);
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                    DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                    //V1.432 Weapon Glare
                     switch (iWeaponGlare)
                     {
                         case 0: break;
@@ -3167,6 +3189,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
             m_pMapData->ClearChatMsg(indexX, indexY);
         }
     }
+
     //Abaddon effects
     if (_tmp_sOwnerType == 81)
     {
@@ -3215,6 +3238,7 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
     }
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -3226,14 +3250,13 @@ bool   CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool b
     return false;
 }
 
-bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iHelmIndex, iMantleIndex;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
-    char cFrame;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iHelmIndex{}, iMantleIndex{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+    char cFrame{};
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -3547,8 +3570,13 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, cFrame, dwTime);
         }
-        SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
+
+        m_rcBodyRect = {
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+            m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+        };
 
         if (iUndiesIndex != -1) m_pSprite[iUndiesIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + cFrame, dwTime);
 
@@ -3636,6 +3664,7 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
 
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -3645,15 +3674,15 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
     return false;
 }
 
-bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iR, iG, iB, iFrame, iMantleIndex, iHelmIndex;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iR{}, iG{}, iB{}, iFrame{}, iMantleIndex{}, iHelmIndex{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
 
     if (_tmp_sOwnerType == 66) return false;
     //if( _tmp_sOwnerType == 73 ) return false;
-    // v1.4
+
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -3862,13 +3891,18 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
     {
         if (_tmp_cFrame == -1)
         {
-            _tmp_cFrame = 7; // v1.4
+            _tmp_cFrame = 7;
 
             if ((_tmp_iStatus & 0x40) != 0)
                 m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, iFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, iFrame, dwTime);
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
+
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
 
             if (iUndiesIndex != -1) m_pSprite[iUndiesIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
 
@@ -3952,7 +3986,8 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
             m_pMapData->ClearDeadChatMsg(indexX, indexY);
         }
     }
-    //Change Abaddon's Death Animation (lightning)
+
+    //Abaddon's Death Animation (lightning)
     if (_tmp_sOwnerType == 81)
     {
         Abaddon_corpse(sX, sY);
@@ -3964,6 +3999,7 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
     //	}
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -3975,17 +4011,16 @@ bool   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTr
     return false;
 }
 
-
-
-bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int dx, dy;
-    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iShieldIndex, iAdd, iMantleIndex;
+    int dx{}, dy{};
+    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iShieldIndex{}, iAdd{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     //if(_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 35) bInv = true; //Energy-Ball,Wyvern
     //if(_tmp_sOwnerType == 73) bInv = true; //Energy-Ball,Wyvern
@@ -3994,7 +4029,6 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
         bInv = true; //Energy-Ball,Wyvern
     }
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -4030,7 +4064,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -4249,17 +4283,23 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
     dx = 0;
     dy = 0;
 
+    int64_t time_elapsed = dwTime - _tmp_owner_time;
+    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+    float interpolated_frame = _tmp_cFrame + cycle_progress;
+
     switch (_tmp_cDir)
     {
-        case 1: dy = 28 - (_tmp_cFrame << 2); break;
-        case 2: dy = 28 - (_tmp_cFrame << 2); dx = (_tmp_cFrame << 2) - 28; break;
-        case 3: dx = (_tmp_cFrame << 2) - 28; break;
-        case 4: dx = (_tmp_cFrame << 2) - 28; dy = (_tmp_cFrame << 2) - 28; break;
-        case 5: dy = (_tmp_cFrame << 2) - 28; break;
-        case 6: dy = (_tmp_cFrame << 2) - 28; dx = 28 - (_tmp_cFrame << 2); break;
-        case 7: dx = 28 - (_tmp_cFrame << 2); break;
-        case 8: dx = 28 - (_tmp_cFrame << 2); dy = 28 - (_tmp_cFrame << 2); break;
+        case 1: dy = int(28 - (interpolated_frame * 4)); break;
+        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
+        case 3: dx = int((interpolated_frame * 4) - 28); break;
+        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
+        case 5: dy = int((interpolated_frame * 4) - 28); break;
+        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
+        case 7: dx = int(28 - (interpolated_frame * 4)); break;
+        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
     }
+
     switch (_tmp_sOwnerType)
     {
         case 1:
@@ -4361,7 +4401,6 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
     if (bTrans == false)
     {
-
         CheckActiveAura(sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
         if (_cDrawingOrder[_tmp_cDir] == 1)
@@ -4376,9 +4415,8 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4427,10 +4465,14 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4519,7 +4561,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
                 }
             }
-            //
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4541,7 +4583,6 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -4603,10 +4644,14 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -4718,7 +4763,6 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -4750,9 +4794,8 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -4840,6 +4883,7 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -4851,21 +4895,20 @@ bool   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTr
     return false;
 }
 
-
-bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int cFrame, cDir;
-    int dx, dy;
-    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iShieldIndex, iMantleIndex;
+    int cFrame{}, cDir{};
+    int dx{}, dy{};
+    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iShieldIndex{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 67 || _tmp_sOwnerType == 68 || _tmp_sOwnerType == 69 || _tmp_sOwnerType == 81) return false;
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -4901,7 +4944,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -5036,16 +5079,21 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     dx = 0;
     dy = 0;
 
+    int64_t time_elapsed = dwTime - _tmp_owner_time;
+    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+    float interpolated_frame = _tmp_cFrame + cycle_progress;
+
     switch (_tmp_cDir)
     {
-        case 1: dy = 28 - (_tmp_cFrame << 2); break;
-        case 2: dy = 28 - (_tmp_cFrame << 2); dx = (_tmp_cFrame << 2) - 28; break;
-        case 3: dx = (_tmp_cFrame << 2) - 28; break;
-        case 4: dx = (_tmp_cFrame << 2) - 28; dy = (_tmp_cFrame << 2) - 28; break;
-        case 5: dy = (_tmp_cFrame << 2) - 28; break;
-        case 6: dy = (_tmp_cFrame << 2) - 28; dx = 28 - (_tmp_cFrame << 2); break;
-        case 7: dx = 28 - (_tmp_cFrame << 2); break;
-        case 8: dx = 28 - (_tmp_cFrame << 2); dy = 28 - (_tmp_cFrame << 2); break;
+        case 1: dy = int(28 - (interpolated_frame * 4)); break;
+        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
+        case 3: dx = int((interpolated_frame * 4) - 28); break;
+        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
+        case 5: dy = int((interpolated_frame * 4) - 28); break;
+        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
+        case 7: dx = int(28 - (interpolated_frame * 4)); break;
+        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
     }
 
     cFrame = _tmp_cFrame;
@@ -5073,9 +5121,8 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -5128,10 +5175,14 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -5207,7 +5258,6 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -5270,9 +5320,14 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
-            //
+
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (iMantleColor == 0)
@@ -5334,7 +5389,6 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                 else m_pSprite[iHelmIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (iMantleColor == 0)
@@ -5348,7 +5402,6 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iShieldIndex]->put_sprite_fast(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, dwTime);
                 else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 4 + cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -5372,9 +5425,8 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
                     m_pSprite[iWeaponIndex]->put_sprite_fast(sX + dx, sY + dy, cFrame, dwTime);
                 else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -5415,6 +5467,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     _tmp_dy = dy;
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -5424,16 +5477,15 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     return false;
 }
 
-bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    short dx, dy;
-    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iShieldIndex, iAdd, iMantleIndex;
+    short dx{}, dy{};
+    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iShieldIndex{}, iAdd{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
 
-    // v1.4
     iWeaponColor = (_tmp_iApprColor & 0xF0000000) >> 28;
     iShieldColor = (_tmp_iApprColor & 0x0F000000) >> 24;
     iArmorColor = (_tmp_iApprColor & 0x00F00000) >> 20;
@@ -5801,7 +5853,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
                 m_pSprite[iHelmIndex]->put_sprite_fast(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
             else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
         }
-        //
+
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
         {
             if (iMantleColor == 0)
@@ -5857,7 +5909,6 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
         else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
 
-        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
         {
             if (iMantleColor == 0)
@@ -5915,7 +5966,6 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
             else m_pSprite[iHelmIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iHelmColor] - m_wR[0], m_wG[iHelmColor] - m_wG[0], m_wB[iHelmColor] - m_wB[0], dwTime);
         }
 
-        //
         if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
         {
             if (iMantleColor == 0)
@@ -5961,6 +6011,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
     _tmp_dx = dx;
     _tmp_dy = dy;
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -5970,18 +6021,17 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
     return false;
 }
 
-
-bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int iBodyIndex, iUndiesIndex, iHairIndex, iBodyArmorIndex, iArmArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
-    int iWeaponIndex, iShieldIndex, iMantleIndex;
+    int iBodyIndex{}, iUndiesIndex{}, iHairIndex{}, iBodyArmorIndex{}, iArmArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iHelmIndex{}, iR{}, iG{}, iB{};
+    int iWeaponIndex{}, iShieldIndex{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66 || _tmp_sOwnerType == 81) bInv = true; //Energy-Ball, Wyvern
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -6028,7 +6078,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -6308,7 +6358,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
                 switch (iWeaponGlare)
                 {
@@ -6357,10 +6407,14 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX, sY, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX, sY, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6384,7 +6438,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
-            //
             if ((iBootsIndex != -1) && (iSkirtDraw == 1))
             {
                 if (bInv) m_pSprite[iBootsIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6451,7 +6504,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 }
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6473,7 +6525,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -6536,10 +6587,14 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
             }
             //if (!m_pSprite[iBodyIndex + (_tmp_cDir - 1)])
             //	return false;
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6563,7 +6618,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 m_pSprite[iHairIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, iR, iG, iB, dwTime);
             }
 
-            //
             if ((iBootsIndex != -1) && (iSkirtDraw == 1))
             {
                 if (bInv) m_pSprite[iBootsIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6630,7 +6684,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                 }
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrder[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -6652,7 +6705,6 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX, sY, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -6684,7 +6736,7 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX, sY, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
                 switch (iWeaponGlare)
                 {
@@ -6785,31 +6837,29 @@ bool   CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTr
 
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
-
-
-    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
-        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
-        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
-        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
-        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX)) return true;
-
+//     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX)) return true;
 
     return false;
 }
 
-bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY)
+bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY)
 {
-    int dx, dy;
-    int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iWeaponIndex, iShieldIndex, iHelmIndex, iR, iG, iB, iMantleIndex;
+    int dx{}, dy{};
+    int iBodyIndex{}, iHairIndex{}, iUndiesIndex{}, iArmArmorIndex{}, iBodyArmorIndex{}, iPantsIndex{}, iBootsIndex{}, iWeaponIndex{}, iShieldIndex{}, iHelmIndex{}, iR{}, iG{}, iB{}, iMantleIndex{};
     bool bInv = false;
-    int iWeaponGlare, iShieldGlare;
-    int iWeaponColor, iShieldColor, iArmorColor, iMantleColor, iArmColor, iPantsColor, iBootsColor, iHelmColor;
-    int iSkirtDraw = 0;
+    int iWeaponGlare{}, iShieldGlare{};
+    int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
+    int iSkirtDraw{};
+
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
 
-    // v1.4
     if (m_cDetailLevel == 0)
     {
         iWeaponColor = 0;
@@ -6845,7 +6895,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
 #endif
                 bInv = true;
 #ifndef DEF_HACKCLIENT
-            else return false;//Change Invis hack?
+            else return false;//Invis hack?
 #endif
     }
 
@@ -6961,16 +7011,21 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
     dx = 0;
     dy = 0;
 
+    int64_t time_elapsed = dwTime - _tmp_owner_time;
+    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+    float interpolated_frame = _tmp_cFrame + cycle_progress;
+
     switch (_tmp_cDir)
     {
-        case 1: dy = 28 - (_tmp_cFrame << 2); break;
-        case 2: dy = 28 - (_tmp_cFrame << 2); dx = (_tmp_cFrame << 2) - 28; break;
-        case 3: dx = (_tmp_cFrame << 2) - 28; break;
-        case 4: dx = (_tmp_cFrame << 2) - 28; dy = (_tmp_cFrame << 2) - 28; break;
-        case 5: dy = (_tmp_cFrame << 2) - 28; break;
-        case 6: dy = (_tmp_cFrame << 2) - 28; dx = 28 - (_tmp_cFrame << 2); break;
-        case 7: dx = 28 - (_tmp_cFrame << 2); break;
-        case 8: dx = 28 - (_tmp_cFrame << 2); dy = 28 - (_tmp_cFrame << 2); break;
+        case 1: dy = int(28 - (interpolated_frame * 4)); break;
+        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
+        case 3: dx = int((interpolated_frame * 4) - 28); break;
+        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
+        case 5: dy = int((interpolated_frame * 4) - 28); break;
+        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
+        case 7: dx = int(28 - (interpolated_frame * 4)); break;
+        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
@@ -6999,9 +7054,8 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -7041,10 +7095,14 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -7134,7 +7192,6 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                 }
             }
 
-            //
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -7156,7 +7213,6 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -7208,10 +7264,14 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wR[10] - m_wR[0] / 2, m_wG[10] - m_wG[0] / 2, m_wB[10] - m_wB[0] / 2, dwTime);
                 else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_sprite_fast(sX + dx, sY + dy, _tmp_cFrame, dwTime);
             }
-            SetRect(&m_rcBodyRect, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right, m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom);
 
-            //
+            m_rcBodyRect = {
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right,
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom
+            };
+
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 0))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -7301,7 +7361,6 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                 }
             }
 
-            //	
             if ((iMantleIndex != -1) && (_cMantleDrawingOrderOnRun[_tmp_cDir] == 2))
             {
                 if (bInv) m_pSprite[iMantleIndex]->put_trans_sprite25(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, dwTime);
@@ -7323,7 +7382,6 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iShieldIndex]->put_sprite_color(sX + dx, sY + dy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[iShieldColor] - m_wR[0], m_wG[iShieldColor] - m_wG[0], m_wB[iShieldColor] - m_wB[0], dwTime);
                 }
 
-                //V1.432 Shield Glare
                 switch (iShieldGlare)
                 {
                     case 0: break;
@@ -7355,9 +7413,8 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
                     else m_pSprite[iWeaponIndex]->put_sprite_color(sX + dx, sY + dy, _tmp_cFrame, m_wWR[iWeaponColor] - m_wR[0], m_wWG[iWeaponColor] - m_wG[0], m_wWB[iWeaponColor] - m_wB[0], dwTime);
                 }
 
-                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);//Change DK weapon glare
+                DKGlare(iWeaponColor, iWeaponIndex, &iWeaponGlare);
 
-                //V1.432 Weapon Glare
                 switch (iWeaponGlare)
                 {
                     case 0: break;
@@ -7396,6 +7453,7 @@ bool   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTra
 
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
+    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&

@@ -1002,6 +1002,7 @@ void CMapData::OpenMapDataFile(char * cFn)
     CloseHandle(hFileRead);
     cp = cpMapData;
     short * sp;
+
     for (int y = 0; y < m_sMapSizeY; y++)
     {
         for (int x = 0; x < m_sMapSizeX; x++)
@@ -1041,7 +1042,7 @@ void CMapData::_bDecodeMapInfo(char * pHeader)
     cReadMode = 0;
 
     token = strtok(pHeader, seps);
-    while (token != 0)
+    while (token != nullptr)
     {
         if (cReadMode != 0)
         {
@@ -1062,11 +1063,11 @@ void CMapData::_bDecodeMapInfo(char * pHeader)
             if (memcmp(token, "MAPSIZEX", 8) == 0) cReadMode = 1;
             if (memcmp(token, "MAPSIZEY", 8) == 0) cReadMode = 2;
         }
-        token = strtok(0, seps);
+        token = strtok(nullptr, seps);
     }
 }
 
-bool CMapData::bGetIsLocateable(short sX, short sY)
+bool CMapData::bGetIsLocateable(short sX, short sY) const
 {
     int dX, dY;
 
@@ -1115,7 +1116,7 @@ bool CMapData::bGetIsLocateable(short sX, short sY)
     return true;
 }
 
-bool CMapData::bIsTeleportLoc(short sX, short sY)
+bool CMapData::bIsTeleportLoc(short sX, short sY) const
 {
     if ((sX < 0) || (sX > MAPDATASIZEX) ||
         (sY < 0) || (sY > MAPDATASIZEY)) return false;
@@ -1127,10 +1128,11 @@ bool CMapData::bIsTeleportLoc(short sX, short sY)
 
 bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sType, int cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int iStatus, char * pName, short sAction, short sV1, short sV2, short sV3, int iPreLoc, int iFrame)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int iX{}, iY{}, dX{}, dY{};
     int iChatIndex{}, iAdd{};
     char cTmpName[12]{};
-    uint32_t dwTime{};
+    int64_t dwTime{};
     int iEffectType{}, iEffectFrame{}, iEffectTotalFrame{};
 
     memset(cTmpName, 0, sizeof(cTmpName));
@@ -1159,10 +1161,10 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
                 memset(m_pData[iX][iY].m_cOwnerName, 0, sizeof(m_pData[iX][iY].m_cOwnerName));
                 memset(pName, 0, strlen(pName));
 
-                if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] != 0)
+                if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] != nullptr)
                 {
                     delete m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg];
-                    m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] = 0;
+                    m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] = nullptr;
                 }
 
                 m_pData[iX][iY].m_iChatMsg = 0;
@@ -1192,10 +1194,10 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
                 m_pData[iX][iY].m_cDeadOwnerFrame = 0;
                 memset(pName, 0, strlen(pName));
 
-                if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] != 0)
+                if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] != nullptr)
                 {
                     delete m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg];
-                    m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] = 0;
+                    m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] = nullptr;
                 }
 
                 m_pData[iX][iY].m_iDeadChatMsg = 0;
@@ -1207,8 +1209,8 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
             }
         }
 
-        uint32_t x_width = (m_pGame->get_virtual_width() / 32) / 2;
-        uint32_t y_height = (m_pGame->get_virtual_height() / 32) / 2;
+        int32_t x_width = (m_pGame->get_virtual_width() / 32) / 2;
+        int32_t y_height = (m_pGame->get_virtual_height() / 32) / 2;
 
         for (iX = m_pGame->m_sPlayerX - x_width; iX < m_pGame->m_sPlayerX + x_width; iX++)
             for (iY = m_pGame->m_sPlayerY - y_height; iY < m_pGame->m_sPlayerY + y_height; iY++)
@@ -1220,10 +1222,10 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
                     memset(m_pData[iX][iY].m_cOwnerName, 0, sizeof(m_pData[iX][iY].m_cOwnerName));
                     memset(pName, 0, strlen(pName));
 
-                    if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] != 0)
+                    if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] != nullptr)
                     {
                         delete m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg];
-                        m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] = 0;
+                        m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iChatMsg] = nullptr;
                     }
                     m_pData[iX][iY].m_iChatMsg = 0;
 
@@ -1240,10 +1242,10 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
                     m_pData[iX][iY].m_cDeadOwnerFrame = owner_type::ot_none;
                     memset(pName, 0, strlen(pName));
 
-                    if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] != 0)
+                    if (m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] != nullptr)
                     {
                         delete m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg];
-                        m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] = 0;
+                        m_pGame->m_pChatMsgList[m_pData[iX][iY].m_iDeadChatMsg] = nullptr;
                     }
 
                     m_pData[iX][iY].m_iDeadChatMsg = 0;
@@ -1333,14 +1335,14 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
             }
         }
 
-        iAdd = 7;
+        iAdd = 20;
         for (iX = sX - iAdd; iX <= sX + iAdd; iX++)
             for (iY = sY - iAdd; iY <= sY + iAdd; iY++)
             {
                 if (iX < 0) break;
-                else if (iX >= MAPDATASIZEX) break;
+                if (iX >= MAPDATASIZEX) break;
                 if (iY < 0) break;
-                else if (iY >= MAPDATASIZEY) break;
+                if (iY >= MAPDATASIZEY) break;
 
                 if (m_pData[iX][iY].m_wObjectID == wObjectID)
                 {
@@ -1549,8 +1551,8 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
             }
         }
 
-        uint32_t x_width = (m_pGame->get_virtual_width() / 32) / 2;
-        uint32_t y_height = (m_pGame->get_virtual_height() / 32) / 2;
+        int32_t x_width = (m_pGame->get_virtual_width() / 32) / 2;
+        int32_t y_height = (m_pGame->get_virtual_height() / 32) / 2;
 
         for (iX = m_pGame->m_sPlayerX - x_width; iX < m_pGame->m_sPlayerX + x_width; iX++)
             for (iY = m_pGame->m_sPlayerY - y_height; iY < m_pGame->m_sPlayerY + y_height; iY++)
@@ -1764,8 +1766,10 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
 
         if ((sAction != DEF_OBJECTNULLACTION) && (sAction != DEF_MSGTYPE_CONFIRM) && (sAction != DEF_MSGTYPE_REJECT))
         {
-
             m_pData[dX][dY].m_cOwnerFrame = iFrame;
+            m_pData[dX][dY].max_frames = m_stFrame[sType][sAction].m_sMaxFrame + 1;
+            m_pData[dX][dY].frame_time = m_stFrame[sType][sAction].m_sFrameTime;
+            m_pData[dX][dY].start_time = dwTime;
             m_pData[dX][dY].m_cOwnerAction = (char)sAction;
         }
 
@@ -1837,6 +1841,7 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
 
 bool __fastcall CMapData::bGetOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, int * pStatus, char * pName, char * pAction, char * pFrame, int * pChatIndex, short * pV1, short * pV2)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY;
 
     if ((sX < 0) || (sX > MAPDATASIZEX) ||
@@ -1870,6 +1875,7 @@ bool __fastcall CMapData::bGetOwner(short sX, short sY, short * pOwnerType, char
 
 bool __fastcall CMapData::bGetDeadOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, char * pFrame, char * pName, short * pItemSprite, short * pItemSpriteFrame, int * pChatIndex)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY;
 
     if ((sX < 0) || (sX > MAPDATASIZEX) ||
@@ -1902,10 +1908,11 @@ bool __fastcall CMapData::bGetDeadOwner(short sX, short sY, short * pOwnerType, 
     return true;
 }
 
-int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short sViewPointY, bool self_only)
+void CMapData::object_frame_counter(short sViewPointX, short sViewPointY, bool self_only)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX{}, dY{}, sVal{};
-    uint32_t dwTime{}, dwRealTime{}, dwFrameTime{};
+    int64_t dwTime{}, dwRealTime{}, dwFrameTime{};
     int  iDelay{};
     int  iRet{}, iSoundIndex{}, iSkipFrame{};
     int  cDir{}, cTotalFrame{}, cFrameMoveDots{};
@@ -1919,36 +1926,35 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
 
     dwTime = dwRealTime = unixtime();
 
-    if ((dwTime - m_dwFrameTime) >= 90)
+    if ((dwTime - m_dwFrameTime) >= 10)
         m_dwFrameTime = dwTime;
 
     // todo: adjust "center"
     sVal = sViewPointX;
     sCenterX = (sVal / 32) + (m_pGame->get_virtual_width() / 32) / 2;
     sVal = sViewPointY;
-    sCenterY = (sVal / 32) + ((m_pGame->get_virtual_height() - 60) / 32) / 2;
+    sCenterY = (sVal / 32) + ((m_pGame->get_virtual_height()) / 32) / 2;
 
     m_sRectX = m_pGame->m_sVDL_X;
     m_sRectY = m_pGame->m_sVDL_Y;
 
-    if ((dwTime - S_dwUpdateTime) > 40) bAutoUpdate = true;
     dynObjsNeedUpdate = (dwTime - m_dwDOframeTime) > 100;
 
+//#pragma omp parallel for firstprivate(sViewPointX, sViewPointY, dX, dY, sVal, iDelay, iSoundIndex, iSkipFrame, cDir, cTotalFrame, cFrameMoveDots, sWeaponType, sCenterX, sCenterY, sDist, dx, dy, lPan, self_only) num_threads(4)
     for (dX = sViewPointX / 32 - 5; dX < (sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 5; dX++)
-        for (dY = sViewPointY / 32 - 5; dY < (sViewPointY / 32) + ((m_pGame->get_virtual_height() - 60) / 32) + 5; dY++)
+    {
+        for (dY = sViewPointY / 32 - 5; dY < (sViewPointY / 32) + ((m_pGame->get_virtual_height()) / 32) + 5; dY++)
         {
             if ((dX <= 0) || (dY <= 0))
                 continue;
 
             // fix: update to handle dead players
-            bool isClientPlayer = m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID;
             //m_pGame->player_action = m_pData[dX][dY].m_cOwnerAction;
 
-            if ((!self_only && isClientPlayer) || (self_only && !isClientPlayer))
+            if ((!self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID) || (self_only && !m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID))
                 continue;
 
-            auto result = m_pGame->get_distance_from_player(dX, dY);
-            lPan = sDist = result.first;
+            lPan = sDist = m_pGame->get_distance_from_player(dX, dY).first;
 
             if ((dwTime - m_dwDOframeTime) > 100)
             {
@@ -2103,12 +2109,6 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                     m_pData[dX][dY].m_dwDeadOwnerTime = dwTime;
                     m_pData[dX][dY].m_cDeadOwnerFrame++;
 
-                    if (iRet == 0)
-                    {
-                        iRet = -1;
-                        S_dwUpdateTime = dwTime;
-                    }
-
                     if (m_pData[dX][dY].m_cDeadOwnerFrame > 10)
                     {
                         m_pData[dX][dY].m_wDeadObjectID = 0;
@@ -2150,37 +2150,43 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                 //if (dwFrameTime == 0) dwFrameTime = 1;
                 //if (dwFrameTime > 200) dwFrameTime = m_stFrame[m_pData[dX][dY].m_sOwnerType][m_pData[dX][dY].m_cOwnerAction].m_sFrameTime;
 
-                if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) > dwFrameTime)
+                CTile * tile = &m_pData[dX][dY];
+
+                auto frames_elapsed = ((dwTime - tile->start_time) / dwFrameTime);
+                bool loop = false;
+                auto frames_advanced = frames_elapsed - (int)tile->m_cOwnerFrame;
+
+                if (frames_elapsed >= tile->max_frames)
+                    loop = true;
+
+                tile->m_cOwnerFrame = frames_elapsed % tile->max_frames;
+
+                tile->m_dwOwnerTime = tile->start_time + (frames_elapsed * dwFrameTime);
+
+                if (frames_advanced != 0)
                 {
-                    m_pGame->update_objects = true;
-
-                    if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) >= (dwFrameTime + dwFrameTime))
+                    if (self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID)
                     {
-                        //if (dwFrameTime == 0) dwFrameTime++;
-                        iSkipFrame = ((dwTime - m_pData[dX][dY].m_dwOwnerTime) / dwFrameTime);
-                        if (iSkipFrame > 3) iSkipFrame = 3;
-                        m_pData[dX][dY].m_cOwnerFrame += iSkipFrame;
-                    }
-                    else
-                    {
-                        m_pData[dX][dY].m_cOwnerFrame++;
+                        m_pGame->current_map_action = m_pData[dX][dY].m_cOwnerAction;
+                        if (loop)
+                        {
+                            if (tile->m_cOwnerAction == DEF_OBJECTATTACKMOVE && tile->m_cOwnerFrame >= tile->max_frames)
+                                m_pGame->dashing = false;
+                        }
                     }
 
-                    m_pData[dX][dY].m_dwOwnerTime = dwTime;
-
-                    if (iRet == 0)
+                    if (memcmp(m_pData[dX][dY].m_cOwnerName, m_pGame->m_cPlayerName, 10) == 0)
                     {
-                        iRet = -1;
-                        S_dwUpdateTime = dwTime;
-                    }
+                        m_pGame->update_camera_shake = true;
+                        //m_pGame->update_effects = true;
+                        m_pGame->update_objects = true;
+                        m_pGame->update_dialogs = true;
 
-                    if (memcmp(m_pData[dX][dY].m_cOwnerName, cPlayerName, 10) == 0)
-                    {
-                        iRet = 1;
                         switch (m_pData[dX][dY].m_cOwnerAction)
                         {
                             case DEF_OBJECTMOVE:
                             case DEF_OBJECTATTACKMOVE:
+                            case DEF_OBJECTDAMAGEMOVE:
                                 m_pGame->update_background = true;
                                 break;
 
@@ -2193,18 +2199,16 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                             case DEF_OBJECTNULLACTION:
                                 break;
                         }
-                        S_dwUpdateTime = dwTime;
-
                         if ((dwRealTime - m_dwFrameCheckTime) > dwFrameTime)
                             m_dwFrameAdjustTime = ((dwRealTime - m_dwFrameCheckTime) - dwFrameTime);
 
                         m_dwFrameCheckTime = dwRealTime;
                     }
 
-                    if (m_pData[dX][dY].m_cOwnerFrame > m_stFrame[m_pData[dX][dY].m_sOwnerType][m_pData[dX][dY].m_cOwnerAction].m_sMaxFrame)
+                    if (loop)
                     {
-                        if ((sViewPointX / 32 - 5 <= dX) && (((sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 5) >= dX) &&
-                            (sViewPointY / 32 - 5 <= dY) && (((sViewPointY / 32) + ((m_pGame->get_virtual_height() - 60) / 32) + 5) >= dY))
+                        if ((sViewPointX / 32 - 15 <= dX) && (((sViewPointX / 32) + (m_pGame->get_virtual_width() / 32) + 15) >= dX) &&
+                            (sViewPointY / 32 - 15 <= dY) && (((sViewPointY / 32) + ((m_pGame->get_virtual_height()) / 32) + 15) >= dY))
                         {
                             if (m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTDYING)
                             {
@@ -2231,13 +2235,17 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                             {
                                 m_pData[dX][dY].m_cOwnerAction = DEF_OBJECTSTOP;
                                 m_pData[dX][dY].m_dwOwnerTime = dwTime;
+                                m_pData[dX][dY].start_time = dwTime;
                                 m_pData[dX][dY].m_cOwnerFrame = 0;
+                                m_pData[dX][dY].max_frames = m_stFrame[m_pData[dX][dY].m_sOwnerType][DEF_OBJECTSTOP].m_sMaxFrame + 1;
+                                m_pData[dX][dY].frame_time = m_stFrame[m_pData[dX][dY].m_sOwnerType][DEF_OBJECTSTOP].m_sFrameTime;
                             }
 
-                            if (memcmp(m_pData[dX][dY].m_cOwnerName, cPlayerName, 10) == 0)
+                            if (memcmp(m_pData[dX][dY].m_cOwnerName, m_pGame->m_cPlayerName, 10) == 0)
                             {
-                                iRet = 2;
-                                S_dwUpdateTime = dwTime;
+                                m_pGame->can_take_action(true);
+                                m_pGame->current_map_action = m_pData[dX][dY].m_cOwnerAction;
+                                m_pGame->finished_animation_cycle = true;
                             }
                         }
                         else
@@ -2247,10 +2255,10 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
 
                             memset(m_pData[dX][dY].m_cOwnerName, 0, sizeof(m_pData[dX][dY].m_cOwnerName));
 
-                            if (m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] != 0)
+                            if (m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] != nullptr)
                             {
                                 delete m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg];
-                                m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] = 0;
+                                m_pGame->m_pChatMsgList[m_pData[dX][dY].m_iChatMsg] = nullptr;
                             }
                         }
                     }
@@ -4059,22 +4067,14 @@ int CMapData::object_frame_counter(char * cPlayerName, short sViewPointX, short 
                 }
             }
         }
-
-    if (bAutoUpdate == true)
-    {
-        S_dwUpdateTime = dwTime;
-
-        if (iRet == 0)
-            return -1;
     }
 
     if ((dwTime - m_dwDOframeTime) > 100) m_dwDOframeTime = dwTime;
-
-    return iRet;
 }
 
 bool CMapData::bSetItem(short sX, short sY, short sItemSpr, short sItemSprFrame, char cItemColor, bool bDropEffect)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY;
     int sAbsX{}, sAbsY{}, sDist;
 
@@ -4113,12 +4113,13 @@ bool CMapData::bSetItem(short sX, short sY, short sItemSpr, short sItemSprFrame,
 
 bool CMapData::bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType, char cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int iStatus, char * pName)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int  dX{}, dY{};
     char pTmpName[12]{};
     bool bEraseFlag = false;
 
     memset(pTmpName, 0, sizeof(pTmpName));
-    if (pName != 0) strcpy(pTmpName, pName);
+    if (pName != nullptr) strcpy(pTmpName, pName);
 
     if ((sX < 0) || (sX >= MAPDATASIZEX) ||
         (sY < 0) || (sY >= MAPDATASIZEY))
@@ -4160,13 +4161,11 @@ bool CMapData::bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType
         for (dX = 0; dX < MAPDATASIZEX; dX++)
             for (dY = 0; dY < MAPDATASIZEY; dY++)
             {
-
                 if (memcmp(m_pData[dX][dY].m_cDeadOwnerName, pTmpName, 10) == 0)
                 {
                     m_pData[dX][dY].m_sDeadOwnerType = 0;
                     memset(m_pData[dX][dY].m_cDeadOwnerName, 0, sizeof(m_pData[dX][dY].m_cDeadOwnerName));
                 }
-
             }
     }
 
@@ -4195,6 +4194,7 @@ bool CMapData::bSetDeadOwner(uint16_t wObjectID, short sX, short sY, short sType
 
 bool CMapData::bSetChatMsgOwner(uint16_t wObjectID, short sX, short sY, int iIndex)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY;
 
     if ((sX == -10) && (sY == -10)) goto SCMO_FULL_SEARCH;
@@ -4249,11 +4249,11 @@ bool CMapData::bSetChatMsgOwner(uint16_t wObjectID, short sX, short sY, int iInd
 
 void CMapData::ClearChatMsg(short sX, short sY)
 {
-    // v1.411
-    if (m_pGame->m_pChatMsgList[m_pData[sX][sY].m_iChatMsg] != 0)
+    std::unique_lock<std::mutex> lock(map_mut);
+    if (m_pGame->m_pChatMsgList[m_pData[sX][sY].m_iChatMsg] != nullptr)
     {
         delete m_pGame->m_pChatMsgList[m_pData[sX][sY].m_iChatMsg];
-        m_pGame->m_pChatMsgList[m_pData[sX][sY].m_iChatMsg] = 0;
+        m_pGame->m_pChatMsgList[m_pData[sX][sY].m_iChatMsg] = nullptr;
     }
 
     m_pData[sX][sY].m_iChatMsg = 0;
@@ -4261,11 +4261,13 @@ void CMapData::ClearChatMsg(short sX, short sY)
 
 void CMapData::ClearDeadChatMsg(short sX, short sY)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     m_pData[sX][sY].m_iDeadChatMsg = 0;
 }
 
-bool __fastcall CMapData::bGetOwner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID)
+bool __fastcall CMapData::bGetOwner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID) const
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY;
 
     if ((sX < 0) || (sX > MAPDATASIZEX) ||
@@ -4288,6 +4290,7 @@ bool __fastcall CMapData::bGetOwner(short sX, short sY, char * pName, short * pO
 
 bool CMapData::bSetDynamicObject(short sX, short sY, uint16_t wID, short sType, bool bIsEvent)
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int dX, dY, sPrevType;
 
     if ((sX < 0) || (sX >= MAPDATASIZEX) ||
@@ -4348,8 +4351,9 @@ bool CMapData::bSetDynamicObject(short sX, short sY, uint16_t wID, short sType, 
     return true;
 }
 
-void CMapData::GetOwnerStatusByObjectID(uint16_t wObjectID, char * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pStatus, int * pColor, char * pName)
+void CMapData::GetOwnerStatusByObjectID(uint16_t wObjectID, char * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pStatus, int * pColor, char * pName) const
 {
+    std::unique_lock<std::mutex> lock(map_mut);
     int iX, iY;
 
     for (iX = 0; iX < MAPDATASIZEX; iX++)

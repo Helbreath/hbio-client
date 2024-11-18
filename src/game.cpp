@@ -62,16 +62,18 @@ char _cMantleDrawingOrderOnRun[] = { 0, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 int _tmp_iStatus;
-char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-uint16_t  _tmp_wObjectID;
+char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+int64_t _tmp_owner_time, _tmp_start_time;
+int64_t _tmp_max_frames, _tmp_frame_time;
+int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+uint16_t _tmp_wObjectID;
 char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-uint16_t  wFocusObjectID;
+uint16_t wFocusObjectID;
 short sFocus_dX, sFocus_dY;
-char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 int iFocusStatus;
-int   iFocusApprColor;
+int iFocusApprColor;
 
 void CGame::ReadSettings()
 {
@@ -225,7 +227,7 @@ CGame::CGame()
     m_stConfigList.bMouseTileDebug = true;
     m_stConfigList.bGMChat = true;
     m_iStatLimit = 330;//200;
-    m_dwPotCheckTime = unixtime();
+    m_dwPotCheckTime = m_dwCurTime;
     m_iTotalUsers = 0;
     m_iPing = 0;
 
@@ -580,25 +582,25 @@ bool CGame::bInit()
 
     if (_bDecodeBuildItemContents() == false)
     {
-        MessageBoxA(m_hWnd, "File checksum error! Get Update again please!", "ERROR2", MB_ICONEXCLAMATION | MB_OK);
+        log->critical("Build item contents error");
         return false;
     }
 
     if (bReadItemNameConfigFile() == false)
     {
-        MessageBoxA(m_hWnd, "ItemName.cfg file contains wrong information.", "ERROR", MB_ICONEXCLAMATION | MB_OK);
+        log->critical("Item name config contents error");
         return false;
     }
 
     if (bInitMagicCfgList() == false)
     {
-        MessageBoxA(m_hWnd, "MAGICCFG.TXT file contains wrong information.", "ERROR", MB_ICONEXCLAMATION | MB_OK);
+        log->critical("Magic config contents error");
         return false;
     }
 
     if (bInitSkillCfgList() == false)
     {
-        MessageBoxA(m_hWnd, "SKILLCFG.TXT file contains wrong information.", "ERROR", MB_ICONEXCLAMATION | MB_OK);
+        log->critical("Skill config contents error");
         return false;
     }
 
@@ -798,7 +800,48 @@ void CGame::Quit()
     }
 }
 
-void CGame::CalcViewPoint()
+void CGame::CalcViewPoint(int64_t dwTime)
+{
+    // Calculate the total time elapsed since the animation started
+    int64_t total_time_elapsed = dwTime - self_start_time;
+
+    // Calculate the total duration of the entire animation cycle
+    int64_t total_animation_duration = self_frame_time * self_max_frames;
+
+    // Calculate the fraction of the entire animation cycle that has elapsed
+    double animation_progress = static_cast<double>(total_time_elapsed) / static_cast<double>(total_animation_duration);
+    animation_progress = (animation_progress > 1.0) ? 1.0 : animation_progress;
+
+    //if (m_sViewStartX != m_sViewDstX) __debugbreak();
+    // Calculate the exact interpolated position
+    m_sViewPointX = m_sViewStartX + static_cast<short>((m_sViewDstX - m_sViewStartX) * animation_progress);
+    m_sViewPointY = m_sViewStartY + static_cast<short>((m_sViewDstY - m_sViewStartY) * animation_progress);
+
+    // Ensure the camera ends up exactly at the destination when the cycle completes
+    if (animation_progress >= 1.0f || finished_animation_cycle || (m_cCommand == DEF_OBJECTSTOP && current_map_action == DEF_OBJECTSTOP && !dashing))
+    {
+        if (camera_reset)
+        {
+            m_sViewPointX = m_sViewStartX = m_sViewDstX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+            m_sViewPointY = m_sViewStartY = m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+        }
+        else
+        {
+            if (finished_animation_cycle)
+            {
+                finished_animation_cycle = false;
+                m_sViewPointX = m_sViewStartX = m_sViewDstX;
+                m_sViewPointY = m_sViewStartY = m_sViewDstY;
+            }
+        }
+    }
+
+    // Mark that the background needs updating
+    update_background = true;
+}
+
+
+void CGame::CalcViewPointOld()
 {
     short dX, dY;
 
@@ -871,7 +914,7 @@ bool CGame::_bCheckMoveable(short sx, short sy) const
     return true;
 }
 
-bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1, int iV2, int iV3, char * pString, int iV4)
+bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1, int iV2, int iV3, const char * pString, int iV4)
 {
 
     char * cp, cMsg[300]{}, cTxt[256]{}, cKey{};
@@ -886,7 +929,7 @@ bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1
 
     if (!is_connected()) return false;
 
-    dwTime = unixtime();
+    dwTime = m_dwCurTime;
 
     memset(cMsg, 0, sizeof(cMsg));
     cKey = (char)(rand() % 255) + 1;// todo: remove this garbage
@@ -1083,7 +1126,7 @@ bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1
         case MSGID_COMMAND_CHECKCONNECTION:
             sw.write_uint32(dwMsgID);
             sw.write_uint16(0);
-            sw.write_uint32(unixtime());
+            sw.write_uint32(m_dwCurTime);
             write(sw);
             break;
 
@@ -1237,7 +1280,7 @@ bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1
             cp = (char *)(cMsg + DEF_INDEX2_MSGTYPE + 2);
 
             //		ip = (int *)cp;
-            //		*ip = unixtime();
+            //		*ip = m_dwCurTime;
             //		cp += 4;
 
             sp = (short *)cp;
@@ -1564,7 +1607,7 @@ void CGame::make_effect_sprite(char * FileName, short sStart, short sCount, bool
 void CGame::OnTimer()
 {
     if (m_cGameMode < 0) return;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     {
         std::lock_guard<std::mutex> lock(socket_mut);
@@ -1760,7 +1803,7 @@ void CGame::InitGameSettings()
 
     m_iNetLagCount = 0;
 
-    m_dwEnvEffectTime = unixtime();
+    m_dwEnvEffectTime = m_dwCurTime;
 
     for (i = 0; i < DEF_MAXGUILDNAMES; i++)
     {
@@ -2062,7 +2105,6 @@ void CGame::AddEventList(const char * pTxt, char cColor, bool bDupAllow, int iGM
 
     if ((bDupAllow == false) && (strcmp(m_stEventHistory[5].cTxt, pTxt) == 0)) return;
 
-    // v2.12
     if (cColor == 10)
     {
         for (i = 1; i < 6; i++)
@@ -2186,9 +2228,9 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
     int16_t sAbsX, sAbsY, sDist, lPan;
     int  iV2 = 0;
 
-    auto result = get_distance_from_player(dX, dY);
+    auto [xdist, ydist] = get_distance_from_player(dX, dY);
 
-    lPan = result.first;
+    lPan = xdist;
 
     if (m_cDetailLevel == 0)
     {
@@ -2206,7 +2248,7 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
 
     if (m_bIsProgramActive == false) return;
 
-    sAbsX = abs(((m_sViewPointX / 32) + (get_virtual_width() / 32) / 2) - dX);
+    sAbsX = abs(((m_sViewPointX / 32) + (get_virtual_width() / 32) / 2 - 1) - dX);
     sAbsY = abs(((m_sViewPointY / 32) + (get_virtual_height() / 32) / 2) - dY);
 
     if (sAbsX > sAbsY) sDist = sAbsX;
@@ -2270,8 +2312,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2289,8 +2331,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2308,8 +2350,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 5;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2408,8 +2450,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 10;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2442,8 +2484,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 9;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2460,8 +2502,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 8;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2494,8 +2536,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2511,8 +2553,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 18;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2527,8 +2569,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 40;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2543,8 +2585,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2567,8 +2609,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 20;
                     m_pEffectList[i]->m_iV1 = 20;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2587,8 +2629,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_dwFrameTime = 20;
                     m_pEffectList[i]->m_iV1 = 20;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2604,8 +2646,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 12;
                     m_pEffectList[i]->m_dwFrameTime = 50;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2629,8 +2671,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2646,8 +2688,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 80;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2671,8 +2713,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2705,8 +2747,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 16;
                     m_pEffectList[i]->m_dwFrameTime = 10;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2756,8 +2798,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 14;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2783,8 +2825,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 17;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2804,8 +2846,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2822,8 +2864,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 11;
                     m_pEffectList[i]->m_dwFrameTime = 30;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2840,8 +2882,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 0;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2857,8 +2899,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_cMaxFrame = 15;
                     m_pEffectList[i]->m_dwFrameTime = 20;
 
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
 
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
@@ -2916,8 +2958,8 @@ void CGame::bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cSta
                     m_pEffectList[i]->m_iV1 = 20;
                     m_pEffectList[i]->m_cMaxFrame = 30;
                     m_pEffectList[i]->m_dwFrameTime = 25;
-                    sAbsX = abs((get_virtual_width() / 2) - (sX * 32 - m_sViewPointX));
-                    sAbsY = abs((get_virtual_height() / 2) - (sY * 32 - m_sViewPointY));
+                    sAbsX = abs((get_virtual_width() / 2) - (sX - m_sViewPointX));
+                    sAbsY = abs((get_virtual_height() / 2) - (sY - m_sViewPointY));
                     if (sAbsX > sAbsY) sDist = sAbsX;
                     else sDist = sAbsY;
                     sDist = sDist / 32;
@@ -3738,16 +3780,8 @@ void CGame::ChangeGameMode(char cMode)
                         {
                             {
                                 std::unique_lock<std::mutex> l(screen_mtx);
-                                iUpdateRet = m_pMapData->object_frame_counter(m_cPlayerName, m_sViewPointX, m_sViewPointY);
-                                if (iUpdateRet == 0)
-                                    iUpdateRet = -1;
-                                if ((effect_frame_counter() == true) && (iUpdateRet == 0)) iUpdateRet = -1;
-                                if (iUpdateRet == 2)
-                                {
-                                    m_bCommandAvailable = true;
-                                    m_dwCommandTime = 0;
-                                }
-
+                                m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY);
+                                if (effect_frame_counter() == true) update_effects = true;
                                 weather_object_frame_counter();
                             }
                             std::this_thread::sleep_for(10ms);
@@ -3931,14 +3965,14 @@ void CGame::PutChatScrollList(char * pMsg, char cType, int iGM)
 void CGame::ReleaseTimeoverChatMsg()
 {
     int i;
-    uint32_t dwTime;
+    int64_t dwTime;
 
     dwTime = G_dwGlobalTime;
 
     for (i = 1; i < DEF_MAXCHATMSGS; i++)
+    {
         if (m_pChatMsgList[i] != 0)
         {
-
             if ((m_pChatMsgList[i]->m_cType >= 1) && (m_pChatMsgList[i]->m_cType <= 20))
             {
                 if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_A)
@@ -3947,36 +3981,35 @@ void CGame::ReleaseTimeoverChatMsg()
                     m_pChatMsgList[i] = 0;
                 }
             }
-            else
-                if ((m_pChatMsgList[i]->m_cType >= 21) && (m_pChatMsgList[i]->m_cType <= 40))
+            else if ((m_pChatMsgList[i]->m_cType >= 21) && (m_pChatMsgList[i]->m_cType <= 40))
+            {
+                if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_B)
                 {
-                    if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_B)
-                    {
-                        delete m_pChatMsgList[i];
-                        m_pChatMsgList[i] = 0;
-                    }
+                    delete m_pChatMsgList[i];
+                    m_pChatMsgList[i] = 0;
                 }
-                else
-                    if ((m_pChatMsgList[i]->m_cType >= 41) && (m_pChatMsgList[i]->m_cType <= 60))
-                    {
-                        if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_C)
-                        {
-                            delete m_pChatMsgList[i];
-                            m_pChatMsgList[i] = 0;
-                        }
-                    }
-                    else if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_A)
-                    {
-                        delete m_pChatMsgList[i];
-                        m_pChatMsgList[i] = 0;
-                    }
+            }
+            else if ((m_pChatMsgList[i]->m_cType >= 41) && (m_pChatMsgList[i]->m_cType <= 60))
+            {
+                if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_C)
+                {
+                    delete m_pChatMsgList[i];
+                    m_pChatMsgList[i] = 0;
+                }
+            }
+            else if ((dwTime - m_pChatMsgList[i]->m_dwTime) > DEF_CHATTIMEOUT_A)
+            {
+                delete m_pChatMsgList[i];
+                m_pChatMsgList[i] = 0;
+            }
         }
+    }
 }
 
 bool CGame::effect_frame_counter()
 {
     int i, x;
-    uint32_t dwTime;
+    int64_t dwTime;
     bool bRet = false;
     short sAbsX, sAbsY, sDist{};
     char  cDir;
@@ -4521,7 +4554,7 @@ bool CGame::effect_frame_counter()
                         break;
 
                     case 110:
-                        // Enegy-Bolt
+                        // Energy-Bolt
                         m_Misc.GetPoint(m_pEffectList[i]->m_mX, m_pEffectList[i]->m_mY,
                             m_pEffectList[i]->m_dX * 32, m_pEffectList[i]->m_dY * 32/* - 40*/,
                             &m_pEffectList[i]->m_mX, &m_pEffectList[i]->m_mY,
@@ -4533,7 +4566,7 @@ bool CGame::effect_frame_counter()
                             (abs(m_pEffectList[i]->m_mY - m_pEffectList[i]->m_dY * 32) <= 2))
                         {
 
-                            bAddNewEffect(6, m_pEffectList[i]->m_dX * 32, m_pEffectList[i]->m_dY * 32, 0, 0, 0); // 6 testcode 0111
+                            bAddNewEffect(6, m_pEffectList[i]->m_dX * 32, m_pEffectList[i]->m_dY * 32, 0, 0, 0);
 
                             delete m_pEffectList[i];
                             m_pEffectList[i] = 0;
@@ -5919,7 +5952,7 @@ void CGame::DrawChatMsgs(short sX, short sY, short dX, short dY)
     }
 }
 
-void CGame::_RequestMapStatus(char * pMapName, int iMode)
+void CGame::_RequestMapStatus(const char * pMapName, int iMode)
 {
     bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_REQUEST_MAPSTATUS, 0, iMode, 0, 0, pMapName);
 }
@@ -6474,9 +6507,9 @@ void CGame::PlaySound(char cType, int iNum, int iDist, long lPan)
 void CGame::_DrawBlackRect(int iSize)
 {
     int ix, iy, sx, sy, dcx, dcy;
-    uint32_t dwTime;
+    int64_t dwTime;
 
-    dwTime = unixtime();
+    dwTime = m_dwCurTime;
 
     dcx = 40 - iSize * 2;
     dcy = 30 - iSize * 2;
@@ -6598,7 +6631,7 @@ void CGame::DrawWhetherEffects()
     int i;
     short dX, dY, sCnt;
     char cTempFrame;
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
 
     switch (m_cWhetherEffectType)
     {
@@ -6607,26 +6640,26 @@ void CGame::DrawWhetherEffects()
         case 3:
             switch (m_cWhetherEffectType)
             {
-                case 1: sCnt = DEF_MAXWHETHEROBJECTS / 5; break;
-                case 2:	sCnt = DEF_MAXWHETHEROBJECTS / 2; break;
-                case 3:	sCnt = DEF_MAXWHETHEROBJECTS;     break;
+                case 1: sCnt = DEF_MAXWEATHEROBJECTS / 5; break;
+                case 2:	sCnt = DEF_MAXWEATHEROBJECTS / 2; break;
+                case 3:	sCnt = DEF_MAXWEATHEROBJECTS;     break;
             }
 
             for (i = 0; i < sCnt; i++)
             {
-                if ((m_stWhetherObject[i].cStep >= 0) && (m_stWhetherObject[i].cStep < 20) && (m_stWhetherObject[i].sX != 0))
+                if ((weather_object[i].cStep >= 0) && (weather_object[i].cStep < 20) && (weather_object[i].sX != 0))
                 {
-                    dX = m_stWhetherObject[i].sX - m_sViewPointX;
-                    dY = m_stWhetherObject[i].sY - m_sViewPointY;
-                    cTempFrame = 16 + (m_stWhetherObject[i].cStep / 6);
+                    dX = weather_object[i].sX - m_sViewPointX;
+                    dY = weather_object[i].sY - m_sViewPointY;
+                    cTempFrame = 16 + (weather_object[i].cStep / 6);
 
                     m_pEffectSpr[11]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                 }
-                else if ((m_stWhetherObject[i].cStep >= 20) && (m_stWhetherObject[i].cStep < 25) && (m_stWhetherObject[i].sX != 0))
+                else if ((weather_object[i].cStep >= 20) && (weather_object[i].cStep < 25) && (weather_object[i].sX != 0))
                 {
-                    dX = m_stWhetherObject[i].sX - m_sViewPointX;
-                    dY = m_stWhetherObject[i].sY - m_sViewPointY;
-                    m_pEffectSpr[11]->put_trans_sprite(dX, dY, m_stWhetherObject[i].cStep, dwTime);
+                    dX = weather_object[i].sX - m_sViewPointX;
+                    dY = weather_object[i].sY - m_sViewPointY;
+                    m_pEffectSpr[11]->put_trans_sprite(dX, dY, weather_object[i].cStep, dwTime);
                 }
             }
             break;
@@ -6636,9 +6669,9 @@ void CGame::DrawWhetherEffects()
         case 6:
             switch (m_cWhetherEffectType)
             {
-                case 4: sCnt = DEF_MAXWHETHEROBJECTS / 5; break;
-                case 5:	sCnt = DEF_MAXWHETHEROBJECTS / 2; break;
-                case 6:	sCnt = DEF_MAXWHETHEROBJECTS;     break;
+                case 4: sCnt = DEF_MAXWEATHEROBJECTS / 5; break;
+                case 5:	sCnt = DEF_MAXWEATHEROBJECTS / 2; break;
+                case 6:	sCnt = DEF_MAXWEATHEROBJECTS;     break;
             }
 
 #ifdef DEF_XMAS
@@ -6651,11 +6684,11 @@ void CGame::DrawWhetherEffects()
 
             for (i = 0; i < sCnt; i++)
             {
-                if ((m_stWhetherObject[i].cStep >= 0) && (m_stWhetherObject[i].cStep < 80))
+                if ((weather_object[i].cStep >= 0) && (weather_object[i].cStep < 80))
                 {
-                    dX = m_stWhetherObject[i].sX - m_sViewPointX;
-                    dY = m_stWhetherObject[i].sY - m_sViewPointY;
-                    cTempFrame = 39 + (m_stWhetherObject[i].cStep / 20) * 3 + (rand() % 3);
+                    dX = weather_object[i].sX - m_sViewPointX;
+                    dY = weather_object[i].sY - m_sViewPointY;
+                    cTempFrame = 39 + (weather_object[i].cStep / 20) * 3 + (rand() % 3);
 
                     m_pEffectSpr[11]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
 
@@ -6693,7 +6726,7 @@ void CGame::weather_object_frame_counter()
     int i;
     short sCnt;
     char  cAdd;
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     if ((dwTime - m_dwWOFtime) < 30) return;
     m_dwWOFtime = dwTime;
 
@@ -6704,38 +6737,38 @@ void CGame::weather_object_frame_counter()
         case 3:
             switch (m_cWhetherEffectType)
             {
-                case 1: sCnt = DEF_MAXWHETHEROBJECTS / 5; break;
-                case 2:	sCnt = DEF_MAXWHETHEROBJECTS / 2; break;
-                case 3:	sCnt = DEF_MAXWHETHEROBJECTS;     break;
+                case 1: sCnt = DEF_MAXWEATHEROBJECTS / 5; break;
+                case 2:	sCnt = DEF_MAXWEATHEROBJECTS / 2; break;
+                case 3:	sCnt = DEF_MAXWEATHEROBJECTS;     break;
             }
 
             for (i = 0; i < sCnt; i++)
             {
-                m_stWhetherObject[i].cStep++;
-                if ((m_stWhetherObject[i].cStep >= 0) && (m_stWhetherObject[i].cStep < 20))
+                weather_object[i].cStep++;
+                if ((weather_object[i].cStep >= 0) && (weather_object[i].cStep < 20))
                 {
-                    cAdd = (40 - m_stWhetherObject[i].cStep);
+                    cAdd = (40 - weather_object[i].cStep);
                     if (cAdd < 0) cAdd = 0;
-                    m_stWhetherObject[i].sY = m_stWhetherObject[i].sY + cAdd;
+                    weather_object[i].sY = weather_object[i].sY + cAdd;
                     if (cAdd != 0)
-                        m_stWhetherObject[i].sX = m_stWhetherObject[i].sX - 1;
+                        weather_object[i].sX = weather_object[i].sX - 1;
                 }
-                else if (m_stWhetherObject[i].cStep >= 25)
+                else if (weather_object[i].cStep >= 25)
                 {
                     if (m_bIsWhetherEffect == false)
                     {
-                        m_stWhetherObject[i].sX = 0;
-                        m_stWhetherObject[i].sY = 0;
-                        m_stWhetherObject[i].cStep = 30;
+                        weather_object[i].sX = 0;
+                        weather_object[i].sY = 0;
+                        weather_object[i].cStep = 30;
                     }
                     else
                     {
                         int pivot_x = m_sPlayerX - get_virtual_width() / 2;
                         int pivot_y = m_sPlayerY - get_virtual_height() / 2;
                         //todo - check 300/240
-                        m_stWhetherObject[i].sX = (pivot_x * 32) + ((rand() % 940) - 200) + 300;
-                        m_stWhetherObject[i].sY = (pivot_y * 32) + ((rand() % 800) - 600) + 240;
-                        m_stWhetherObject[i].cStep = -1 * (rand() % 10);
+                        weather_object[i].sX = (pivot_x * 32) + ((rand() % 940) - 200) + 300;
+                        weather_object[i].sY = (pivot_y * 32) + ((rand() % 800) - 600) + 240;
+                        weather_object[i].cStep = -1 * (rand() % 10);
                     }
                 }
             }
@@ -6746,37 +6779,37 @@ void CGame::weather_object_frame_counter()
         case 6:
             switch (m_cWhetherEffectType)
             {
-                case 4: sCnt = DEF_MAXWHETHEROBJECTS / 5; break;
-                case 5:	sCnt = DEF_MAXWHETHEROBJECTS / 2; break;
-                case 6:	sCnt = DEF_MAXWHETHEROBJECTS;     break;
+                case 4: sCnt = DEF_MAXWEATHEROBJECTS / 5; break;
+                case 5:	sCnt = DEF_MAXWEATHEROBJECTS / 2; break;
+                case 6:	sCnt = DEF_MAXWEATHEROBJECTS;     break;
             }
 
             for (i = 0; i < sCnt; i++)
             {
-                m_stWhetherObject[i].cStep++;
-                if ((m_stWhetherObject[i].cStep >= 0) && (m_stWhetherObject[i].cStep < 80))
+                weather_object[i].cStep++;
+                if ((weather_object[i].cStep >= 0) && (weather_object[i].cStep < 80))
                 {
-                    cAdd = (80 - m_stWhetherObject[i].cStep) / 10;
+                    cAdd = (80 - weather_object[i].cStep) / 10;
                     if (cAdd < 0) cAdd = 0;
-                    m_stWhetherObject[i].sY = m_stWhetherObject[i].sY + cAdd;
+                    weather_object[i].sY = weather_object[i].sY + cAdd;
                     //if ((rand() % 3) == 1) 
-                    m_stWhetherObject[i].sX += 1 - (rand() % 3);
+                    weather_object[i].sX += 1 - (rand() % 3);
                 }
-                else if (m_stWhetherObject[i].cStep >= 80)
+                else if (weather_object[i].cStep >= 80)
                 {
                     if (m_bIsWhetherEffect == false)
                     {
-                        m_stWhetherObject[i].sX = 0;
-                        m_stWhetherObject[i].sY = 0;
-                        m_stWhetherObject[i].cStep = 80;
+                        weather_object[i].sX = 0;
+                        weather_object[i].sY = 0;
+                        weather_object[i].cStep = 80;
                     }
                     else
                     {
                         int pivot_x = m_sPlayerX - get_virtual_width() / 2;
                         int pivot_y = m_sPlayerY - get_virtual_height() / 2;
-                        m_stWhetherObject[i].sX = (pivot_x * 32) + ((rand() % 940) - 200) + 300;
-                        m_stWhetherObject[i].sY = (pivot_y * 32) + ((rand() % 800) - 600) + 600;
-                        m_stWhetherObject[i].cStep = -1 * (rand() % 10);
+                        weather_object[i].sX = (pivot_x * 32) + ((rand() % 940) - 200) + 300;
+                        weather_object[i].sY = (pivot_y * 32) + ((rand() % 800) - 600) + 600;
+                        weather_object[i].cStep = -1 * (rand() % 10);
                     }
                 }
             }
@@ -6792,11 +6825,11 @@ void CGame::SetWhetherStatus(bool bStart, char cType)
         m_cWhetherEffectType = cType;
         if ((m_bSoundStat == true) && (m_bSoundFlag) && (cType >= 1) && (cType <= 3)) m_pESound[38].play();
 
-        for (int i = 0; i < DEF_MAXWHETHEROBJECTS; i++)
+        for (int i = 0; i < DEF_MAXWEATHEROBJECTS; i++)
         {
-            m_stWhetherObject[i].sX = 1;
-            m_stWhetherObject[i].sY = 1;
-            m_stWhetherObject[i].cStep = -1 * (rand() % 40);
+            weather_object[i].sX = 1;
+            weather_object[i].sY = 1;
+            weather_object[i].cStep = -1 * (rand() % 40);
         }
         if (cType >= 4 && cType <= 6)
         {
@@ -6927,7 +6960,7 @@ void CGame::_DrawThunderEffect(int sX, int sY, int dX, int dY, int rX, int rY, c
 {
     int j, iErr, pX1, pY1, iX1, iY1, tX, tY;
     char cDir;
-    uint32_t dwTime;
+    int64_t dwTime;
     uint16_t  wR1, wG1, wB1, wR2, wG2, wB2, wR3, wG3, wB3, wR4, wG4, wB4;
 
     dwTime = m_dwCurTime;
@@ -7554,7 +7587,7 @@ void CGame::_SetIlusionEffect(int iOwnerH)
 
 void CGame::CreateScreenShot()
 {
-    time_t t = time(0); // get time now
+    time_t t = time(nullptr); // get time now
     struct tm * now = localtime(&t);
 
     _text.setOutlineThickness(0);
@@ -7699,12 +7732,12 @@ void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int iStatus)
     {
         if (strlen(cTxt2) > 0)
         {
-            format_to_local(cTxt2, "iStatus(0x%X)", iStatus);
+            format_to_local(cTxt2, "iStatus({:X})", iStatus);
             put_string2(sX, sY + 28, cTxt2, 60, 160, 200);//Change Added -- Status
         }
         else
         {
-            format_to_local(cTxt2, "iStatus(0x%X)", iStatus);
+            format_to_local(cTxt2, "iStatus({:X})", iStatus);
             put_string2(sX, sY + 38, cTxt2, 60, 160, 200);//Change Added -- Status
         }
     }
@@ -7715,7 +7748,7 @@ void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int iStatus)
 void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
 {
     char cTxt[64], cTxt2[64];
-    short sR, sG, sB;
+    uint8_t sR, sG, sB;
     int i, iGuildIndex, iFOE, iAddY = 0;
     bool bPK, bCitizen, bAresden, bHunter;
 
@@ -8033,7 +8066,7 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
 #ifdef DEF_HACKCLIENT
     if (m_stConfigList.bDebugStatus == true)
     {
-        format_to_local(cTxt2, "iStatus(0x%X) - {} - {} - {}", iStatus, ((_tmp_iStatus & 0x01000000) >> 24), ((_tmp_iStatus & 0x02000000) >> 25), ((_tmp_iStatus & 0x04000000) >> 26), ((_tmp_iStatus & 0x08000000) >> 27));
+        format_to_local(cTxt2, "iStatus({:X}) - {} - {} - {}", iStatus, ((_tmp_iStatus & 0x01000000) >> 24), ((_tmp_iStatus & 0x02000000) >> 25), ((_tmp_iStatus & 0x04000000) >> 26), ((_tmp_iStatus & 0x08000000) >> 27));
         put_under_entity_string(sX, sY + 28 + iAddY, cTxt2, Color(60, 160, 200));//Change Added -- Status
     }
 #endif
@@ -8042,7 +8075,7 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
 bool CGame::FindGuildName(char * pName, int * ipIndex)
 {
     int i, iRet = 0;
-    uint32_t dwTmpTime;
+    int64_t dwTmpTime;
     for (i = 0; i < DEF_MAXGUILDNAMES; i++)
     {
         if (memcmp(m_stGuildName[i].cCharName, pName, 10) == 0)
@@ -8068,10 +8101,11 @@ bool CGame::FindGuildName(char * pName, int * ipIndex)
     *ipIndex = iRet;
     return false;
 }
+
 bool CGame::FindPlayerName(char * pName, int * ipIndex)
 {
     int i, iRet = 0;
-    uint32_t dwTmpTime;
+    int64_t dwTmpTime;
     for (i = 0; i < DEF_MAXPKS; i++)
     {
         if (memcmp(m_stPKList[i].m_cCharName, pName, 10) == 0)
@@ -8096,7 +8130,6 @@ bool CGame::FindPlayerName(char * pName, int * ipIndex)
     *ipIndex = iRet;
     return false;
 }
-
 
 //void CGame::DrawVersion()
 //{
@@ -8534,15 +8567,57 @@ void CGame::LOL(int iType, int iNum)
 
     iRet = send_message(cLOL, 12);
 }
-bool CGame::bCheckLocalChatCommand(char * pMsg)
+
+bool CGame::bCheckLocalChatCommand(const char * pMsg)
 {
-     CStrTok * pStrTok = 0;
+    CStrTok * pStrTok = 0;
     char * token, cBuff[256], cTxt[120], cName[12], cTemp[120];
     char   seps[] = " \t\n";
 
     memset(cBuff, 0, sizeof(cBuff));
     memset(cName, 0, sizeof(cName));
     strcpy(cBuff, pMsg);
+
+    std::string msg = cBuff;
+
+    if (msg.starts_with("/t "))
+    {
+        auto tokens = split(msg);
+
+        if (tokens.size() < 3)
+        {
+            AddEventList("Invalid command. Usage: /t <varnum> <value>", 10);
+            return true;
+        }
+
+        switch (std::stoi(tokens[1]))
+        {
+            case 1: test_values.t1 = std::stof(tokens[2]); break;
+            case 2: test_values.t2 = std::stof(tokens[2]); break;
+            case 3: test_values.t3 = std::stof(tokens[2]); break;
+            case 4: test_values.t4 = std::stof(tokens[2]); break;
+            case 5: test_values.t5 = std::stof(tokens[2]); break;
+            case 6: test_values.t6 = std::stof(tokens[2]); break;
+            case 7: test_values.t7 = std::stof(tokens[2]); break;
+            case 8: test_values.t8 = std::stof(tokens[2]); break;
+            case 9: test_values.t9 = std::stof(tokens[2]); break;
+            case 10: test_values.t10 = std::stof(tokens[2]); break;
+            case 11: test_values.t11 = std::stof(tokens[2]); break;
+            case 12: test_values.t12 = std::stof(tokens[2]); break;
+            case 13: test_values.t13 = std::stof(tokens[2]); break;
+            case 14: test_values.t14 = std::stof(tokens[2]); break;
+            case 15: test_values.t15 = std::stof(tokens[2]); break;
+            case 16: test_values.t16 = std::stof(tokens[2]); break;
+        }
+
+        AddEventList(std::format("Test value {} set to {}", tokens[1], tokens[2]).c_str(), 10);
+    }
+
+    if (memcmp(cBuff, "/camera", 7) == 0)
+    {
+        game_configs.old_camera = !game_configs.old_camera;
+        AddEventList(std::format("Camera style changed to {}", game_configs.old_camera ? "old" : "new").c_str(), 10);
+    }
     if (memcmp(cBuff, "/showframe", 10) == 0)
     {
         if (m_bShowFPS) m_bShowFPS = false;
@@ -9088,8 +9163,6 @@ void CGame::ClearSkillUsingStatus()
     m_bSkillUsingStatus = false;
 }
 
-
-
 void CGame::GetNpcName(short sType, char * pName)
 {
     switch (sType)
@@ -9351,7 +9424,7 @@ void CGame::GetItemName(CItem * pItem, char * pStr1, char * pStr2, char * pStr3,
                     case 9:  format_to_local(cTxt, GET_ITEM_NAME32, dwValue2 * 3); break;
                     case 10: format_to_local(cTxt, GET_ITEM_NAME33, dwValue2);   break;
                     case 11: format_to_local(cTxt, GET_ITEM_NAME34, dwValue2 * 10); break;
-                    case 12: format_to_local(cTxt, GET_ITEM_NAME35, dwValue2 * 10); break;//"Gold +{}%% "
+                    case 12: format_to_local(cTxt, GET_ITEM_NAME35, dwValue2 * 10); break;//"Gold +{}% "
                 }
                 strcpy(pStr3, cTxt);
             }
@@ -9468,7 +9541,7 @@ void CGame::GetItemName(char * cItemName, uint32_t dwAttribute, char * pStr1, ch
                     case 9:  format_to_local(cTxt, GET_ITEM_NAME32, dwValue2 * 3);  break;
                     case 10: format_to_local(cTxt, GET_ITEM_NAME33, dwValue2);    break;
                     case 11: format_to_local(cTxt, GET_ITEM_NAME34, dwValue2 * 10); break;
-                    case 12: format_to_local(cTxt, GET_ITEM_NAME35, dwValue2 * 10); break;//"Gold +{}%% "
+                    case 12: format_to_local(cTxt, GET_ITEM_NAME35, dwValue2 * 10); break;//"Gold +{}% "
                 }
                 strcpy(pStr3, cTxt);
             }
@@ -9499,13 +9572,13 @@ void CGame::GetItemName(char * cItemName, uint32_t dwAttribute, char * pStr1, ch
 
 void CGame::PointCommandHandler(int indexX, int indexY, char cItemID)
 {
-    char cTemp[31];
+    char cTemp[31]{};
     if ((m_iPointCommandType >= 100) && (m_iPointCommandType < 200))
     {
 #ifdef DEF_HACKCLIENT
         if (m_stConfigList.bFastCast == true)
         {
-            uint32_t dwTime = unixtime();
+            int64_t dwTime = m_dwCurTime;
             if ((dwTime - m_stConfigList.dwFastCast) > 50)
                 bSendCommand(MSGID_COMMAND_COMMON, DEF_COMMONTYPE_MAGIC, 0, indexX, indexY, m_iPointCommandType, 0);
         }
@@ -9597,7 +9670,7 @@ void CGame::StartBGM()
     bgm_current = music_name;
 }
 
-void CGame::ShowEventList(uint32_t dwTime)
+void CGame::ShowEventList(int64_t dwTime)
 {
     int i;
 
@@ -10086,11 +10159,11 @@ void CGame::UseMagic(int iMagicNo)
     //if ((m_cMagicMastery[iMagicNo] == 0) || (m_pMagicCfgList[iMagicNo] == 0)) return;//Change Uncommented
     if (m_iHP <= 0) return;
 #ifdef DEF_HACKCLIENT
-    if (m_stConfigList.bFastCast == false)//Change << \/
+    if (m_stConfigList.bFastCast == false)
 #endif
-        if (m_bIsGetPointingMode == true) return;//Change was uncommented
+        if (m_bIsGetPointingMode == true) return;
 #ifndef DEF_HACKCLIENT
-    if (iGetManaCost(iMagicNo) > m_iMP) return;//Change
+    if (iGetManaCost(iMagicNo) > m_iMP) return;
 #endif
 
 #ifndef DEF_HACKCLIENT
@@ -10098,7 +10171,7 @@ void CGame::UseMagic(int iMagicNo)
     {
         AddEventList(DLGBOX_CLICK_MAGIC1, 10);
         return;
-    }//Change
+    }
 #endif
     if (m_bSkillUsingStatus == true)
     {
@@ -10119,6 +10192,7 @@ void CGame::UseMagic(int iMagicNo)
 
     DisableDialogBox(3);
 }
+
 void CGame::ReleaseEquipHandler(char cEquipPos)
 {
     char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
@@ -10391,7 +10465,7 @@ void CGame::ShowHeldenianVictory(short sSide)
 
 
 
-void CGame::CheckActiveAura(short sX, short sY, uint32_t dwTime, short sOwnerType)
+void CGame::CheckActiveAura(short sX, short sY, int64_t dwTime, short sOwnerType)
 {
     if ((_tmp_iStatus & 0x80) != 0)
         m_pEffectSpr[81]->put_trans_sprite70(sX + 115, sY + 85, _tmp_iEffectFrame % 21, dwTime);
@@ -10440,7 +10514,8 @@ void CGame::CheckActiveAura(short sX, short sY, uint32_t dwTime, short sOwnerTyp
         //m_pEffectSpr[87]->put_trans_sprite(sX+53, sY+54, _tmp_iEffectFrame%29, dwTime);
         m_pEffectSpr[87]->put_trans_sprite70(sX + 53, sY + 54, _tmp_iEffectFrame % 29, dwTime);
 }
-void CGame::DisplayHPBar(int iID, short sX, short sY, uint32_t dwTime, uint16_t wType)
+
+void CGame::DisplayHPBar(int iID, short sX, short sY, int64_t dwTime, uint16_t wType)
 {
     int iBarWidth;
     if ((m_stNPCList[iID].m_iMaxHP != 0) && (m_stNPCList[iID].m_iHP != 0))

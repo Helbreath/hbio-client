@@ -28,28 +28,31 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 void CGame::NotifyMsgHandler(char * pData)
 {
-    uint32_t * dwp, dwTime, dwTemp;
+    int64_t dwTime;
+    uint32_t * dwp, dwTemp;
     uint16_t * wp, wEventType;
     char * cp, cTemp[510], cTxt[120], cTemp2[91];
     short * sp, sX, sY, sV1, sV2, sV3, sV4, sV5, sV6, sV7, sV8, sV9;
     int * ip, i, iV1, iV2, iV3, iV4;
 
-    dwTime = unixtime();
+    dwTime = m_dwCurTime;
 
     wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
     wEventType = *wp;
@@ -1397,7 +1400,7 @@ void CGame::NotifyMsgHandler(char * pData)
             {
                 AddEventList(NOTIFY_MSG_HANDLER40);//"Observer Mode On. Press 'SHIFT + ESC' to Log Out..."  
                 m_bIsObserverMode = true;
-                m_dwObserverCamTime = unixtime();
+                m_dwObserverCamTime = m_dwCurTime;
                 char cName[12];
                 memset(cName, 0, sizeof(cName));
                 memcpy(cName, m_cPlayerName, 10);
@@ -1920,13 +1923,13 @@ void CGame::NotifyMsgHandler(char * pData)
         case DEF_NOTIFY_LEVELUP:
             NotifyMsg_LevelUp(pData);
             break;
-        case DEF_NOTIFY_SETTING_SUCCESS://Change Added -- Levelup system - 3.51
+        case DEF_NOTIFY_SETTING_SUCCESS:
             NotifyMsg_SettingSuccess(pData);
             break;
         case DEF_NOTIFY_SETTING_FAILED:
             format_to_local(cTxt, "Failed to change stats.");
             AddEventList(cTxt, 10);
-            break;//End
+            break;
         case DEF_NOTIFY_KILLED:
             NotifyMsg_Killed(pData);
             break;
@@ -2539,7 +2542,7 @@ void CGame::NotifyMsg_HP(char * pData)
             m_cLogOutCount = -1;
             AddEventList(NOTIFYMSG_HP2, 10);
         }
-        m_dwDamagedTime = unixtime();
+        m_dwDamagedTime = m_dwCurTime;
         if (m_iHP < 20) AddEventList(NOTIFYMSG_HP3, 10);
         if ((iPrevHP - m_iHP) < 10) return;
         format_to_local(cTxt, NOTIFYMSG_HP_DOWN, iPrevHP - m_iHP);
@@ -3472,7 +3475,7 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
                     break;
                 case 5:
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON14, 10);
-                    m_iLastAmp = unixtime() + 80000;
+                    m_iLastAmp = m_dwCurTime + 80000;
                     break;
             }
             break;
@@ -3538,7 +3541,7 @@ void CGame::NotifyMsg_MagicEffectOn(char * pData)
                 case 1:
 
                     AddEventList(NOTIFYMSG_MAGICEFFECT_ON11, 10);
-                    m_iLastBerserk = unixtime() + 40000;
+                    m_iLastBerserk = m_dwCurTime + 40000;
                     break;
             }
             break;

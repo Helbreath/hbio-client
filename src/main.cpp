@@ -33,14 +33,7 @@ bool restart_ui = false;
 std::condition_variable cv;
 std::condition_variable cv2;
 
-#if defined(WIN32)
-#include <windows.h>
-#include <conio.h>
-#include <tchar.h>
-#include <WinBase.h>
-#endif
-
-uint64_t unixtime()
+int64_t unixtime()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
@@ -153,7 +146,7 @@ int main(int argc, char * argv[])
     game->m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU] = sprite::create_sprite("New-Dialog", 1, false);
     game->m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT] = sprite::create_sprite("New-Dialog", 2, false);
 
-    sf::Event event;
+    sf::Event evt;
     sf::RenderWindow & window = game->window;
 
     while (window.isOpen() && isrunning)
@@ -162,23 +155,22 @@ int main(int argc, char * argv[])
         game->OnTimer();
         game->fps_counter.update();
 
-        while (window.pollEvent(event))
+        while (window.pollEvent(evt))
         {
 
-            if (event.type == sf::Event::Closed)
+            if (evt.type == sf::Event::Closed)
             {
                 isrunning = false;
                 window.close();
                 break;
             }
 
-            game->on_input_event(event);
+            game->on_input_event(evt);
         }
 
         {
             std::unique_lock<std::mutex> l(game->screenupdate);
             window.clear(sf::Color::Black);
-            game->visible.clear(sf::Color::Black);
 
             game->UpdateScreen();
 

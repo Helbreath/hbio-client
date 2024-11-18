@@ -30,23 +30,25 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 void CGame::on_input_event(sf::Event event)
 {
     //TODO: fix
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
     int iTotalMsg = 0;
 
     if (m_bInputStatus && event.type == sf::Event::TextEntered)
@@ -629,7 +631,7 @@ void CGame::on_input_event(sf::Event event)
                                 return;
                             }
 
-                            int i = (dwTime - m_dwSpecialAbilitySettingTime) / 1000;
+                            int64_t i = (dwTime - m_dwSpecialAbilitySettingTime) / 1000;
                             i = m_iSpecialAbilityTimeLeftSec - i;
                             if (i < 0) i = 0;
 
@@ -1431,7 +1433,7 @@ void CGame::render_mouse(uint16_t mx, uint16_t my)
         shader.setUniform("texture", sf::Shader::CurrentTexture);
         shader.setUniform("time", time);
         window.draw(spr->sprite_[m_stMCursor.sCursorFrame], &shader);
-        //m_pSprite[DEF_SPRID_MOUSECURSOR]->draw_to(mx, my, m_stMCursor.sCursorFrame, unixtime(), Color(255, 255, 255), DS_WIN);
+        //m_pSprite[DEF_SPRID_MOUSECURSOR]->draw_to(mx, my, m_stMCursor.sCursorFrame, m_dwCurTime, Color(255, 255, 255), DS_WIN);
     }
 }
 

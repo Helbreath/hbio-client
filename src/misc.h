@@ -17,10 +17,10 @@ enum { CODE_ENG, CODE_HAN1, CODE_HAN2 };
 class CMisc
 {
 public:
+    CMisc() = default;
+    ~CMisc() = default;
 
     int iGetTextLengthLoc(sf::Text & text, char * pStr, int iLength);
-    int  _iGetFileCheckSum(char * pFn);
-    bool _iConvertFileXor(char * pFn, char * pDestFn, char cKey);
     bool bCheckValidName(const char * pStr);
     bool bCheckIMEString(const char * str);
     bool bDecode(char cKey, char * pStr);
@@ -32,6 +32,4 @@ public:
     void GetPoint(int x0, int y0, int x1, int y1, int * pX, int * pY, int * pError, int iCount);
     char cGetNextMoveDir(short sX, short sY, short dX, short dY, bool bMIM);
     bool bIsValidEmail(char * pStr);
-    CMisc();
-    ~CMisc();
 };

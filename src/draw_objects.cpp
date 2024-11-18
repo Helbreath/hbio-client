@@ -28,18 +28,20 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, short sModX, short sModY, short msX, short msY)
 {
@@ -58,7 +60,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     memset(m_cMCName, 0, sizeof(m_cMCName));
 
     //dwTime = G_dwGlobalTime;
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     m_stMCursor.sCursorFrame = 0;
 
     uint16_t xdiff = ((get_virtual_width() / 32) / 2);
@@ -92,8 +94,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                 }
                 else
                 {
-                    _tmp_dX = dX = indexX; // v2.171 2002-6-14
-                    _tmp_dY = dY = indexY; // v2.171 2002-6-14
+                    _tmp_dX = dX = indexX;
+                    _tmp_dY = dY = indexY;
                     _tmp_wObjectID = m_pMapData->m_pData[dX][dY].m_wDeadObjectID;
                     _tmp_sOwnerType = m_pMapData->m_pData[dX][dY].m_sDeadOwnerType;
                     _tmp_cDir = m_pMapData->m_pData[dX][dY].m_cDeadDir;
@@ -101,8 +103,12 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     _tmp_sAppr2 = m_pMapData->m_pData[dX][dY].m_sDeadAppr2;
                     _tmp_sAppr3 = m_pMapData->m_pData[dX][dY].m_sDeadAppr3;
                     _tmp_sAppr4 = m_pMapData->m_pData[dX][dY].m_sDeadAppr4;
-                    _tmp_iApprColor = m_pMapData->m_pData[dX][dY].m_iDeadApprColor; // v1.4
+                    _tmp_iApprColor = m_pMapData->m_pData[dX][dY].m_iDeadApprColor;
                     _tmp_cFrame = m_pMapData->m_pData[dX][dY].m_cDeadOwnerFrame;
+                    // todo - care about this for dead objects?
+                    _tmp_owner_time = m_pMapData->m_pData[dX][dY].m_dwOwnerTime;
+                    _tmp_start_time = m_pMapData->m_pData[dX][dY].start_time;
+                    _tmp_max_frames = m_pMapData->m_pData[dX][dY].max_frames;
                     _tmp_iChatIndex = m_pMapData->m_pData[dX][dY].m_iDeadChatMsg;
                     _tmp_iStatus = m_pMapData->m_pData[dX][dY].m_iDeadStatus;
 
@@ -121,7 +127,6 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 
                     bRet = true;
                 }
-                // +++
 
                 if ((bRet == true) && (sItemSprite != 0))
                 {
@@ -171,15 +176,15 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     sFocusAppr2 = _tmp_sAppr2;
                     sFocusAppr3 = _tmp_sAppr3;
                     sFocusAppr4 = _tmp_sAppr4;
-                    iFocusApprColor = _tmp_iApprColor; // v1.4
+                    iFocusApprColor = _tmp_iApprColor;
                     iFocusStatus = _tmp_iStatus;
                     memset(cFocusName, 0, sizeof(cFocusName));
                     strcpy(cFocusName, _tmp_cName);
                     memset(m_cMCName, 0, sizeof(m_cMCName));
                     strcpy(m_cMCName, _tmp_cName);
 
-                    sFocus_dX = _tmp_dX; // v2.171
-                    sFocus_dY = _tmp_dY; // v2.171
+                    sFocus_dX = _tmp_dX;
+                    sFocus_dY = _tmp_dY;
 
                     bContact = false;
                 }
@@ -208,11 +213,25 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     _tmp_sAppr2 = m_pMapData->m_pData[dX][dY].m_sAppr2;
                     _tmp_sAppr3 = m_pMapData->m_pData[dX][dY].m_sAppr3;
                     _tmp_sAppr4 = m_pMapData->m_pData[dX][dY].m_sAppr4;
-                    _tmp_iApprColor = m_pMapData->m_pData[dX][dY].m_iApprColor; // v1.4
+                    _tmp_iApprColor = m_pMapData->m_pData[dX][dY].m_iApprColor;
                     _tmp_cFrame = m_pMapData->m_pData[dX][dY].m_cOwnerFrame;
+                    _tmp_max_frames = m_pMapData->m_pData[dX][dY].max_frames;
+                    _tmp_frame_time = m_pMapData->m_pData[dX][dY].frame_time;
+                    _tmp_start_time = m_pMapData->m_pData[dX][dY].start_time;
+                    _tmp_owner_time = m_pMapData->m_pData[dX][dY].m_dwOwnerTime;
                     _tmp_iChatIndex = m_pMapData->m_pData[dX][dY].m_iChatMsg;
                     _tmp_iEffectType = m_pMapData->m_pData[dX][dY].m_iEffectType;
                     _tmp_iEffectFrame = m_pMapData->m_pData[dX][dY].m_iEffectFrame;
+
+                    // todo - care about this for self?
+                    if (this->m_sPlayerObjectID == m_pMapData->m_pData[dX][dY].m_wObjectID)
+                    {
+                        self_owner_time = m_pMapData->m_pData[dX][dY].m_dwOwnerTime;
+                        self_start_time = m_pMapData->m_pData[dX][dY].start_time;
+                        self_frame_time = m_pMapData->m_pData[dX][dY].frame_time;
+                        self_max_frames = m_pMapData->m_pData[dX][dY].max_frames;
+                        self_frame = m_pMapData->m_pData[dX][dY].m_cOwnerFrame;
+                    }
 
                     strcpy(_tmp_cName, m_pMapData->m_pData[dX][dY].m_cOwnerName);
                     bRet = true;
@@ -312,7 +331,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                             m_sViewDstX = (indexX * 32) - ((get_virtual_width() / 2));
                             m_sViewDstY = (indexY * 32) - ((get_virtual_height() / 2) - 16);
                         }
-                        SetRect(&m_rcPlayerRect, m_rcBodyRect.left, m_rcBodyRect.top, m_rcBodyRect.right, m_rcBodyRect.bottom);
+                        m_rcPlayerRect = { m_rcBodyRect.left, m_rcBodyRect.top, m_rcBodyRect.right, m_rcBodyRect.bottom };
 
                         bIsPlayerDrawed = true;
                     }
@@ -814,7 +833,6 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     {
         if ((m_iPointCommandType >= 100) && (m_iPointCommandType < 200))
         {
-
             if (m_bCommandAvailable == true)
             {
                 if (m_sMCX != 0)

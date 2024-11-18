@@ -25,18 +25,20 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 #ifdef DEF_ADMINCLIENT
 void CGame::DlgBoxClick_AdminControl(int msX, int msY)
@@ -138,10 +140,11 @@ void CGame::DrawDialogBox_AdminControl(int msX, int msY)
         put_string(sX + 20, sY + 50 + 15 * 5, "Ban List", Color::White);
     else put_string(sX + 20, sY + 50 + 15 * 5, "Ban List", Color(0xAD, 0xD8, 0xE6));
 }
+
 void CGame::DrawDialogBox_UserList(short msX, short msY, short msZ, char cLB)
 {
     short sX, sY;
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int  i, iTemp;
     char cTemp[255], cStr2[255], cStr3[255];
     int  iCost, iDiscountCost, iDiscountRatio, iMsgLoc;

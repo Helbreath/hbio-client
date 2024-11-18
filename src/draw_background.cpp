@@ -20,18 +20,20 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 #define DEF_HEIGHT 15
 #define DEF_AMOUNT 10
@@ -41,7 +43,7 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
     int indexX, indexY, ix, iy;
     static double dradd = 1.0, dreffect = 0.0, dradd2 = 8.0, dradd3 = 1.0;
     float drupdate = 0.0;
-    static int drtime = unixtime();
+    static int64_t drtime = m_dwCurTime;
     static bool bParsed = false;
     bool bReverse = false;
     static bool bReverse2 = false;
@@ -158,12 +160,12 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
 //     //SetRect(&rcRect, sModX, sModY, 640+sModX, 480+sModY); // our fictitious sprite bitmap is 
 //     //m_DDraw.m_lpBackB4->BltFast( 0, 0, m_DDraw.m_lpPDBGS, &rcRect, DDBLTFAST_NOCOLORKEY | DDBLTFAST_WAIT);
 //     //dradd = 1.0;
-//     if (unixtime() - drtime > DEF_TIME)
+//     if (m_dwCurTime - drtime > DEF_TIME)
 //     {
 //         //if (dreffect > 200.0) dradd2 = -1.0;
 //         //if (dreffect < 1.0) dradd2 = 1.0;
 //         dreffect += 1.0;
-//         drtime = unixtime();
+//         drtime = m_dwCurTime;
 //         bParsed = false;
 // 
 //         if (dradd2 >= DEF_AMOUNT) bReverse2 = true;

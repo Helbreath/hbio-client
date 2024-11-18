@@ -68,6 +68,41 @@ using sf::Drawable;
 class CGame
 {
 public:
+    int64_t self_owner_time{ 0 };
+    int64_t self_start_time{ 0 };
+    int64_t self_frame_time{ 0 };
+    uint16_t self_frame{ 0 };
+    uint16_t self_max_frames{ 0 };
+
+    bool camera_reset = false;
+    bool dashing = false;
+    uint16_t current_map_action = DEF_OBJECTSTOP;
+
+    struct
+    {
+        float t1{ 0 };
+        float t2{ 0 };
+        float t3{ 0 };
+        float t4{ 0 };
+        float t5{ 0 };
+        float t6{ 0 };
+        float t7{ 0 };
+        float t8{ 0 };
+        float t9{ 0 };
+        float t10{ 0 };
+        float t11{ 0 };
+        float t12{ 0 };
+        float t13{ 0 };
+        float t14{ 0 };
+        float t15{ 0 };
+        float t16{ 0 };
+    } test_values;
+
+    struct
+    {
+        bool old_camera = false;
+    } game_configs;
+
     std::vector<spdlog::sink_ptr> sinks;
     std::shared_ptr<spdlog::logger> log;
     spdlog::level::level_enum loglevel = spdlog::level::level_enum::info;
@@ -113,6 +148,7 @@ public:
     bool update_objects = false;
     bool update_dialogs = false;
     bool update_effects = false;
+    bool update_camera_shake = false;
 
     int viewdstxvar = 0;
     int viewdstyvar = 0;
@@ -200,6 +236,18 @@ public:
     // todo: cleanup
     uint16_t modx{};
     uint16_t mody{};
+
+    void can_take_action(bool val)
+    {
+        if (val)
+        {
+            m_bCommandAvailable = true;
+            m_dwCommandTime = 0;
+            next_command = 0;
+        }
+        else
+            m_bCommandAvailable = false;
+    }
 
     uint8_t drawState = 0;
 
@@ -325,14 +373,16 @@ public:
     char oldmode;
     bool fullscreenswap = false;
     bool vsync = false;
-    uint64_t foregroundfpstarget = 60;
-    uint64_t foregroundfps = 0;
-    uint64_t foregroundframetime = 1000 / foregroundfpstarget;
-    uint64_t backgroundfpstarget = 45;
-    uint64_t backgroundfps = 0;
-    uint64_t backgroundframetime = 1000 / backgroundfpstarget;
-    uint64_t time1;
-    uint64_t time2;
+    int64_t foregroundfpstarget = 60;
+    int64_t foregroundfps = 0;
+    int64_t foregroundframetime = 1000 / foregroundfpstarget;
+    int64_t backgroundfpstarget = 45;
+    int64_t backgroundfps = 0;
+    int64_t backgroundframetime = 1000 / backgroundfpstarget;
+    int64_t time1;
+    int64_t time2;
+
+    bool finished_animation_cycle = false;
 
     bool wasinactive = false;
 
@@ -370,10 +420,10 @@ public:
     int32_t iUpdateRet = -1;
 
     bool isloaded = false;
-    uint32_t frame_limit = 60;
-    uint32_t frame_limit_bg = 30;
+    int64_t frame_limit = 60;
+    int64_t frame_limit_bg = 30;
 
-    uint64_t ping = 0;
+    int64_t ping = 0;
 
     void load_settings();
     void save_settings();
@@ -505,7 +555,7 @@ public:
 
     void send_screen_settings_to_server();
 
-    uint64_t mtime;
+    int64_t mtime;
 
     void make_sprite(char * FileName, int iStart, short sCount, bool bAlphaEffect);
     void make_tile_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect);
@@ -652,7 +702,7 @@ public:
     char m_cStateChange2;
     char m_cStateChange3;
 
-    void CheckActiveAura(short sX, short sY, uint32_t dwTime, short sOwnerType);
+    void CheckActiveAura(short sX, short sY, int64_t dwTime, short sOwnerType);
     void bItemDrop_Slates();
     void DlgBoxClick_Slates(short msX, short msY);
     void DrawDialogBox_Slates(short msX, short msY, short msZ, char cLB);//40
@@ -673,7 +723,7 @@ public:
     void DKGlare(int iWeaponColor, int iWeaponIndex, int * iWeaponGlare);
 
     int m_iTotalUsers;//Auto Who
-    int m_iPing;//Auto Ping
+    int64_t m_iPing;//Auto Ping
     int m_iStatLimit;
     int m_iUpperVersion, m_iLowerVersion;
     struct
@@ -687,8 +737,8 @@ public:
         bool bMouseTileDebug;
         bool bGMChat;
     } m_stConfigList;
-    uint32_t m_dwPotCheckTime;
-    int m_iLastAmp, m_iLastBerserk;
+    int64_t m_dwPotCheckTime;
+    int64_t m_iLastAmp, m_iLastBerserk;
     void LOL(int iType, int iNum);
 
     int m_ssX, m_ssY;
@@ -720,7 +770,7 @@ public:
         char  m_cCharName[11];
         int   m_iPKs;
         int   m_iGM;
-        uint32_t m_dwRefTime;
+        int64_t m_dwRefTime;
         char  m_cDisplayInfo[90];
         bool  m_bIsEnabled;
     } m_stPKList[DEF_MAXPKS];
@@ -731,7 +781,7 @@ public:
         int m_iMaxHP{};
     } m_stNPCList[30000];
 
-    void DisplayHPBar(int iID, short sX, short sY, uint32_t dwTime, uint16_t wType);
+    void DisplayHPBar(int iID, short sX, short sY, int64_t dwTime, uint16_t wType);
 
     void ClearPKNameList();
 
@@ -816,7 +866,7 @@ public:
     void _Draw_OnLogin(char * pAccount, char * pPassword, int msX, int msY, int iFrame = 60000);
     void DrawNewDialogBox(char cType, int sX, int sY, int iFrame, bool bIsNoColorKey = false, bool bIsTrans = false);
     void AddMapStatusInfo(char * pData, bool bIsLastData);
-    void _RequestMapStatus(char * pMapName, int iMode);
+    void _RequestMapStatus(const char * pMapName, int iMode);
     int  GetCharKind(char * str, int index);
     void ReceiveString(char * pString);
     void EndInputString();
@@ -1021,7 +1071,7 @@ public:
     void weather_object_frame_counter();
     void DrawWhetherEffects();
     bool bCheckExID(char * pName);
-    bool bCheckLocalChatCommand(char * pMsg);
+    bool bCheckLocalChatCommand(const char * pMsg);
     char GetOfficialMapName(char * pMapName, char * pName);
     int iGetLevelExp(int iLevel);
     int _iCalcTotalWeight();
@@ -1063,7 +1113,7 @@ public:
     void DrawEffects();
     void bAddNewEffect(short sType, int sX, int sY, int dX, int dY, char cStartFrame, int iV1 = 1);
     void AddEventList(const char * pTxt, char cColor = 0, bool bDupAllow = true, int iGM = 0);
-    void ShowEventList(uint32_t dwTime);
+    void ShowEventList(int64_t dwTime);
     void SetItemCount(char * pItemName, uint32_t dwCount);
     void _ShiftGuildOperationList();
     void _PutGuildOperationList(char * pName, char cOpMode);
@@ -1082,18 +1132,18 @@ public:
     int _iCheckDlgBoxFocus(short msX, short msY, char cButtonSide);
     void GetPlayerTurn();
 
-    bool DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
-    bool DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bTrans, uint32_t dwTime, int msX, int msY);
+    bool DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
+    bool DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bTrans, int64_t dwTime, int msX, int msY);
 
     bool effect_frame_counter();
     void ClearGuildNameList();
@@ -1105,7 +1155,7 @@ public:
     bool bReadLoginConfigFile(char * cFn);
     void ChangeGameMode(char cMode);
 
-    void LogResponseHandler(char * pData, uint64_t size);
+    void LogResponseHandler(char * pData, int64_t size);
     void OnTimer();
     void LogEventHandler(char * pData);
     void _ReadMapData(short sPivotX, short sPivotY, char * pData);
@@ -1115,11 +1165,12 @@ public:
     void MotionResponseHandler(char * pData);
     bool GameRecvMsgHandler(char * pData, uint32_t dwMsgSize);
     void DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, short sModX, short sModY, short msX, short msY);
-    bool bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1, int iV2, int iV3, char * pString, int iV4 = 0);
+    bool bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1, int iV2, int iV3, const char * pString, int iV4 = 0);
     char cGetNextMoveDir(short sX, short sY, short dstX, short dstY, bool bMoveCheck = false, bool bMIM = false);
     void RestoreSprites();
     void CommandProcessor(short msX, short msY, short indexX, short indexY, char cLB, char cRB);
-    void CalcViewPoint();
+    void CalcViewPoint(int64_t dwTime);
+    void CalcViewPointOld();
     void Quit();
     bool bInit();
     void ReserveFightzoneResponseHandler(char * pData);
@@ -1132,7 +1183,7 @@ public:
     bool _ItemDropHistory(char * ItemName);
 
     CGame();
-    virtual ~CGame();
+    ~CGame();
 
     struct
     {
@@ -1148,14 +1199,14 @@ public:
         char  cSelectedObjectType;
         short sSelectedObjectID;
         short sPrevX, sPrevY, sDistX, sDistY;
-        uint32_t dwSelectClickTime;
+        int64_t dwSelectClickTime;
         short sClickX, sClickY;
     } m_stMCursor;
 
     struct
     {
         int   sV1, sV2, sV3, sV4, sV5, sV6, sV7, sV8, sV9, sV10, sV11, sV12, sV13, sV14;
-        uint32_t dwV1, dwV2, dwT1;
+        int64_t dwV1, dwV2, dwT1;
         bool  bFlag;
         short sX, sY;
         short sSizeX, sSizeY;
@@ -1186,14 +1237,14 @@ public:
 
     struct
     {
-        uint32_t dwTime;
+        int64_t dwTime;
         char  cColor;
         char  cTxt[96];
     } m_stEventHistory[6];
 
     struct
     {
-        uint32_t dwTime;
+        int64_t dwTime;
         char  cColor;
         char  cTxt[96];
     } m_stEventHistory2[6];
@@ -1202,7 +1253,7 @@ public:
     {
         short sX, sY;
         char cStep;
-    } m_stWhetherObject[DEF_MAXWHETHEROBJECTS];
+    } weather_object[DEF_MAXWEATHEROBJECTS];
 
     struct
     {
@@ -1234,7 +1285,7 @@ public:
 
     struct
     {
-        uint32_t dwRefTime;
+        int64_t dwRefTime;
         int iGuildRank;
         char cCharName[12];
         char cGuildName[24];
@@ -1272,26 +1323,27 @@ public:
     CMsg * m_pGameMsgList[DEF_MAXGAMEMSGS];
     CItemName * m_pItemNameList[DEF_MAXITEMNAMES];
 
-    uint32_t G_dwGlobalTime;
-    uint32_t m_dwCommandTime;
-    uint32_t m_dwConnectMode;
-    uint32_t m_dwTime;
-    uint32_t m_dwCurTime;
-    uint32_t m_dwCheckConnTime, m_dwCheckSprTime, m_dwCheckChatTime;
-    uint32_t m_dwCheckWhoTime, m_dwCheckPingTime, m_dwCheckPkTime;// todo: is this needed?
-    uint32_t m_dwPartyListTime, m_dwBWTime;// todo: is this needed?
-    uint32_t m_dwDialogCloseTime;
-    uint32_t m_dwLogOutCountTime;
-    uint32_t m_dwRestartCountTime;
-    uint32_t m_dwWOFtime;
-    uint32_t m_dwObserverCamTime;
-    uint32_t m_dwDamagedTime;
-    uint32_t m_dwSpecialAbilitySettingTime;
-    uint32_t m_dwCommanderCommandRequestedTime;
-    uint32_t m_dwTopMsgTime;
-    uint32_t m_dwEnvEffectTime;
+    int64_t G_dwGlobalTime;
+    int64_t m_dwCommandTime;
+    int64_t next_command{ 0 };
+    int64_t m_dwConnectMode;
+    int64_t m_dwTime;
+    int64_t m_dwCurTime;
+    int64_t m_dwCheckConnTime, m_dwCheckSprTime, m_dwCheckChatTime;
+    int64_t m_dwCheckWhoTime, m_dwCheckPingTime, m_dwCheckPkTime;// todo: is this needed?
+    int64_t m_dwPartyListTime, m_dwBWTime;// todo: is this needed?
+    int64_t m_dwDialogCloseTime;
+    int64_t m_dwLogOutCountTime;
+    int64_t m_dwRestartCountTime;
+    int64_t m_dwWOFtime;
+    int64_t m_dwObserverCamTime;
+    int64_t m_dwDamagedTime;
+    int64_t m_dwSpecialAbilitySettingTime;
+    int64_t m_dwCommanderCommandRequestedTime;
+    int64_t m_dwTopMsgTime;
+    int64_t m_dwEnvEffectTime;
 
-    uint32_t m_dwMonsterEventTime;
+    int64_t m_dwMonsterEventTime;
     short m_sMonsterID;
     short m_sEventX, m_sEventY;
 
@@ -1339,7 +1391,7 @@ public:
 
     short m_sFrameCount;
     short m_sFPS;
-    uint32_t m_dwFPStime;
+    int64_t m_dwFPStime;
     bool m_bShowFPS;
 
     int m_iFightzoneNumber;
@@ -1409,6 +1461,8 @@ public:
     int m_iStatus_IE;
     short m_sViewDstX, m_sViewDstY;
     short m_sViewPointX, m_sViewPointY;
+    short m_sViewStartX, m_sViewStartY;
+    short m_sPrevViewPointX{ 0 }, m_sPrevViewPointY{ 0 };
     short m_sVDL_X, m_sVDL_Y;
 
     struct
@@ -1470,8 +1524,8 @@ public:
     char m_cChatMsg[64];
     char m_cBackupChatMsg[64];
     char m_cGender, m_cSkinCol, m_cHairStyle, m_cHairCol, m_cUnderCol;
-    char m_ccStr, m_ccVit, m_ccDex, m_ccInt, m_ccMag, m_ccChr;
-    char m_cLU_Str, m_cLU_Vit, m_cLU_Dex, m_cLU_Int, m_cLU_Mag, m_cLU_Char;
+    int m_ccStr, m_ccVit, m_ccDex, m_ccInt, m_ccMag, m_ccChr;
+    int m_cLU_Str, m_cLU_Vit, m_cLU_Dex, m_cLU_Int, m_cLU_Mag, m_cLU_Char;
     char m_cDialogBoxOrder[101];
     char m_cMagicMastery[DEF_MAXMAGICTYPE];
     unsigned char m_cSkillMastery[DEF_MAXSKILLTYPE];
@@ -1496,10 +1550,7 @@ public:
 
     char m_cItemDrop[25][25];
 
-    RECT m_rcPlayerRect, m_rcBodyRect;
-    HWND m_hWnd;
-
-    HANDLE m_hPakFile;
+    hbxrect m_rcPlayerRect, m_rcBodyRect;
 
     bool m_bWhisper;
     bool m_bShout;

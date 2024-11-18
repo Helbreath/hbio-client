@@ -31,6 +31,8 @@ extern char _cMantleDrawingOrderOnRun[];
 extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
 extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
 extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
 extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
@@ -43,7 +45,7 @@ extern int iFocusApprColor;
 
 void CGame::DrawNewDialogBox(char cType, int sX, int sY, int iFrame, bool bIsNoColorKey, bool bIsTrans)
 {
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
 
     if (m_pSprite[cType] == 0) return;
     if (bIsNoColorKey == false)
@@ -428,7 +430,7 @@ void CGame::DrawDialogBoxs(short msX, short msY, short msZ, char cLB)
 void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
 
     sX = m_stDialogBoxInfo[30].sX;
     sY = m_stDialogBoxInfo[30].sY;
@@ -537,7 +539,7 @@ void CGame::DrawDialogBox_GaugePannel()
 {
     int iMaxPoint{}, iBarWidth{}, iTemp{};
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
 
     sX = m_stDialogBoxInfo[30].sX;
     sY = m_stDialogBoxInfo[30].sY;
@@ -894,7 +896,7 @@ void CGame::DrawDialogBox_Inventory(int msX, int msY)
 {
     int i{};
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cItemColor{};
 
     sX = m_stDialogBoxInfo[2].sX;
@@ -996,7 +998,7 @@ void CGame::DrawDialogBox_Inventory(int msX, int msY)
 void CGame::DrawDialogBox_FriendsList(short msX, short msY, short msZ, char cLB)
 {
     short sX{}, sY{}, szX{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int i{};//, iTemp;
     int iMsgLoc{};
     int /*iTotalLines,*/ iPointerLoc{};
@@ -1104,7 +1106,7 @@ void CGame::DrawDialogBox_FriendsList(short msX, short msY, short msZ, char cLB)
 void CGame::DrawDialogBox_Config(short msX, short msY, short msZ, char cLB)
 {
     short sX{}, sY{}, szX{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int i{};//, iTemp;
     int iMsgLoc{};
     int /*iTotalLines,*/ iPointerLoc{};
@@ -2126,7 +2128,7 @@ void CGame::DrawDialogBox_Character(short msX, short msY)
 void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
 {
     short sX{}, sY{}, szX{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cTxt[120]{};
 
     sX = m_stDialogBoxInfo[12].sX;
@@ -2209,7 +2211,7 @@ void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
 void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
 {
     short sX{}, sY{}, szX{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cTxt[120]{};
     int iStats{};
     sX = m_stDialogBoxInfo[12].sX;
@@ -2891,7 +2893,7 @@ void CGame::DrawDialogBox_ConfirmExchange(short msX, short msY)
 void CGame::DrawDialogBox_Exchange(short msX, short msY)
 {
     short sX{}, sY{}, szX{}, sXadd{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cItemColor{}, cTxt[120]{}, cTxt2[128]{};
     char cNameStr[120]{}, cSubStr1[120]{}, cSubStr2[120]{};
     int iLoc{}, i{};
@@ -3151,7 +3153,7 @@ void CGame::DrawDialogBox_Exchange(short msX, short msY)
 void CGame::DrawDialogBox_Fishing(short msX, short msY)
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cTxt[120]{};
 
     sX = m_stDialogBoxInfo[24].sX;
@@ -3614,7 +3616,7 @@ void CGame::DrawDialogBox_Magic(short msX, short msY, short msZ)
     short sX{}, sY{}, sMagicCircle{}, sLevelMagic{};
     int iCPivot{}, i{}, iYloc{}, iResult{}, iManaCost{};
     char cTxt[120]{}, cMana[10]{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     double dV1{}, dV2{}, dV3{}, dV4{};
 
     sX = m_stDialogBoxInfo[3].sX;
@@ -3799,7 +3801,7 @@ void CGame::DrawDialogBox_Magic(short msX, short msY, short msZ)
 void CGame::DrawDialogBox_MagicShop(short msX, short msY, short msZ)
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int i{};
     int iCPivot{}, iYloc{};
     char cTxt[120]{}, cMana[10]{};
@@ -4723,7 +4725,7 @@ void CGame::DrawDialogBox_SellList(short msX, short msY)
 void CGame::DrawDialogBox_SellorRepairItem(short msX, short msY)
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cItemID{}, cItemColor{}, cTxt[120]{}, cTemp[120]{}, cStr2[120]{}, cStr3[120]{};
 
     sX = m_stDialogBoxInfo[23].sX;
@@ -4882,7 +4884,7 @@ void CGame::DrawDialogBox_SellorRepairItem(short msX, short msY)
 void CGame::DrawDialogBox_Shop(short msX, short msY, short msZ, char cLB)
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     int i{}, iTemp{};
     char cTemp[255]{}, cStr2[255]{}, cStr3[255]{};
     int iCost{}, iDiscountCost{}, iDiscountRatio{}, iMsgLoc{};
@@ -5446,7 +5448,7 @@ void CGame::DrawDialogBox_SkillDlg(short msX, short msY, short msZ, char cLB)
     char cTemp[120], cTemp2[120];
     short sX, sY, szX;
     char cStr1[64], cStr2[64], cStr3[64];
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
 
     iAdjX = 5;
     iAdjY = 8;
@@ -6115,7 +6117,7 @@ void CGame::DrawDialogBox_SysMenu(short msX, short msY, char cLB)
 void CGame::DrawDialogBox_Commander(int msX, int msY)
 {
     short sX, sY, szX, szY, MapSzX, MapSzY;
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
     double dV1, dV2, dV3;
     int i, tX, tY;
 
@@ -6572,7 +6574,7 @@ void CGame::DrawDialogBox_Commander(int msX, int msY)
 void CGame::DrawDialogBox_Constructor(int msX, int msY)
 {
     short sX, sY, szX, szY, MapSzX, MapSzY;
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
     double dV1, dV2, dV3;
     int tX, tY;
     char cMapName[12];
@@ -6870,7 +6872,7 @@ void CGame::DrawDialogBox_Constructor(int msX, int msY)
 void CGame::DrawDialogBox_Soldier(int msX, int msY)
 {
     short sX, sY, szX, szY, MapSzX, MapSzY;
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
     char cMapName[120];
     double dV1, dV2, dV3;
     int tX, tY;
@@ -7127,7 +7129,7 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 {
     int i, sX, sY, iValue;
     char cItemColor, cStr1[120], cStr2[120], cStr3[120];
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     sX = m_stDialogBoxInfo[34].sX;
     sY = m_stDialogBoxInfo[34].sY;
@@ -7604,7 +7606,7 @@ void CGame::DrawDialogBox_CMDHallMenu(short msX, short msY)
 void CGame::DrawDialogBox_ChangeStatsMajestic(short msX, short msY)
 {
     short sX{}, sY{}, szX{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     char cTxt[120]{};
     int iStats{};
     sX = m_stDialogBoxInfo[42].sX;
@@ -7701,7 +7703,7 @@ void CGame::DrawDialogBox_Slates(short msX, short msY, short msZ, char cLB)
 {
     int iAdjX, iAdjY;
     short sX, sY;
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
 
     iAdjX = 5;
     iAdjY = 8;
@@ -7873,7 +7875,7 @@ void CGame::DrawDialogBox_CrusadeJob(short msX, short msY)
 void CGame::DrawDialogBox_Map()
 {
     short sX{}, sY{};
-    uint32_t dwTime = m_dwCurTime;
+    int64_t dwTime = m_dwCurTime;
     double dV1{}, dV2{}, dV3{};
     int tX{}, tY{}, szX{}, szY{}, dX{}, dY{};
 
@@ -8011,7 +8013,7 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, bool bIsPreDC)
 {
     char cMsgA[22]{}, cMsgB[22]{}, cMsgC[22]{};
     int iLines{}, i{}, iSize{}, iSize2{}, iLoc{}, iFontSize{};
-    uint32_t dwTime{};
+    int64_t dwTime{};
     Color rgb{};
     bool bIsTrans{};
     std::string & str = m_pChatMsgList[iChatIndex]->message;

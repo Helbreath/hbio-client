@@ -29,18 +29,20 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 
 bool CGame::_bCheckDlgBoxClick(short msX, short msY)
@@ -2002,7 +2004,7 @@ void CGame::DlgBoxClick_ItemUpgrade(int msX, int msY)
                 PlaySound('E', 14, 5);
                 PlaySound('E', 44, 0);
                 m_stDialogBoxInfo[34].cMode = 2;
-                m_stDialogBoxInfo[34].dwV1 = unixtime();
+                m_stDialogBoxInfo[34].dwV1 = m_dwCurTime;
             }
 
             if ((msX >= sX + DEF_RBTNPOSX) && (msX <= sX + DEF_RBTNPOSX + DEF_BTNSZX) && (msY >= sY + DEF_BTNPOSY) && (msY <= sY + DEF_BTNPOSY + DEF_BTNSZY))
@@ -2069,7 +2071,7 @@ void CGame::DlgBoxClick_ItemUpgrade(int msX, int msY)
                 PlaySound('E', 14, 5);
                 PlaySound('E', 44, 0);
                 m_stDialogBoxInfo[34].cMode = 2;
-                m_stDialogBoxInfo[34].dwV1 = unixtime();
+                m_stDialogBoxInfo[34].dwV1 = m_dwCurTime;
             }
 
             if ((msX >= sX + DEF_RBTNPOSX) && (msX <= sX + DEF_RBTNPOSX + DEF_BTNSZX) && (msY >= sY + DEF_BTNPOSY) && (msY <= sY + DEF_BTNPOSY + DEF_BTNSZY))
@@ -4298,7 +4300,7 @@ void CGame::DlbBoxDoubleClick_Inventory(short msX, short msY)
             {
                 if (bCheckItemOperationEnabled(cItemID) == false) return;
 #ifndef DEF_HACKCLIENT
-                if ((unixtime() - m_dwDamagedTime) < 10000)
+                if ((m_dwCurTime - m_dwDamagedTime) < 10000)
                 {//Change Item use after damage hack
 
                     if ((m_pItemList[cItemID]->m_sSprite == 6) && (m_pItemList[cItemID]->m_sSpriteFrame == 9))
@@ -4603,7 +4605,7 @@ void CGame::DlgBoxClick_SysMenu(short msX, short msY)
 #else
             m_cRestartCount = 5;
 #endif
-            m_dwRestartCountTime = unixtime();
+            m_dwRestartCountTime = m_dwCurTime;
             DisableDialogBox(19);
             format_to_local(G_cTxt, DLGBOX_CLICK_SYSMENU1, m_cRestartCount);
             AddEventList(G_cTxt, 10);

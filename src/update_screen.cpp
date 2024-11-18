@@ -28,22 +28,24 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 void CGame::UpdateScreen()
 {
-    G_dwGlobalTime = unixtime();
+    G_dwGlobalTime = m_dwCurTime = unixtime();
     visible.clear();
 
     switch (m_cGameMode)
@@ -177,19 +179,75 @@ void CGame::UpdateScreen()
     _text.setFillColor(sf::Color::White);
     _text.setCharacterSize(14);
 
-
     //window.draw(_text);
 
     _text.setPosition(5.f, 40.f);
     _text.setString(fmt::format("x: {} - y: {}", testx, testy));
     window.draw(_text);
 
+    // Time elapsed since the last frame advanced
+    int64_t time_elapsed = G_dwGlobalTime - self_owner_time;
+
+    // Calculate the fraction of the frame cycle that has elapsed
+    float cycle_progress = static_cast<float>(time_elapsed) / static_cast<float>(self_frame_time);
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+
+    auto command_to_text = [&](uint16_t command) {
+        switch (command)
+        {
+            case DEF_OBJECTSTOP:
+                return "DEF_OBJECTSTOP";
+            case DEF_OBJECTMOVE:
+                return "DEF_OBJECTMOVE";
+            case DEF_OBJECTRUN:
+                return "DEF_OBJECTRUN";
+            case DEF_OBJECTATTACK:
+                return "DEF_OBJECTATTACK";
+            case DEF_OBJECTMAGIC:
+                return "DEF_OBJECTMAGIC";
+            case DEF_OBJECTGETITEM:
+                return "DEF_OBJECTGETITEM";
+            case DEF_OBJECTDAMAGE:
+                return "DEF_OBJECTDAMAGE";
+            case DEF_OBJECTDAMAGEMOVE:
+                return "DEF_OBJECTDAMAGEMOVE";
+            case DEF_OBJECTATTACKMOVE:
+                return "DEF_OBJECTATTACKMOVE";
+            case DEF_OBJECTDYING:
+                return "DEF_OBJECTDYING";
+            case DEF_OBJECTDEAD:
+                return "DEF_OBJECTDEAD";
+            case DEF_OBJECTNULLACTION:
+            default:
+                return "DEF_OBJECTNULLACTION";
+        }
+    };
+
     _text.setPosition(5.f, 80.f);
-    _text.setString(fmt::format("x: {} - y: {}", this->m_sPlayerX, this->m_sPlayerY));
+    _text.setString(fmt::format(
+        "x: {} - y: {}\n"
+        "VP x: {} - y: {}\n"
+        "DST x: {} - y: {}\n"
+        "start x: {} - y: {}\n"
+        "time: {} - cycle: {}\n"
+        "frame: {} - frame time: {}\n"
+        "frame start time: {} - animation start time: {}\n"
+        "command: {} - m_bCommandAvailable: {}\n"
+        "map command: {} - finished_animation_cycle: {}\n",
+        this->m_sPlayerX, this->m_sPlayerY,
+        this->m_sViewPointX, this->m_sViewPointY,
+        this->m_sViewDstX, this->m_sViewDstY,
+        this->m_sViewStartX, this->m_sViewStartY,
+        time_elapsed, cycle_progress,
+        self_frame, self_frame_time,
+        self_owner_time, self_start_time,
+        command_to_text(m_cCommand), m_bCommandAvailable,
+        command_to_text(current_map_action), finished_animation_cycle
+    ));
     window.draw(_text);
+
     render_mouse(mx, my);
 }
-
 
 void CGame::UpdateScreen_OnMainMenu()
 {
@@ -197,7 +255,7 @@ void CGame::UpdateScreen_OnMainMenu()
     char cLB{}, cRB{}, cMIresult{};
     int  iMIbuttonNum{};
     static CMouseInterface * pMI;
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
 
     m_iItemDropCnt = 0;
     m_bItemDrop = false;
@@ -1064,7 +1122,7 @@ void CGame::UpdateScreen_OnMsg()
 {
     uint16_t msX{}, msY{}, msZ{};
     bool LB{}, RB{}, MB{};
-    uint32_t dwTime = G_dwGlobalTime;
+    int64_t dwTime = G_dwGlobalTime;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -1081,15 +1139,15 @@ void CGame::UpdateScreen_OnMsg()
 void CGame::UpdateScreen_OnConnecting()
 {
     short sX, sY;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
     static CMouseInterface * pMI;
-    static uint32_t dwMTime, dwCTime;
+    static int64_t dwMTime, dwCTime;
 
     if (m_cGameModeCount == 0)
     {
         m_bEnterPressed = false;
         m_bEscPressed = false;
-        dwCTime = dwMTime = unixtime();
+        dwCTime = dwMTime = m_dwCurTime;
 
         if (is_closed())
         {
@@ -1184,7 +1242,7 @@ void CGame::UpdateScreen_OnConnecting()
 void CGame::UpdateScreen_OnWaitInitData()
 {
     uint16_t msX{}, msY{}, msZ{};
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     if (m_cGameModeCount == 0)
     {
@@ -1223,11 +1281,11 @@ void CGame::UpdateScreen_OnWaitInitData()
 
 void CGame::UpdateScreen_OnConnectionLost()
 {
-    static uint32_t dwTime;
+    static int64_t dwTime;
 
     if (m_cGameModeCount == 0)
     {
-        dwTime = unixtime();
+        dwTime = m_dwCurTime;
         if (m_bSoundFlag) m_pESound[38].stop();
         if ((m_bSoundFlag) && (m_bMusicStat == true))
         {
@@ -1244,7 +1302,7 @@ void CGame::UpdateScreen_OnConnectionLost()
     DrawVersion();
     m_stMCursor.sCursorFrame = 0;
 
-    if ((unixtime() - m_dwTime) > 5000)
+    if ((m_dwCurTime - m_dwTime) > 5000)
     {
         ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
     }
@@ -1264,8 +1322,8 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
     static char cName[12];
     static char cPrevFocus;
     bool bFlag;
-    static uint32_t dwMTime;
-    uint32_t dwTime = unixtime();
+    static int64_t dwMTime;
+    int64_t dwTime = m_dwCurTime;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -1324,7 +1382,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         m_bEnterPressed = false;
         m_cArrowPressed = 0;
 
-        dwMTime = unixtime();
+        dwMTime = m_dwCurTime;
 
         StartInputString(193 + 4, 65 + 45, 11, cName);
         ClearInputString();
@@ -1975,7 +2033,7 @@ void CGame::UpdateScreen_OnQuit()
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     if (m_cGameModeCount == 0)
     {
@@ -1996,7 +2054,7 @@ void CGame::UpdateScreen_OnQuit()
         delete pMI;
         ChangeGameMode(DEF_GAMEMODE_NULL);
         // todo: windows
-        SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+        //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         return;
     }
 
@@ -2010,7 +2068,7 @@ void CGame::UpdateScreen_OnQuit()
     {
         ChangeGameMode(DEF_GAMEMODE_NULL);
         delete pMI;
-        SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+        //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         return;
     }
     m_stMCursor.sCursorFrame = 0;
@@ -2020,7 +2078,7 @@ void CGame::UpdateScreen_OnQuit()
     {
         ChangeGameMode(DEF_GAMEMODE_NULL);
         // todo: windows
-        SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+        //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         delete pMI;
         return;
     }
@@ -2037,8 +2095,8 @@ void CGame::UpdateScreen_OnQueryForceLogin()
     int iMIbuttonNum;
 
     static CMouseInterface * pMI;
-    static uint32_t dwCTime;
-    uint32_t dwTime = unixtime();
+    static int64_t dwCTime;
+    int64_t dwTime = m_dwCurTime;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -2051,7 +2109,7 @@ void CGame::UpdateScreen_OnQueryForceLogin()
         m_bEscPressed = false;
         m_cArrowPressed = 0;
 
-        dwCTime = unixtime();
+        dwCTime = m_dwCurTime;
 
         PlaySound('E', 25, 0);
     }
@@ -2140,9 +2198,9 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
 {
     int i;
     int iYear, iMonth, iDay, iHour, iMinute;
-    __int64 iTemp1, iTemp2;
+    int64_t iTemp1, iTemp2;
     char cTotalChar = 0;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     //sY = 10;
 
@@ -2358,9 +2416,9 @@ void CGame::UpdateScreen_OnWaitingResponse()
     uint16_t msX{}, msY{}, msZ{};
     bool LB{}, RB{}, MB{};
 
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
     //static CMouseInterface * pMI;
-    static uint32_t dwCTime;
+    static int64_t dwCTime;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -2368,7 +2426,7 @@ void CGame::UpdateScreen_OnWaitingResponse()
     {
         m_bEnterPressed = false;
         m_bEscPressed = false;
-        dwCTime = unixtime();
+        dwCTime = m_dwCurTime;
     }
     m_cGameModeCount++;
     if (m_cGameModeCount > 100) m_cGameModeCount = 100;
@@ -2455,8 +2513,8 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
     char cMIresult;
     int  iMIbuttonNum;
     static CMouseInterface * pMI;
-    static uint32_t dwCTime;
-    uint32_t dwTime = unixtime();
+    static int64_t dwCTime;
+    int64_t dwTime = m_dwCurTime;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -2470,7 +2528,7 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
         m_bEnterPressed = false;
         m_cArrowPressed = 0;
 
-        dwCTime = unixtime();
+        dwCTime = m_dwCurTime;
 
         PlaySound('E', 25, 0);
     }
@@ -2565,11 +2623,11 @@ void CGame::UpdateScreen_OnLogResMsg()
 {
     uint16_t msX{}, msY{}, msZ{}, sX{}, sY{};
     bool LB{}, RB{}, MB{};
-    uint32_t dwTime = unixtime();
-    static uint32_t dwCTime;
+    int64_t dwTime = m_dwCurTime;
+    static int64_t dwCTime;
     static CMouseInterface * pMI;
-    int   iMIbuttonNum;
-    char  cMIresult;
+    int iMIbuttonNum;
+    char cMIresult;
 
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
@@ -2581,7 +2639,7 @@ void CGame::UpdateScreen_OnLogResMsg()
         m_bEnterPressed = false;
         m_bEscPressed = false;
         m_cArrowPressed = 0;
-        dwCTime = unixtime();
+        dwCTime = m_dwCurTime;
 
         if (m_bSoundFlag) m_pESound[38].stop();
     }
@@ -2902,10 +2960,10 @@ void CGame::UpdateScreen_OnVersionNotMatch()
     update_mouse_state(msX, msY, msZ, LB, RB, MB);
 
     char cMIresult;
-    int  iMIbuttonNum;
+    int iMIbuttonNum;
 
     static CMouseInterface * pMI;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     if (m_cGameModeCount == 0)
     {
@@ -2923,7 +2981,7 @@ void CGame::UpdateScreen_OnVersionNotMatch()
         delete pMI;
         ChangeGameMode(DEF_GAMEMODE_NULL);
         // todo: windows
-        SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+        //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         return;
     }
 
@@ -2945,7 +3003,7 @@ void CGame::UpdateScreen_OnVersionNotMatch()
         ChangeGameMode(DEF_GAMEMODE_NULL);
         delete pMI;
         // todo: windows
-        SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+        //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         return;
     }
 }
@@ -2957,8 +3015,8 @@ void CGame::UpdateScreen_OnGame()
     bool LB{}, RB{}, MB{};
     char cItemColor{};
     int i{}, iAmount{};
-    uint32_t dwTime = unixtime();
-    static uint32_t dwPrevChatTime = 0;
+    int64_t dwTime = m_dwCurTime;
+    static int64_t dwPrevChatTime = 0;
     static int imX = 0, imY = 0;
     char cTmp[100]{}, cTmp2[100]{};
 
@@ -2966,7 +3024,7 @@ void CGame::UpdateScreen_OnGame()
 
     if (m_cGameModeCount == 0)
     {
-        m_dwFPStime = m_dwCheckConnTime = m_dwCheckSprTime = m_dwCheckChatTime = m_dwCheckWhoTime = m_dwCheckPingTime = m_dwCheckPkTime = m_dwPartyListTime = m_dwBWTime = dwTime;
+        m_dwFPStime = m_dwCheckConnTime = m_dwCheckSprTime = m_dwCheckChatTime = m_dwCheckWhoTime = m_dwCheckPingTime = m_dwCheckPkTime = m_dwPartyListTime = m_dwBWTime = unixtime();
 #ifdef DEF_ADMINCLIENT
         m_dwCheckRefreshTime = dwTime;
 #endif
@@ -2977,7 +3035,7 @@ void CGame::UpdateScreen_OnGame()
     m_cGameModeCount++;
     if (m_cGameModeCount > 20) m_cGameModeCount = 20;
 
-    m_dwCurTime = unixtime();
+    m_dwCurTime = dwTime;
 
     // todo: ??
     // Magic types for coords setup
@@ -3314,8 +3372,9 @@ void CGame::UpdateScreen_OnGame()
     static int16_t mouse_x = ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1;
     static int16_t mouse_y = ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1;
 
+    m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY, true);
+
     {
-        iUpdateRet = m_pMapData->object_frame_counter(m_cPlayerName, m_sViewPointX, m_sViewPointY, true);
         if (iUpdateRet == 0)
             iUpdateRet = -1;
         //if ((bEffectFrameCounter() == true) && (iUpdateRet == 0)) iUpdateRet = -1;
@@ -3589,18 +3648,18 @@ void CGame::UpdateScreen_OnGame()
         //				put_string(10, 122, G_cTxt, Color(255,255,255));
         //				format_to_local(G_cTxt, "m_bCommandAvailable({})", IsCommand);
         //				put_string(10, 133, G_cTxt, Color(255,255,255));
-        /*				if (m_iLastAmp < unixtime())
+        /*				if (m_iLastAmp < m_dwCurTime)
                         {
                             format_to_local(G_cTxt, "Amp runs out in: 0");
                         } else
-                            format_to_local(G_cTxt, "Amp runs out in: {}", abs((long)(unixtime() - m_iLastAmp)));
+                            format_to_local(G_cTxt, "Amp runs out in: {}", abs((long)(m_dwCurTime - m_iLastAmp)));
                         put_string(10, a, G_cTxt, Color(255,255,255));
                         a += 12;
-                        if (m_iLastBerserk  < unixtime())
+                        if (m_iLastBerserk  < m_dwCurTime)
                         {
                             format_to_local(G_cTxt, "Zerk runs out in: 0");
                         } else
-                            format_to_local(G_cTxt, "Zerk runs out in: {}", abs((long)(unixtime() - m_iLastBerserk)));
+                            format_to_local(G_cTxt, "Zerk runs out in: {}", abs((long)(m_dwCurTime - m_iLastBerserk)));
                         put_string(10, a, G_cTxt, Color(255,255,255));
                         a += 12;*/
                         //			}
@@ -3639,12 +3698,12 @@ void CGame::UpdateScreen_OnGame()
                         format_to_local(G_cTxt, "{} - {}", m_stPartyMemberNameList[i].cName, m_stPartyMemberNameList[i].iLevel);
                         put_string_sprite_font4(5, 30 + (icount * 39) + 0, G_cTxt, 230, 100, 0);
                         if (m_stPartyConfig.bShowPercent)
-                            format_to_local(G_cTxt, "HP: {}/{} - {}%%", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP, int(((float)m_stPartyMemberNameList[i].iHP / (float)m_stPartyMemberNameList[i].iMaxHP) * 100));
+                            format_to_local(G_cTxt, "HP: {}/{} - {}%", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP, int(((float)m_stPartyMemberNameList[i].iHP / (float)m_stPartyMemberNameList[i].iMaxHP) * 100));
                         else
                             format_to_local(G_cTxt, "HP: {}/{}", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP);
                         put_string_sprite_font4(5, 30 + (icount * 39) + 13, G_cTxt, 255, 50, 50);
                         if (m_stPartyConfig.bShowPercent)
-                            format_to_local(G_cTxt, "MP: {}/{} - {}%%", m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP, int(((float)m_stPartyMemberNameList[i].iMP / (float)m_stPartyMemberNameList[i].iMaxMP) * 100));
+                            format_to_local(G_cTxt, "MP: {}/{} - {}%", m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP, int(((float)m_stPartyMemberNameList[i].iMP / (float)m_stPartyMemberNameList[i].iMaxMP) * 100));
                         else
                             format_to_local(G_cTxt, "MP: {}/{}", m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP);
                         put_string_sprite_font4(5, 30 + (icount * 39) + 26, G_cTxt, 30, 160, 160);
@@ -3654,7 +3713,7 @@ void CGame::UpdateScreen_OnGame()
                         format_to_local(G_cTxt, "{} - {}", m_stPartyMemberNameList[i].cName, m_stPartyMemberNameList[i].iLevel);
                         put_string_sprite_font4(5, 30 + (icount * 39) + 0, G_cTxt, 230, 100, 0);
                         if (m_stPartyConfig.bShowPercent)
-                            format_to_local(G_cTxt, "HP: {}/{} {}%% - MP: {}/{} {}%%", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP, int(((float)m_stPartyMemberNameList[i].iHP / (float)m_stPartyMemberNameList[i].iMaxHP) * 100), m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP, int(((float)m_stPartyMemberNameList[i].iMP / (float)m_stPartyMemberNameList[i].iMaxMP) * 100));
+                            format_to_local(G_cTxt, "HP: {}/{} {}% - MP: {}/{} {}%%", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP, int(((float)m_stPartyMemberNameList[i].iHP / (float)m_stPartyMemberNameList[i].iMaxHP) * 100), m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP, int(((float)m_stPartyMemberNameList[i].iMP / (float)m_stPartyMemberNameList[i].iMaxMP) * 100));
                         else
                             format_to_local(G_cTxt, "HP: {}/{} - MP: {}/{}", m_stPartyMemberNameList[i].iHP, m_stPartyMemberNameList[i].iMaxHP, m_stPartyMemberNameList[i].iMP, m_stPartyMemberNameList[i].iMaxMP);
                         put_string_sprite_font4(5, 30 + (icount * 39) + 13, G_cTxt, 255, 50, 50);
@@ -3665,25 +3724,25 @@ void CGame::UpdateScreen_OnGame()
         }
     }
 
-    if ((effect_frame_counter() == true) && (iUpdateRet == 0)) iUpdateRet = -1;
-
-    if (iUpdateRet == 2)
-    {
-        m_bCommandAvailable = true;
-        m_dwCommandTime = 0;
-    }
+    if (next_command <= dwTime) can_take_action(true);
 
     CommandProcessor(msX, msY, ((sDivX + sPivotX) * 32 + sModX + msX - 17) / 32 + 1, ((sDivY + sPivotY) * 32 + sModY + msY - 17) / 32 + 1, LB, RB);
     m_sViewPointX = sVPXsave;
     m_sViewPointY = sVPYsave;
-    if (iUpdateRet > 0) CalcViewPoint();
+
+    if (game_configs.old_camera)
+    {
+        if (iUpdateRet > 0) CalcViewPointOld();
+    }
+    else
+        CalcViewPoint(dwTime);
 
     if (m_bIsObserverMode)
     {
         if ((dwTime - m_dwObserverCamTime) > 25)
         {
             m_dwObserverCamTime = dwTime;
-            CalcViewPoint();
+            CalcViewPoint(dwTime);
             iUpdateRet = -1;
         }
     }
@@ -3880,7 +3939,7 @@ void CGame::UpdateScreen_OnGame()
 #ifdef DEF_HACKCLIENT
     if ((dwTime - m_dwPotCheckTime) > 200)
     {
-        m_dwPotCheckTime = unixtime();
+        m_dwPotCheckTime = m_dwCurTime;
         if (m_iHP <= 0) return;
         int iMaxPoint = m_iVit * 3 + m_iLevel * 2 + m_iStr / 2;
         int i;
@@ -3933,7 +3992,7 @@ void CGame::UpdateScreen_OnGame()
 void CGame::_Draw_OnLogin(char * pAccount, char * pPassword, int msX, int msY, int iFrame)
 {
     bool bFlag = true;
-    uint32_t dwTime = unixtime();
+    int64_t dwTime = m_dwCurTime;
 
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_LOGIN, modx, mody, 0, true);
     DrawVersion();
@@ -3988,12 +4047,12 @@ void CGame::UpdateScreen_OnSelectCharacter()
     char  cLB{}, cRB{}, cTotalChar{};
     char  cMIresult{};
     static CMouseInterface * pMI;
-    uint32_t dwTime{};
-    static uint32_t dwCTime;
+    int64_t dwTime{};
+    static int64_t dwCTime;
 
     int iMIbuttonNum;
 
-    dwTime = unixtime();
+    dwTime = m_dwCurTime;
     sX = 0;
     sY = 0;
     cTotalChar = 0;
@@ -4023,7 +4082,7 @@ void CGame::UpdateScreen_OnSelectCharacter()
         m_cArrowPressed = 0;
         m_bEnterPressed = false;
 
-        dwCTime = unixtime();
+        dwCTime = m_dwCurTime;
     }
 
     m_cGameModeCount++;

@@ -24,7 +24,7 @@ public:
     ~CMapData();
     void Init();
     void OpenMapDataFile(char * cFn);
-    void GetOwnerStatusByObjectID(uint16_t wObjectID, char * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pStatus, int * pColor, char * pName);
+    void GetOwnerStatusByObjectID(uint16_t wObjectID, char * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pStatus, int * pColor, char * pName) const;
     void ClearDeadChatMsg(short sX, short sY);
     void ClearChatMsg(short sX, short sY);
     void _bDecodeMapInfo(char * pHeader);
@@ -33,12 +33,12 @@ public:
     bool bGetDeadOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, char * pFrame, char * pName, short * pItemSprite, short * pItemSpriteFrame, int * pCharIndex);
     bool bGetOwner(short sX, short sY, short * pOwnerType, char * pDir, short * pAppr1, short * pAppr2, short * pAppr3, short * pAppr4, int * pApprColor, int * pStatus, char * pName, char * pAction, char * pFrame, int * pChatIndex, short * pV1, short * pV2);
     bool bSetOwner(uint16_t wObjectID, int sX, int sY, int sType, int cDir, short sAppr1, short sAppr2, short sAppr3, short sAppr4, int iApprColor, int sStatus, char * pName, short sAction, short sV1, short sV2, short sV3, int iPreLoc = 0, int iFrame = 0);
-    bool bGetOwner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID);
+    bool bGetOwner(short sX, short sY, char * pName, short * pOwnerType, int * pOwnerStatus, uint16_t * pObjectID) const;
     bool bSetDynamicObject(short sX, short sY, uint16_t wID, short sType, bool bIsEvent);
-    bool bIsTeleportLoc(short x, short y);
-    bool bGetIsLocateable(short x, short y);
+    bool bIsTeleportLoc(short x, short y) const;
+    bool bGetIsLocateable(short x, short y) const;
     bool bSetItem(short sX, short sY, short sItemSpr, short sItemSprFrame, char cItemColor, bool bDropEffect = true);
-    int object_frame_counter(char * cPlayerName, short sViewPointX, short sViewPointY, bool self_only = false);
+    void object_frame_counter(short sViewPointX, short sViewPointY, bool self_only = false);
 
     CTile ** m_pData;
     CTile ** m_pTmpData;
@@ -48,17 +48,18 @@ public:
     struct
     {
         short m_sMaxFrame;
-        short m_sFrameTime;
+        int64_t m_sFrameTime;
     } m_stFrame[DEF_TOTALCHARACTERS][DEF_TOTALACTION]{};
-    uint32_t m_dwFrameTime{};
-    uint32_t m_dwDOframeTime{};
-    uint32_t m_dwFrameCheckTime{};
+    int64_t m_dwFrameTime{};
+    int64_t m_dwDOframeTime{};
+    int64_t m_dwFrameCheckTime{};
 
     // one server managing all maps will generate lots of npcs - this needs to be adjusted
     // todo: use std::set or something - for now use something higher than uint16_t
     int m_iObjectIDcacheLocX[70000]{};
     int m_iObjectIDcacheLocY[70000]{};
-    uint32_t m_dwFrameAdjustTime{};
+    int64_t m_dwFrameAdjustTime{};
     short m_sMapSizeX{}, m_sMapSizeY{};
     short m_sRectX{}, m_sRectY{};
+    mutable std::mutex map_mut;
 };

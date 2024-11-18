@@ -29,34 +29,36 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
 extern int _tmp_iStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
 extern int iFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusApprColor;
 
 void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, char cLB, char cRB)
 {
-    char   cDir, absX, absY, cName[12];
-    short  sX, sY, sObjectType, tX, tY;
+    char cDir, absX, absY, cName[12];
+    short sX, sY, sObjectType, tX, tY;
     int iObjectStatus;
-    int    iRet;
-    uint32_t  dwTime = unixtime();
-    uint16_t   wType = 0;
+    int iRet;
+    int64_t dwTime = m_dwCurTime;
+    uint16_t wType = 0;
     int i;//, iFOE;
-    char   cTxt[120];
+    char cTxt[120];
 
-    char  pDstName[21];
+    char pDstName[21];
     short sDstOwnerType;
-    int  iDstOwnerStatus;
-    bool  bGORet;
+    int iDstOwnerStatus;
+    bool bGORet;
     m_ssX = msX;
     m_ssY = msY;
     if ((m_bIsObserverCommanded == false) && (m_bIsObserverMode == true))
@@ -289,7 +291,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
         return;
     }
 #else
-    if ((dwTime - m_dwCommandTime) < 300)
+    if ((dwTime - m_dwCommandTime) < 100)
     {
         return;
     }
@@ -314,14 +316,15 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             else PointCommandHandler(indexX, indexY);
 
 #ifdef DEF_HACKCLIENT
-            if (m_stConfigList.bFastCast == true)//Change config
+            if (m_stConfigList.bFastCast == true)
             {
-                m_bCommandAvailable = true;//Change false
-                m_bIsGetPointingMode = true;//Change false
+                m_bCommandAvailable = true;
+                m_bIsGetPointingMode = true;
             }
             else
             {
 #endif
+                next_command = dwTime + 300;
                 m_bCommandAvailable = false;
                 m_bIsGetPointingMode = false;
                 ClearCoords();
@@ -332,7 +335,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 #ifdef DEF_HACKCLIENT
                 m_stConfigList.dwFastCast =
 #endif
-                unixtime();
+                m_dwCurTime;
             return;
         }
 
@@ -1107,8 +1110,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             AddEventList(COMMAND_PROCESSOR1, 10);
         }
 
+        if (next_command > dwTime) return;
         if (m_bCommandAvailable == false) return;
-        if (m_cCommandCount >= 6) return;
+        //if (m_cCommandCount >= 6) return;
 
         if ((m_sMCX != 0) && (m_sMCY != 0))
         {
@@ -1124,8 +1128,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 #endif
                 if ((sObjectType == 15) || (sObjectType == 20) || (sObjectType == 24)) return;
 
-                //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
-                //0x0101
                 if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
                 {
                     absX -= 1;
@@ -1159,7 +1161,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             break;
 
                         case 8:
-                            //Change
                             if ((absX <= 3) && (absY <= 3) && (m_iSuperAttackLeft > 0) && (m_bSuperAttackMode == true)
                                 && (_iGetAttackType() != 30))
                             {
@@ -1235,8 +1236,6 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
                 m_pMapData->bGetOwner(m_sMCX, m_sMCY, cName, &sObjectType, &iObjectStatus, &m_wCommObjectID);
 
-                //Change 3.51 monsters having 3x3 area - allows you to attack/dash them properly
-                //0x0101
                 if ((sObjectType == 66) || (sObjectType == 73) || (sObjectType == 81))
                 {
                     absX -= 1;
@@ -1373,12 +1372,19 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
             bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTSTOP, m_cPlayerDir, 0, 0, 0, 0);
 
             m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
-                m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, // v1.4 
+                m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
                 m_iPlayerStatus, m_cPlayerName,
                 m_cCommand, 0, 0, 0, 0,
                 10);
             m_bCommandAvailable = false;
-            m_dwCommandTime = unixtime();
+            next_command = dwTime += 100;
+            m_dwCommandTime = m_dwCurTime;
+
+            if (game_configs.old_camera == false)
+            {
+                m_sViewPointX = m_sViewStartX = m_sViewDstX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+                m_sViewPointY = m_sViewStartY = m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+            }
             return;
         }
     }
@@ -1387,12 +1393,10 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 
     if (m_cCommand != DEF_OBJECTSTOP)
     {
-
-
         if (m_iHP <= 0) return;
-        if (m_cCommandCount == 5) AddEventList(COMMAND_PROCESSOR2, 10, false);
+        //if (m_cCommandCount == 5) AddEventList(COMMAND_PROCESSOR2, 10, false);
         if (m_bCommandAvailable == false) return;
-        if (m_cCommandCount >= 6) return;
+        //if (m_cCommandCount >= 6) return;
 
         if ((m_sPlayerType >= 0) && (m_sPlayerType > 6))
         {
@@ -1410,6 +1414,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 #ifndef DEF_HACKCLIENT
         if (m_sDamageMove != 0)
         {
+            camera_reset = true;
             m_cCommand = DEF_OBJECTDAMAGEMOVE;
             m_sCommX = m_sPlayerX;
             m_sCommY = m_sPlayerY;
@@ -1444,7 +1449,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 }
             }
             for (i = 1; i < DEF_MAXCHATMSGS; i++)
-                if (m_pChatMsgList[i] == 0)
+                if (m_pChatMsgList[i] == nullptr)
                 {
                     memset(cTxt, 0, sizeof(cTxt));
                     if (m_sDamageMoveAmount > 0)
@@ -1464,7 +1469,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     if (m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i) == false)
                     {
                         delete m_pChatMsgList[i];
-                        m_pChatMsgList[i] = 0;
+                        m_pChatMsgList[i] = nullptr;
                     }
                     break;
                 }
@@ -1508,6 +1513,12 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         m_cPlayerDir = cDir;
                         bSendCommand(MSGID_COMMAND_MOTION, m_cCommand, cDir, 0, 0, 0, 0);
 
+                        if (m_cCommand != DEF_OBJECTSTOP)
+                        {
+                            m_sViewStartX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+                            m_sViewStartY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+                        }
+
                         switch (cDir)
                         {
                             case 1:	m_sPlayerY--; break;
@@ -1520,12 +1531,19 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                             case 8:	m_sPlayerX--; m_sPlayerY--;	break;
                         }
 
+                        if (m_cCommand == DEF_OBJECTSTOP)
+                        {
+                            m_sViewStartX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+                            m_sViewStartY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+                        }
+
                         m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                             m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
                             m_iPlayerStatus, m_cPlayerName,
                             m_cCommand, 0, 0, 0);
                         m_bCommandAvailable = false;
-                        m_dwCommandTime = unixtime();
+                        next_command = dwTime + m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sFrameTime * (m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sMaxFrame + 1);
+                        m_dwCommandTime = m_dwCurTime;
 
                         m_iPrevMoveX = m_sPlayerX;
                         m_iPrevMoveY = m_sPlayerY;
@@ -1572,7 +1590,8 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         DEF_OBJECTATTACK,
                         m_sCommX - m_sPlayerX, m_sCommY - m_sPlayerY, wType);
                     m_bCommandAvailable = false;
-                    m_dwCommandTime = unixtime();
+                    next_command = dwTime + m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sFrameTime * (m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sMaxFrame + 1);
+                    m_dwCommandTime = m_dwCurTime;
                 }
 
                 m_cCommand = DEF_OBJECTSTOP;
@@ -1596,6 +1615,9 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         m_cPlayerDir = cDir;
                         bSendCommand(MSGID_COMMAND_MOTION, DEF_OBJECTATTACKMOVE, cDir, m_sCommX, m_sCommY, wType, 0, m_wCommObjectID);
 
+                        m_sViewStartX = (m_sPlayerX * 32) - ((get_virtual_width() / 2));
+                        m_sViewStartY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+
                         switch (cDir)
                         {
                             case 1:	m_sPlayerY--; break;
@@ -1609,11 +1631,12 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                         }
 
                         m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
-                            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, // v1.4
+                            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
                             m_iPlayerStatus, m_cPlayerName,
                             m_cCommand, m_sCommX - m_sPlayerX, m_sCommY - m_sPlayerY, wType);
                         m_bCommandAvailable = false;
-                        m_dwCommandTime = unixtime();
+                        next_command = dwTime + m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sFrameTime * (m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sMaxFrame + 1);
+                        m_dwCommandTime = m_dwCurTime;
 
                         m_iPrevMoveX = m_sPlayerX;
                         m_iPrevMoveY = m_sPlayerY;
@@ -1621,6 +1644,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 }
 
                 m_cCommand = DEF_OBJECTSTOP;
+                dashing = true;
                 break;
 
             case DEF_OBJECTGETITEM:
@@ -1647,20 +1671,21 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 else
 #endif
                     m_bCommandAvailable = false;
-                m_dwCommandTime = unixtime();
+                next_command = dwTime + m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sFrameTime * (m_pMapData->m_stFrame[m_sPlayerType][m_cCommand].m_sMaxFrame + 1);
+                m_dwCommandTime = m_dwCurTime;
                 m_bIsGetPointingMode = true;
                 m_cCommand = DEF_OBJECTSTOP;
                 _RemoveChatMsgListByObjectID(m_sPlayerObjectID);
 
                 for (i = 1; i < DEF_MAXCHATMSGS; i++)
-                    if (m_pChatMsgList[i] == 0)
+                    if (m_pChatMsgList[i] == nullptr)
                     {
                         memset(cTxt, 0, sizeof(cTxt));
                         if (m_iCastingMagicType < 0 || m_iCastingMagicType > 100 || m_pMagicCfgList[m_iCastingMagicType] == nullptr)
                             format_to_local(cTxt, "Invalid Spell!");//Change Invalid Spell
                         else
                             format_to_local(cTxt, "{}!", m_pMagicCfgList[m_iCastingMagicType]->m_cName);
-                        m_pChatMsgList[i] = new CMsg(41, cTxt, unixtime());
+                        m_pChatMsgList[i] = new CMsg(41, cTxt, m_dwCurTime);
                         m_pChatMsgList[i]->m_iObjectID = m_sPlayerObjectID;
 
                         m_pMapData->bSetChatMsgOwner(m_sPlayerObjectID, -10, -10, i);

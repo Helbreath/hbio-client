@@ -13,6 +13,7 @@ extern char G_cSpriteAlphaDegree;
 extern bool isrunning;
 
 extern CGame * game;
+extern uint16_t _tmp_wObjectID;
 
 #ifndef WIN32
 typedef struct tagBITMAPINFOHEADER
@@ -99,6 +100,8 @@ bool sprite::make_sprite_surface_()
         szfile.read((char *)brush, 12 * m_iTotalFrame);
 
         sprite_ = new sf::Sprite[m_iTotalFrame];
+        shadow_ = new sf::Sprite[m_iTotalFrame];
+        quads = new sf::VertexArray[m_iTotalFrame];
     }
     //////////////////////////////////////////////////////////////////////////
 
@@ -167,8 +170,25 @@ bool sprite::make_sprite_surface_()
 
     for (int i = 0; i < m_iTotalFrame; ++i)
     {
+        auto sx = brush[i].sx;
+        auto sy = brush[i].sy;
+        auto szx = brush[i].szx;
+        auto szy = brush[i].szy;
+        float pvx = brush[i].pvx;
+        float pvy = brush[i].pvy;
+
         sprite_[i].setTexture(_localimage);
-        sprite_[i].setTextureRect(sf::IntRect(brush[i].sx, brush[i].sy, brush[i].szx, brush[i].szy));
+        sprite_[i].setTextureRect(sf::IntRect(sx, sy, szx, szy));
+
+        shadow_[i].setTexture(_localimage);
+        shadow_[i].setTextureRect(sf::IntRect(sx, sy, szx, szy));
+
+        quads[i] = sf::VertexArray(sf::Quads, 4);
+
+        quads[i][0].texCoords = sf::Vector2f((float)sx, (float)sy);
+        quads[i][1].texCoords = sf::Vector2f((float)sx + szx, (float)sy);
+        quads[i][2].texCoords = sf::Vector2f((float)sx + szx, (float)sy + szy);
+        quads[i][3].texCoords = sf::Vector2f((float)sx, (float)sy + szy);
     }
 
     m_bIsSurfaceEmpty = false;
@@ -191,25 +211,33 @@ sprite * sprite::create_sprite(std::string cPakFileName, short sNthFile, bool bA
     return new sprite(szfile, cPakFileName, sNthFile, bAlphaEffect);
 }
 
-void sprite::draw_shadow(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
-    // 	if (m_bIsSurfaceEmpty) if (_iOpenSprite() == false) return;
+    if (m_bIsSurfaceEmpty) if (open_sprite_() == false) return;
 
-    // 	test newSprite;
-    // 	newSprite.setTexture(*sprite[sFrame].getTexture());
+    sf::RenderStates states(shadow_[sFrame].getTexture());
 
-    // 	newSprite[sFrame].setColor(Color(0,0,0,127));
-    // 	newSprite[sFrame].setPosition(sX + m_stBrush[sFrame].pvx, sY + m_stBrush[sFrame].pvy);
-    // 	newSprite[sFrame].trythis();
-    //     game->draw(newSprite[sFrame]);
+    auto sx = brush[sFrame].sx;
+    auto sy = brush[sFrame].sy;
+    auto szx = brush[sFrame].szx;
+    auto szy = brush[sFrame].szy;
+    float pvx = brush[sFrame].pvx;
+    float pvy = brush[sFrame].pvy;
 
-    // 	if (m_bIsSurfaceEmpty) if (_iOpenSprite() == false) return;
-    // 	game->driver->draw2DImage(_localshadow, core::position2d<s32>(sX+m_stBrush[sFrame].pvx,sY+m_stBrush[sFrame].pvy),
-    // 		core::rect<s32>(m_stBrush[sFrame].sx,m_stBrush[sFrame].sy,m_stBrush[sFrame].sx+m_stBrush[sFrame].szx,m_stBrush[sFrame].sy+m_stBrush[sFrame].szy), 0,
-    // 		color, true);
+    quads[sFrame][0].position = sf::Vector2f(sX + pvx - (szx/3)*2, sY + pvy + (szy/3)*2);
+    quads[sFrame][1].position = sf::Vector2f(sX + pvx + (szx/3), sY + pvy + (szy/3)*2);
+    quads[sFrame][2].position = sf::Vector2f(sX + pvx + szx    , sY + pvy + szy);
+    quads[sFrame][3].position = sf::Vector2f(sX + pvx          , sY + pvy + szy);
+
+    quads[sFrame][0].color = color;
+    quads[sFrame][1].color = color;
+    quads[sFrame][2].color = color;
+    quads[sFrame][3].color = color;
+
+    game->draw(quads[sFrame], states);
 }
 
-void sprite::draw_sub_sprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sub_sprite(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
@@ -218,12 +246,12 @@ void sprite::draw_sub_sprite(int sX, int sY, int sFrame, uint64_t dwTime, Color 
     game->draw(sprite_[sFrame]);
 }
 
-void sprite::draw_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
     draw_rgb_no_color_key(sX, sY, sFrame, dwTime, color);
 }
 
-void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
@@ -235,31 +263,14 @@ void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, 
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
     game->draw(sprite_[sFrame]);
-
-    short dX, dY, sx, sy, szx, szy, pvx, pvy;
-
-    sx = brush[sFrame].sx;
-    sy = brush[sFrame].sy;
-    szx = brush[sFrame].szx;
-    szy = brush[sFrame].szy;
-    pvx = brush[sFrame].pvx;
-    pvy = brush[sFrame].pvy;
-
-    dX = sX + pvx;
-    dY = sY + pvy;
-
-    m_rcBound.left = dX;
-    m_rcBound.top = dY;
-    m_rcBound.right = dX + szx;
-    m_rcBound.bottom = dY + szy;
 }
 
-void sprite::draw_sprite(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
     draw_sprite_colored(sX, sY, sFrame, dwTime, color);
 }
 
-void sprite::draw_sprite_colored(int sX, int sY, int sFrame, uint64_t dwTime, Color color)
+void sprite::draw_sprite_colored(int sX, int sY, int sFrame, int64_t dwTime, Color color)
 {
     if (this == nullptr)
     {
@@ -277,26 +288,9 @@ void sprite::draw_sprite_colored(int sX, int sY, int sFrame, uint64_t dwTime, Co
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
     game->draw(sprite_[sFrame]);
-
-    short dX, dY, sx, sy, szx, szy, pvx, pvy;
-
-    sx = brush[sFrame].sx;
-    sy = brush[sFrame].sy;
-    szx = brush[sFrame].szx;
-    szy = brush[sFrame].szy;
-    pvx = brush[sFrame].pvx;
-    pvy = brush[sFrame].pvy;
-
-    dX = sX + pvx;
-    dY = sY + pvy;
-
-    m_rcBound.left = dX;
-    m_rcBound.top = dY;
-    m_rcBound.right = dX + szx;
-    m_rcBound.bottom = dY + szy;
 }
 
-void sprite::draw_to(int sX, int sY, int sFrame, uint64_t dwTime, Color color, int draw_mode)
+void sprite::draw_to(int sX, int sY, int sFrame, int64_t dwTime, Color color, int draw_mode)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
@@ -310,19 +304,20 @@ void sprite::draw_to(int sX, int sY, int sFrame, uint64_t dwTime, Color color, i
     game->draw_to(sprite_[sFrame], draw_mode);
 }
 
-void sprite::draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, uint64_t dwTime, Color color)
+void sprite::draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, int64_t dwTime, Color color)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
     sf::FloatRect f = sprite_[sFrame].getLocalBounds();
+    sf::Vector2f old_scale = sprite_[sFrame].getScale();
     sprite_[sFrame].setScale((sWidth / f.width) * 100, (sHeight / f.height) * 100);
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
     game->draw(sprite_[sFrame]);
-    sprite_[sFrame].setScale(1.0, 1.0);
+    sprite_[sFrame].setScale(old_scale);
 }
 
-void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime, Color color)
+void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime, Color color)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
@@ -333,117 +328,117 @@ void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, uint64_t 
     sprite_[sFrame].setTextureRect(sf::IntRect(brush[sFrame].sx, brush[sFrame].sy, brush[sFrame].szx, brush[sFrame].szy));
 }
 
-[[deprecated]] void sprite::put_sprite_fast(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_sprite_fast_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_no_color_key(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_sprite_fast_front_buffer(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_front_buffer(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime)
 {
     draw_sprite_width(sX, sY, sFrame, sWidth, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_shadow_sprite(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shadow_sprite(int sX, int sY, int sFrame, int64_t dwTime)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_shadow(sX, sY, sFrame, dwTime);
 }
 
-[[deprecated]] void sprite::put_shadow_sprite_clip(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shadow_sprite_clip(int sX, int sY, int sFrame, int64_t dwTime)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_shadow(sX, sY, sFrame, dwTime);
 }
 
-[[deprecated]] void sprite::put_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
-{
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
-}
-
-[[deprecated]] void sprite::put_trans_sprite_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
+[[deprecated]] void sprite::put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
 }
 
-[[deprecated]] void sprite::put_trans_sprite70(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth)
+{
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
+}
+
+[[deprecated]] void sprite::put_trans_sprite70(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
 }
 
-[[deprecated]] void sprite::put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 180));
 }
 
-[[deprecated]] void sprite::put_trans_sprite50(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite50(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
 }
 
-[[deprecated]] void sprite::put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125));
 }
 
-[[deprecated]] void sprite::put_trans_sprite25(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite25(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
 }
 
-[[deprecated]] void sprite::put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64));
 }
 
-[[deprecated]] void sprite::put_trans_sprite2(int sX, int sY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite2(int sX, int sY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(180, 255, 255));
 }
 
-[[deprecated]] void sprite::put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_fade_sprite(short sX, short sY, short sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_fade_sprite(short sX, short sY, short sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, uint64_t dwTime)
+[[deprecated]] void sprite::put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
 }
 
-[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(color));
 }
 
-[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 255));
 }
 
-[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(color));
 }
 
-[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
 }
 
-[[deprecated]] void sprite::put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, uint64_t dwTime)
+[[deprecated]] void sprite::put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(sRed, sGreen, sBlue, 180));
 }
@@ -513,7 +508,8 @@ void sprite::get_sprite_rect(int sX, int sY, int sFrame)
         }
     }
 
-    SetRect(&m_rcBound, dX, dY, dX + szx, dY + szy);
+    m_rcBound = { dX, dY, dX + szx, dY + szy };
+
     m_sPivotX = pvx;
     m_sPivotY = pvy;
 }
@@ -525,8 +521,7 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
     uint16_t * pSrc{};
     int  tX, tY;
 
-    if (this == 0) return false;
-    if (brush == 0) return false;
+    if (brush == nullptr) return false;
     if ((m_iTotalFrame - 1 < sFrame) || (sFrame < 0)) return false;
     if (m_bIsSurfaceEmpty == true) return false;
     if (msX < 0 + 3) return false;
@@ -591,7 +586,7 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
         }
     }
 
-    SetRect(&m_rcBound, dX, dY, dX + szx, dY + szy);
+    m_rcBound = { dX, dY, dX + szx, dY + szy };
 
     tX = dX;
     tY = dY;
@@ -604,10 +599,10 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
     int tarY = 0;
     Color pixel;
 
-    if (msX - dX - 10 > image_size.x) tarX = image_size.x - 1;
+    if (msX - dX - 10 > (int)image_size.x) tarX = image_size.x - 1;
     else if (msX - dX - 10 < 0) tarX = 0;
     else tarX = msX - dX - 10;
-    if (msY - dY - 10 > image_size.y) tarY = image_size.y - 1;
+    if (msY - dY - 10 > (int)image_size.y) tarY = image_size.y - 1;
     else if (msY - dY - 10 < 0) tarY = 0;
     else tarY = msY - dY - 10;
     Color pixel4 = _image.getPixel(tarX, tarY);
@@ -617,19 +612,17 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
     return false;
 }
 
-void sprite::put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, uint64_t dwTime)
+void sprite::put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
-    return;
 }
 
-void sprite::put_reverse_trans_sprite(int sX, int sY, int sFrame, uint64_t dwTime, int alphaDepth)
+void sprite::put_reverse_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth)
 {
     if (this == nullptr || (m_bIsSurfaceEmpty && open_sprite_() == false) || sFrame >= m_iTotalFrame)
         return;
     sf::Vector2f scale = sprite_[sFrame].getScale();
     sprite_[sFrame].setScale({ scale.x * -1.0f, scale.y });
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255));
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth));
     sprite_[sFrame].setScale(scale);
-    return;
 }

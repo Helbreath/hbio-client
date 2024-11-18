@@ -16,10 +16,10 @@ public:
     CTile() = default;
     ~CTile() = default;
 
-    uint32_t m_dwOwnerTime{};
-    uint32_t m_dwEffectTime{};
-    uint32_t m_dwDeadOwnerTime{};
-    uint32_t m_dwDynamicObjectTime{};
+    int64_t m_dwOwnerTime{};
+    int64_t m_dwEffectTime{};
+    int64_t m_dwDeadOwnerTime{};
+    int64_t m_dwDynamicObjectTime{};
 
     int m_iChatMsg{};
     int m_cItemColor{};
@@ -57,6 +57,9 @@ public:
     char  m_cDeadOwnerFrame = -1;
     char  m_cOwnerAction{};
     char  m_cOwnerFrame{};
+    uint16_t max_frames{};
+    int64_t frame_time{};
+    int64_t start_time{};
     char  m_cDir{};
     char  m_cDeadDir{};
 

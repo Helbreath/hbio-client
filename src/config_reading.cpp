@@ -55,10 +55,10 @@ bool CGame::_bDecodeBuildItemContents()
 
 
     for (i = 0; i < DEF_MAXBUILDITEMS; i++)
-        if (m_pBuildItemList[i] != 0)
+        if (m_pBuildItemList[i] != nullptr)
         {
             delete m_pBuildItemList[i];
-            m_pBuildItemList[i] = 0;
+            m_pBuildItemList[i] = nullptr;
         }
 
     memset(cTemp, 0, sizeof(cTemp));
@@ -254,9 +254,9 @@ void CGame::_LoadTextDlgContents(int cType)
 
     for (i = 0; i < DEF_TEXTDLGMAXLINES; i++)
     {
-        if (m_pMsgTextList[i] != 0)
+        if (m_pMsgTextList[i] != nullptr)
             delete m_pMsgTextList[i];
-        m_pMsgTextList[i] = 0;
+        m_pMsgTextList[i] = nullptr;
     }
 
 
@@ -307,9 +307,9 @@ int CGame::_iLoadTextDlgContents2(int iType)
 
     for (i = 0; i < DEF_TEXTDLGMAXLINES; i++)
     {
-        if (m_pMsgTextList2[i] != 0)
+        if (m_pMsgTextList2[i] != nullptr)
             delete m_pMsgTextList2[i];
-        m_pMsgTextList2[i] = 0;
+        m_pMsgTextList2[i] = nullptr;
     }
 
 
@@ -362,9 +362,9 @@ void CGame::_LoadGameMsgTextContents()
 
     for (i = 0; i < DEF_MAXGAMEMSGS; i++)
     {
-        if (m_pGameMsgList[i] != 0)
+        if (m_pGameMsgList[i] != nullptr)
             delete m_pGameMsgList[i];
-        m_pGameMsgList[i] = 0;
+        m_pGameMsgList[i] = nullptr;
     }
 
     memset(cTemp, 0, sizeof(cTemp));
@@ -965,17 +965,17 @@ void CGame::InitItemList(char * pData)
     cp++;
 
     for (i = 0; i < DEF_MAXITEMS; i++)
-        if (m_pItemList[i] != 0)
+        if (m_pItemList[i] != nullptr)
         {
             delete m_pItemList[i];
-            m_pItemList[i] = 0;
+            m_pItemList[i] = nullptr;
         }
 
     for (i = 0; i < DEF_MAXBANKITEMS; i++)
-        if (m_pBankList[i] != 0)
+        if (m_pBankList[i] != nullptr)
         {
             delete m_pBankList[i];
-            m_pBankList[i] = 0;
+            m_pBankList[i] = nullptr;
         }
 
     for (i = 0; i < cTotalItems; i++)
@@ -1050,10 +1050,10 @@ void CGame::InitItemList(char * pData)
 
 
     for (i = 0; i < DEF_MAXBANKITEMS; i++)
-        if (m_pBankList[i] != 0)
+        if (m_pBankList[i] != nullptr)
         {
             delete m_pBankList[i];
-            m_pBankList[i] = 0;
+            m_pBankList[i] = nullptr;
         }
 
     for (i = 0; i < cTotalItems; i++)
@@ -1123,7 +1123,7 @@ void CGame::InitItemList(char * pData)
     for (i = 0; i < DEF_MAXSKILLTYPE; i++)
     {
         m_cSkillMastery[i] = (unsigned char)*cp;
-        if (m_pSkillCfgList[i] != 0)
+        if (m_pSkillCfgList[i] != nullptr)
             m_pSkillCfgList[i]->m_iLevel = (int)*cp;
         cp++;
     }
