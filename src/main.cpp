@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <sys/timeb.h>
 #include "Game.h"
-#include "GlobalDef.h"
+#include "global_def.h"
 #include <condition_variable>
 #include <filesystem>
 

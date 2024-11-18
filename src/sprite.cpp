@@ -5,7 +5,7 @@
 //
 
 #include "sprite.h"
-#include "Game.h"
+#include "game.h"
 #include <sodium/crypto_secretstream_xchacha20poly1305.h>
 #include <fmt/format.h>
 

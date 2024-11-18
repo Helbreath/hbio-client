@@ -4,19 +4,8 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Misc.h"
-#include "GlobalDef.h"
-#include <windows.h>
-
-CMisc::CMisc()
-{
-
-}
-
-CMisc::~CMisc()
-{
-
-}
+#include "misc.h"
+#include "global_def.h"
 
 char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY, bool bMIM)
 {

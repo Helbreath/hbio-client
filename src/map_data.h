@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include "action_id.h"
+#include <mutex>
 
 #define MAPDATASIZEX 950
 #define MAPDATASIZEY 950

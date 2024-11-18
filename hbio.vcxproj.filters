@@ -63,25 +63,25 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Effect.cpp">
+    <ClCompile Include="src\effect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game.cpp">
+    <ClCompile Include="src\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Item.cpp">
+    <ClCompile Include="src\item.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ItemName.cpp">
+    <ClCompile Include="src\item_name.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Magic.cpp">
+    <ClCompile Include="src\magic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Misc.cpp">
+    <ClCompile Include="src\misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MouseInterface.cpp">
+    <ClCompile Include="src\mouse_interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\msg.cpp">
@@ -93,7 +93,7 @@
     <ClCompile Include="src\str_tok.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\BuildItem.cpp">
+    <ClCompile Include="src\build_item.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\draw_background.cpp">
@@ -123,10 +123,10 @@
     <ClCompile Include="src\helbreath.cpp">
       <Filter>src\game</Filter>
     </ClCompile>
-    <ClCompile Include="src\Tile.cpp">
+    <ClCompile Include="src\tile.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
-    <ClCompile Include="src\TileSpr.cpp">
+    <ClCompile Include="src\tile_spr.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
     <ClCompile Include="src\update_screen.cpp">
@@ -138,7 +138,7 @@
     <ClCompile Include="src\sprite.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\MapData.cpp">
+    <ClCompile Include="src\map_data.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
     <ClCompile Include="src\config_reading.cpp">
@@ -161,46 +161,46 @@
     <ClInclude Include="src\action_id.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\BuildItem.h">
+    <ClInclude Include="src\build_item.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\CharInfo.h">
+    <ClInclude Include="src\char_info.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\dynamic_object_id.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Effect.h">
+    <ClInclude Include="src\effect.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Game.h">
+    <ClInclude Include="src\game.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\GlobalDef.h">
+    <ClInclude Include="src\global_def.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Item.h">
+    <ClInclude Include="src\item.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\ItemName.h">
+    <ClInclude Include="src\item_name.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\lan_eng.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Magic.h">
+    <ClInclude Include="src\magic.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Misc.h">
+    <ClInclude Include="src\misc.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\MouseInterface.h">
+    <ClInclude Include="src\mouse_interface.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\msg.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\NetMessages.h">
+    <ClInclude Include="src\net_messages.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\resource.h">
@@ -209,16 +209,16 @@
     <ClInclude Include="src\skill.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundID.h">
+    <ClInclude Include="src\sound_id.h">
       <Filter>src\utility</Filter>
     </ClInclude>
     <ClInclude Include="src\str_tok.h">
       <Filter>src\utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Tile.h">
+    <ClInclude Include="src\tile.h">
       <Filter>src\map</Filter>
     </ClInclude>
-    <ClInclude Include="src\TileSpr.h">
+    <ClInclude Include="src\tile_spr.h">
       <Filter>src\map</Filter>
     </ClInclude>
     <ClInclude Include="src\sprite.h">
@@ -227,7 +227,7 @@
     <ClInclude Include="src\sprite_id.h">
       <Filter>src\engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\MapData.h">
+    <ClInclude Include="src\map_data.h">
       <Filter>src\map</Filter>
     </ClInclude>
     <ClInclude Include="src\defines.h">

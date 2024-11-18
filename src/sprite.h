@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <windows.h>
 #include <cstdio>
 #include <io.h>
 #include <fcntl.h>
@@ -17,7 +16,7 @@
 #include <sstream>
 #include <cstdint>
 #include "defines.h"
-#include "GlobalDef.h"
+#include "global_def.h"
 
 using sf::Color;
 

@@ -4,22 +4,22 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Game.h"
+#include "game.h"
 #include <algorithm>
 #include <iostream>
 #include <queue>
 #include <fmt/format.h>
 #include "sprite.h"
 #include "sprite_id.h"
-#include "CharInfo.h"
-#include "MouseInterface.h"
+#include "char_info.h"
+#include "mouse_interface.h"
 #include "action_id.h"
-#include "Item.h"
-#include "MapData.h"
+#include "item.h"
+#include "map_data.h"
 #include "lan_eng.h"
 #include "msg.h"
-#include "Magic.h"
-#include "Effect.h"
+#include "magic.h"
+#include "effect.h"
 
 extern char G_cSpriteAlphaDegree;
 

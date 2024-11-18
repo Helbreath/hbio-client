@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string_view>
+#include <string>
 
 class CMsg
 {

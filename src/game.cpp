@@ -4,7 +4,6 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include <windows.h>
 #include <ixwebsocket/IXNetSystem.h>
 #include <ixwebsocket/IXWebSocket.h>
 #include <ixwebsocket/IXUserAgent.h>
@@ -36,17 +35,17 @@
 #include "str_tok.h"
 #include "Msg.h"
 #include "Effect.h"
-#include "MapData.h"
+#include "map_data.h"
 #include "action_id.h"
-#include "NetMessages.h"
-#include "MouseInterface.h"
-#include "CharInfo.h"
+#include "net_messages.h"
+#include "mouse_interface.h"
+#include "char_info.h"
 #include "Item.h"
 #include "Magic.h"
 #include "Skill.h"
 #include "dynamic_object_id.h"
-#include "BuildItem.h"
-#include "ItemName.h"
+#include "build_item.h"
+#include "item_name.h"
 
 int G_iStuff = 0;
 int64_t G_iBytesOut, G_iBytesIn;//Change 0x0107

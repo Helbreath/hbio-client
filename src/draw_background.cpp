@@ -8,10 +8,10 @@
 #include <fmt/format.h>
 #include "Game.h"
 #include "lan_eng.h"
-#include "MapData.h"
+#include "map_data.h"
 #include "sprite_id.h"
 #include "sprite.h"
-#include "TileSpr.h"
+#include "tile_spr.h"
 
 extern char G_cSpriteAlphaDegree;
 

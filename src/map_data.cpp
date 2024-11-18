@@ -4,12 +4,12 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "MapData.h"
+#include "map_data.h"
 #include "dynamic_object_id.h"
-#include "Msg.h"
-#include "Tile.h"
-#include "Game.h"
-#include "TileSpr.h"
+#include "msg.h"
+#include "tile.h"
+#include "game.h"
+#include "tile_spr.h"
 
 CMapData::CMapData(CGame * pGame)
 {

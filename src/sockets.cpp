@@ -4,7 +4,7 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Game.h"
+#include "game.h"
 #include <iostream>
 #include <fmt/format.h>
 #include <ixwebsocket/IXNetSystem.h>

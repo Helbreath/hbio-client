@@ -4,7 +4,7 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "ItemName.h"
+#include "item_name.h"
 #include <memory>
 
 CItemName::CItemName()

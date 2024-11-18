@@ -14,7 +14,7 @@
 #include <sys/timeb.h>
 #include <string>
 #include <cstring>
-#include "GlobalDef.h"
+#include "global_def.h"
 #include "enums.h"
 #include <cstdint>
 #include <SFML/Graphics/Color.hpp>
@@ -33,6 +33,20 @@ constexpr auto MAX_CHARACTER_SOUNDS = 30;
 constexpr auto MAX_MONSTER_SOUNDS = 160;
 constexpr auto MAX_EFFECT_SOUNDS = 55;
 
+inline std::vector<std::string> split(std::string str)
+{
+    std::vector<std::string> tokens;
+    std::size_t start = str.find_first_not_of(' '), end = start;
+
+    while (start != std::string::npos)
+    {
+        end = str.find(' ', start);
+        tokens.push_back(str.substr(start, end-start));
+        start = str.find_first_not_of(' ', end);
+    }
+    return tokens;
+}
+
 // todo: clean these up over time (they exist to be a drop-in for wsprintf)
 template <std::size_t N, class... T>
 inline const char * format_to_local(char(&_Out)[N], const std::format_string<T...> _Fmt, T&&... _Args)
@@ -48,19 +62,19 @@ inline OutputIt format_to_local(OutputIt _Out, std::size_t len, const std::forma
     return _STD vformat_to(_STD move(_Out), _Fmt.get(), _STD make_format_args(_Args...));
 }
 
-inline bool isValidUnit(int64_t id)
+constexpr bool isValidUnit(int64_t id)
 {
     if (id > 0 && id < 30000) return true;
     return false;
 }
 
-inline bool isValidPlayer(int64_t id)
+constexpr bool isValidPlayer(int64_t id)
 {
     if (id > 0 && id < 10000) return true;
     return false;
 }
 
-inline bool isValidNpc(int64_t id)
+constexpr bool isValidNpc(int64_t id)
 {
     if (id > 10000 && id < 30000) return true;
     return false;
@@ -478,7 +492,7 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 #define DEF_ATTRIBUTE_FIRE			3
 #define DEF_ATTRIBUTE_WATER			4
 
-#include "netmessages.h"
+#include "net_messages.h"
 
 //#define TOTALCHARACTERS		120
 // todo - make sure this is what it should be

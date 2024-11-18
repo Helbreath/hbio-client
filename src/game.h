@@ -8,8 +8,6 @@
 
 #include <memory>
 #include <mutex>
-#include <windows.h>
-#include <windef.h>
 #include <set>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -17,11 +15,12 @@
 #include <ixwebsocket/IXWebSocketCloseConstants.h>
 #include "streams.h"
 #include "json.hpp"
-#include "GlobalDef.h"
+#include "global_def.h"
 #include "defines.h"
-#include "Misc.h"
+#include "misc.h"
 #include "fps.h"
 #include "action_id.h"
+#include "enums.h"
 
 class CCharInfo;
 class CMapData;

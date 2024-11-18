@@ -10,11 +10,11 @@ class CTileSpr
 {
 public:
     CTileSpr();
-    ~CTileSpr();
+    ~CTileSpr() = default;
     short m_sTileSprite;
     short m_sTileSpriteFrame;
     short m_sObjectSprite;
     short m_sObjectSpriteFrame;
-    bool  m_bIsMoveAllowed;
-    bool  m_bIsTeleport;
+    bool m_bIsMoveAllowed;
+    bool m_bIsTeleport;
 };

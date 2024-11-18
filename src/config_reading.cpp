@@ -4,21 +4,21 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Game.h"
+#include "game.h"
 #include "str_tok.h"
-#include "Item.h"
-#include "ItemNAme.h"
-#include "Msg.h"
-#include "BuildItem.h"
-#include "Magic.h"
-#include "Skill.h"
+#include "item.h"
+#include "item_name.h"
+#include "msg.h"
+#include "build_item.h"
+#include "magic.h"
+#include "skill.h"
 
 void CGame::_LoadShopMenuContents(char cType)
 {
     char cFileName[255]{}, cTemp[255]{};
     HANDLE hFile{};
     FILE * pFile{};
-    uint32_t  dwFileSize{};
+    uint32_t dwFileSize{};
     char * pBuffer{};
 
     memset(cTemp, 0, sizeof(cTemp));

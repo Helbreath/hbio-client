@@ -4,7 +4,7 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Game.h"
+#include "game.h"
 #include <algorithm>
 #include <iostream>
 #include <fmt/format.h>
@@ -14,11 +14,11 @@
 #include <ixwebsocket/IXUserAgent.h>
 #include "sprite.h"
 #include "sprite_id.h"
-#include "CharInfo.h"
-#include "MouseInterface.h"
+#include "char_info.h"
+#include "mouse_interface.h"
 #include "action_id.h"
-#include "Item.h"
-#include "MapData.h"
+#include "item.h"
+#include "map_data.h"
 #include "lan_eng.h"
 #include "msg.h"
 #include "str_tok.h"
