@@ -4,27 +4,24 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "Misc.h"
-#include "GlobalDef.h"
-#include <windows.h>
+#include "misc.h"
+#include "global_def.h"
 
-CMisc::CMisc()
-{
-
-}
-
-CMisc::~CMisc()
-{
-
-}
-
-char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY)
+char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY, bool bMIM)
 {
     short absX, absY;
     char  cRet = 0;
 
-    absX = sX - dX;
-    absY = sY - dY;
+    if (bMIM)
+    {
+        absX = dX - sX;
+        absY = dY - sY;
+    }
+    else
+    {
+        absX = sX - dX;
+        absY = sY - dY;
+    }
 
     if ((absX == 0) && (absY == 0)) cRet = 0;
 
@@ -45,7 +42,6 @@ char CMisc::cGetNextMoveDir(short sX, short sY, short dX, short dY)
 
     return cRet;
 }
-
 
 void CMisc::GetPoint(int x0, int y0, int x1, int y1, int * pX, int * pY, int * pError, int iCount)
 {
@@ -276,117 +272,6 @@ bool CMisc::bCheckValidName(const char * pStr)
 #endif
 
     }
-    return true;
-}
-
-int CMisc::_iGetFileCheckSum(char * pFn)
-{
-    HANDLE hFile{};
-    FILE * pFile;
-    uint32_t  dwFileSize{};
-    char * pContents;
-    int    iCheckSum{}, iV1{}, iV2{}, iV3{};
-    UINT i{};
-    char cRealFn[512]{};
-
-
-    memset(cRealFn, 0, sizeof(cRealFn));
-    strcpy(cRealFn, pFn);
-    for (i = 0; i < strlen(cRealFn); i++)
-        if (cRealFn[i] != 0)	cRealFn[i]++;
-
-    hFile = CreateFileA(cRealFn, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);//CreateFileA(cRealFn, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, 0);
-    dwFileSize = GetFileSize(hFile, 0);
-    CloseHandle(hFile);
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
-        return 0;
-    }
-
-    pFile = fopen(cRealFn, "rb");
-    if (pFile == 0) return 0;
-    else
-    {
-        pContents = new char[dwFileSize + 1];
-        memset(pContents, 0, dwFileSize + 1);
-        fread(pContents, 1, dwFileSize, pFile);
-        fclose(pFile);
-    }
-
-    iCheckSum = 0;
-
-    iV1 = (int)pContents[dwFileSize / 2];
-    iV2 = (int)pContents[dwFileSize / 2 - (dwFileSize / 2) / 2];
-    iV3 = (int)pContents[dwFileSize / 2 + (dwFileSize / 2) / 2];
-
-    iCheckSum = iV1 + iV2 + iV3;
-
-    delete[] pContents;
-    return abs(iCheckSum);
-}
-
-bool CMisc::_iConvertFileXor(char * pFn, char * pDestFn, char cKey)
-{
-    HANDLE hFile;
-    uint32_t  dwFileSize;
-    FILE * pFile;
-    char * pContents;
-    int    i;
-
-
-    char pHeader[10];
-    char cHeaderKey = 20;
-
-
-    hFile = CreateFileA(pFn, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-
-    dwFileSize = GetFileSize(hFile, 0) - 10;
-    if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
-
-
-    pFile = fopen(pFn, "rt");
-    if (pFile == 0)
-        return false;
-
-
-    pContents = new char[dwFileSize + 1];
-    memset(pContents, 0, dwFileSize + 1);
-
-    memset(pHeader, 0, 10);
-    fread(pHeader, 10, 1, pFile);
-
-    fread(pContents, dwFileSize, 1, pFile);
-    fclose(pFile);
-
-
-
-    for (i = 0; i < (int)(dwFileSize); i++)
-        pContents[i] = pContents[i] ^ cKey;
-
-
-    pFile = fopen(pDestFn, "wt");
-    if (pFile == 0)
-    {
-        delete[] pContents;
-        return false;
-    }
-
-    i = 0;
-    while (pHeader[i])
-    {
-        pHeader[i] = pHeader[i] ^ cHeaderKey;
-        i++;
-    }
-
-    if (atoi(pHeader) != (int)(dwFileSize))
-        return false;
-
-
-    fwrite(pContents, dwFileSize, 1, pFile);
-    fclose(pFile);
-
-    delete[] pContents;
-
     return true;
 }
 

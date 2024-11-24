@@ -15,77 +15,76 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ActionID.h" />
-    <ClInclude Include="src\BuildItem.h" />
-    <ClInclude Include="src\CharInfo.h" />
-    <ClInclude Include="src\defines.h" />
-    <ClInclude Include="src\DynamicObjectID.h" />
-    <ClInclude Include="src\Effect.h" />
-    <ClInclude Include="src\enums.h" />
-    <ClInclude Include="src\fps.h" />
-    <ClInclude Include="src\Game.h" />
-    <ClInclude Include="src\GlobalDef.h" />
-    <ClCompile Include="src\draw_objects_sprites.cpp" />
-    <ClCompile Include="src\helbreath.cpp" />
-    <ClInclude Include="src\Item.h" />
-    <ClInclude Include="src\ItemName.h" />
-    <ClCompile Include="src\json.hpp" />
-    <ClInclude Include="src\lan_chi.h" />
-    <ClInclude Include="src\lan_eng.h" />
-    <ClInclude Include="src\lan_jap.h" />
-    <ClInclude Include="src\lan_kor.h" />
-    <ClInclude Include="src\lan_tai.h" />
-    <ClInclude Include="src\Magic.h" />
-    <ClInclude Include="src\MapData.h" />
-    <ClInclude Include="src\Misc.h" />
-    <ClInclude Include="src\MouseInterface.h" />
-    <ClInclude Include="src\Msg.h" />
-    <ClInclude Include="src\NetMessages.h" />
-    <ClInclude Include="src\resource.h" />
-    <ClInclude Include="src\Skill.h" />
-    <ClInclude Include="src\SoundID.h" />
-    <ClInclude Include="src\sprite.h" />
-    <ClInclude Include="src\SpriteID.h" />
-    <ClInclude Include="src\streams.h" />
-    <ClInclude Include="src\StrTok.h" />
-    <ClInclude Include="src\Tile.h" />
-    <ClInclude Include="src\TileSpr.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\BuildItem.cpp" />
-    <ClCompile Include="src\command_processor.cpp" />
-    <ClCompile Include="src\config_reading.cpp" />
-    <ClCompile Include="src\dialog_events.cpp" />
-    <ClCompile Include="src\draw_background.cpp" />
-    <ClCompile Include="src\draw_dialogs.cpp" />
-    <ClCompile Include="src\draw_objects.cpp" />
-    <ClCompile Include="src\draw_strings.cpp" />
-    <ClCompile Include="src\Effect.cpp" />
-    <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\Item.cpp" />
-    <ClCompile Include="src\ItemName.cpp" />
-    <ClCompile Include="src\Magic.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MapData.cpp" />
-    <ClCompile Include="src\message_handlers.cpp" />
-    <ClCompile Include="src\Misc.cpp" />
-    <ClCompile Include="src\MouseInterface.cpp" />
-    <ClCompile Include="src\Msg.cpp" />
-    <ClCompile Include="src\notify_message.cpp" />
-    <ClCompile Include="src\Skill.cpp" />
-    <ClCompile Include="src\sprite.cpp" />
-    <ClCompile Include="src\StrTok.cpp" />
-    <ClCompile Include="src\Tile.cpp" />
-    <ClCompile Include="src\TileSpr.cpp" />
-    <ClCompile Include="src\update_screen.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include=".editorconfig" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="bin\config.json" />
     <None Include="DCO.md" />
     <None Include="vcpkg.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\admin_client.cpp" />
+    <ClCompile Include="src\build_item.cpp" />
+    <ClCompile Include="src\command_processor.cpp" />
+    <ClCompile Include="src\config_reading.cpp" />
+    <ClCompile Include="src\dialog_events.cpp" />
+    <ClCompile Include="src\draw_background.cpp" />
+    <ClCompile Include="src\draw_dialogs.cpp" />
+    <ClCompile Include="src\draw_effects.cpp" />
+    <ClCompile Include="src\draw_objects.cpp" />
+    <ClCompile Include="src\draw_objects_sprites.cpp" />
+    <ClCompile Include="src\draw_strings.cpp" />
+    <ClCompile Include="src\effect.cpp" />
+    <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\helbreath.cpp" />
+    <ClCompile Include="src\item.cpp" />
+    <ClCompile Include="src\item_name.cpp" />
+    <ClCompile Include="src\magic.cpp" />
+    <ClCompile Include="src\map_data.cpp" />
+    <ClCompile Include="src\message_handlers.cpp" />
+    <ClCompile Include="src\misc.cpp" />
+    <ClCompile Include="src\mouse_interface.cpp" />
+    <ClCompile Include="src\msg.cpp" />
+    <ClCompile Include="src\notify_message.cpp" />
+    <ClCompile Include="src\skill.cpp" />
+    <ClCompile Include="src\sockets.cpp" />
+    <ClCompile Include="src\sprite.cpp" />
+    <ClCompile Include="src\str_tok.cpp" />
+    <ClCompile Include="src\tile.cpp" />
+    <ClCompile Include="src\tile_spr.cpp" />
+    <ClCompile Include="src\update_screen.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\action_id.h" />
+    <ClInclude Include="src\build_item.h" />
+    <ClInclude Include="src\char_info.h" />
+    <ClInclude Include="src\defines.h" />
+    <ClInclude Include="src\dynamic_object_id.h" />
+    <ClInclude Include="src\effect.h" />
+    <ClInclude Include="src\enums.h" />
+    <ClInclude Include="src\fps.h" />
+    <ClInclude Include="src\game.h" />
+    <ClInclude Include="src\global_def.h" />
+    <ClInclude Include="src\item.h" />
+    <ClInclude Include="src\item_name.h" />
+    <ClInclude Include="src\json.hpp" />
+    <ClInclude Include="src\lan_eng.h" />
+    <ClInclude Include="src\magic.h" />
+    <ClInclude Include="src\map_data.h" />
+    <ClInclude Include="src\misc.h" />
+    <ClInclude Include="src\mouse_interface.h" />
+    <ClInclude Include="src\msg.h" />
+    <ClInclude Include="src\net_messages.h" />
+    <ClInclude Include="src\resource.h" />
+    <ClInclude Include="src\skill.h" />
+    <ClInclude Include="src\sound_id.h" />
+    <ClInclude Include="src\sprite.h" />
+    <ClInclude Include="src\sprite_id.h" />
+    <ClInclude Include="src\streams.h" />
+    <ClInclude Include="src\str_tok.h" />
+    <ClInclude Include="src\tile.h" />
+    <ClInclude Include="src\tile_spr.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -100,6 +99,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -158,18 +158,27 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;FMT_HEADER_ONLY;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
+      <PreprocessorDefinitions>_DISABLE_VECTOR_ANNOTATION;_DISABLE_STRING_ANNOTATION;_DEVMODE;_SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;FMT_HEADER_ONLY;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>vcpkg_installed\x64-windows\x64-windows\include</AdditionalIncludeDirectories>
-      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
-      <ControlFlowGuard>false</ControlFlowGuard>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>true</OpenMPSupport>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -181,6 +190,7 @@
       <MapExports>true</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <CETCompat>true</CETCompat>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

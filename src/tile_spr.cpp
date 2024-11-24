@@ -4,7 +4,7 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "TileSpr.h"
+#include "tile_spr.h"
 
 CTileSpr::CTileSpr()
 {
@@ -14,9 +14,4 @@ CTileSpr::CTileSpr()
     m_sObjectSpriteFrame = 0;
     m_bIsMoveAllowed = true;
     m_bIsTeleport = false;
-}
-
-CTileSpr::~CTileSpr()
-{
-
 }

@@ -43,193 +43,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ActionID.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BuildItem.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CharInfo.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DynamicObjectID.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Effect.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Game.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GlobalDef.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Item.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ItemName.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lan_chi.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lan_eng.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lan_jap.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lan_kor.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lan_tai.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Magic.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Misc.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MouseInterface.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Msg.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NetMessages.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\resource.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Skill.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SoundID.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SpriteID.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StrTok.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\fps.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="src\defines.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="src\enums.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="src\sprite.h">
-      <Filter>src\engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Tile.h">
-      <Filter>src\map</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TileSpr.h">
-      <Filter>src\map</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MapData.h">
-      <Filter>src\map</Filter>
-    </ClInclude>
-    <ClInclude Include="src\streams.h">
-      <Filter>src\utility</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\BuildItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Effect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Item.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ItemName.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Magic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Misc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MouseInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Msg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Skill.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StrTok.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\sprite.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Tile.cpp">
-      <Filter>src\map</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TileSpr.cpp">
-      <Filter>src\map</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapData.cpp">
-      <Filter>src\map</Filter>
-    </ClCompile>
-    <ClCompile Include="src\draw_background.cpp">
-      <Filter>src\map</Filter>
-    </ClCompile>
-    <ClCompile Include="src\config_reading.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\update_screen.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\draw_dialogs.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\notify_message.cpp">
-      <Filter>src\net</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dialog_events.cpp">
-      <Filter>src\ui\dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="src\message_handlers.cpp">
-      <Filter>src\net</Filter>
-    </ClCompile>
-    <ClCompile Include="src\command_processor.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\json.hpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="src\helbreath.cpp">
-      <Filter>src\game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\draw_objects_sprites.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\draw_objects.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\draw_strings.cpp">
-      <Filter>src\engine</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="DCO.md">
       <Filter>configs\compiler</Filter>
     </None>
@@ -248,5 +61,189 @@
     <None Include="bin\config.json">
       <Filter>configs\compiler</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\effect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\item.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\item_name.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\magic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\misc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mouse_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\msg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\skill.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\str_tok.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\build_item.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_background.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_dialogs.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_objects.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_objects_sprites.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_strings.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dialog_events.cpp">
+      <Filter>src\ui\dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\message_handlers.cpp">
+      <Filter>src\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\command_processor.cpp">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helbreath.cpp">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tile.cpp">
+      <Filter>src\map</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tile_spr.cpp">
+      <Filter>src\map</Filter>
+    </ClCompile>
+    <ClCompile Include="src\update_screen.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sprite.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\map_data.cpp">
+      <Filter>src\map</Filter>
+    </ClCompile>
+    <ClCompile Include="src\config_reading.cpp">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sockets.cpp">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\admin_client.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\notify_message.cpp">
+      <Filter>src\net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_effects.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\action_id.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\build_item.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\char_info.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dynamic_object_id.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\effect.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\global_def.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\item.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\item_name.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lan_eng.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\magic.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\misc.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mouse_interface.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\msg.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net_messages.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\skill.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sound_id.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\str_tok.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tile.h">
+      <Filter>src\map</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tile_spr.h">
+      <Filter>src\map</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sprite.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sprite_id.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\map_data.h">
+      <Filter>src\map</Filter>
+    </ClInclude>
+    <ClInclude Include="src\defines.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\enums.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fps.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\json.hpp">
+      <Filter>src\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\streams.h">
+      <Filter>src\utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

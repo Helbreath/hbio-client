@@ -8,13 +8,12 @@
 
 #include <ctime>
 #include <cstdint>
-#include <windows.h>
+#include "defines.h"
 
 #define DEF_MAXRECTS	30
 #define DEF_MIRESULT_NONE		0
 #define DEF_MIRESULT_PRESS		1
 #define DEF_MIRESULT_CLICK		2
-
 
 class CMouseInterface
 {
@@ -23,7 +22,7 @@ public:
     void AddRect(long sx, long sy, long dx, long dy);
     CMouseInterface();
     ~CMouseInterface();
-    RECT * m_pRect[DEF_MAXRECTS];
+    hbxrect * m_pRect[DEF_MAXRECTS];
     char m_cPrevPress;
-    uint64_t m_dwTime;
+    int64_t m_dwTime;
 };

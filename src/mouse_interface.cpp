@@ -4,42 +4,43 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
-#include "MouseInterface.h"
+#include "mouse_interface.h"
 #include "defines.h"
 
 CMouseInterface::CMouseInterface()
 {
     m_cPrevPress = 0;
-    for (int i = 1; i < DEF_MAXRECTS; i++)
-        m_pRect[i] = 0;
+    for (int i = 0; i < DEF_MAXRECTS; i++)
+        m_pRect[i] = nullptr;
     m_dwTime = unixtime();
 }
 
 CMouseInterface::~CMouseInterface()
 {
     for (int i = 1; i < DEF_MAXRECTS; i++)
-        if (m_pRect[i] != 0) delete m_pRect[i];
+        if (m_pRect[i] != nullptr) delete m_pRect[i];
 }
 
 void CMouseInterface::AddRect(long sx, long sy, long dx, long dy)
 {
     for (int i = 1; i < DEF_MAXRECTS; i++)
-        if (m_pRect[i] == 0)
+        if (m_pRect[i] == nullptr)
         {
-            m_pRect[i] = (RECT *) new RECT;
-            SetRect(m_pRect[i], sx, sy, dx, dy);
+            m_pRect[i] = (hbxrect *)new hbxrect(sx, sy, dx, dy);
             return;
         }
 }
 
 int CMouseInterface::iGetStatus(int msX, int msY, char cLB, char * pResult)
 {
+    // @bug
+    if (m_cPrevPress < 0) m_cPrevPress = 0;
     int i, iRet;
     if (cLB != 0)
     {
 
         for (i = 1; i < DEF_MAXRECTS; i++)
-            if (m_pRect[i] != 0)
+            if (m_pRect[i] != nullptr)
             {
                 if ((m_pRect[i]->left < msX) && (m_pRect[i]->right > msX) &&
                     (m_pRect[i]->top < msY) && (m_pRect[i]->bottom > msY))

@@ -4,29 +4,22 @@
 // Distributed under the MIT License. (See accompanying file LICENSE)
 //
 
+#include "game.h"
 #include <algorithm>
 #include <iostream>
+#include <queue>
 #include <fmt/format.h>
-#include "Game.h"
-#include "ActionID.h"
-#include "Msg.h"
-#include "MapData.h"
-#include "CharInfo.h"
-#include "Item.h"
-#include "Magic.h"
-#include "Effect.h"
-
-#if DEF_LANGUAGE == 1
-#include "lan_tai.h"
-#elif DEF_LANGUAGE == 2
-#include "lan_chi.h"
-#elif DEF_LANGUAGE == 3
-#include "lan_kor.h"
-#elif DEF_LANGUAGE == 4
+#include "sprite.h"
+#include "sprite_id.h"
+#include "char_info.h"
+#include "mouse_interface.h"
+#include "action_id.h"
+#include "item.h"
+#include "map_data.h"
 #include "lan_eng.h"
-#elif DEF_LANGUAGE == 5
-#include "lan_jap.h"
-#endif
+#include "msg.h"
+#include "magic.h"
+#include "effect.h"
 
 extern char G_cSpriteAlphaDegree;
 
@@ -35,39 +28,437 @@ extern char _cMantleDrawingOrder[];
 extern char _cMantleDrawingOrderOnRun[];
 
 
-extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;//, _tmp_sStatus;
-extern int _tmp_sStatus;
-extern char  _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
-extern int   _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
-extern uint16_t  _tmp_wObjectID;
+extern short _tmp_sOwnerType, _tmp_sAppr1, _tmp_sAppr2, _tmp_sAppr3, _tmp_sAppr4;
+extern int _tmp_iStatus;
+extern char _tmp_cAction, _tmp_cDir, _tmp_cFrame, _tmp_cName[12];
+extern int64_t _tmp_owner_time, _tmp_start_time;
+extern int64_t _tmp_max_frames, _tmp_frame_time;
+extern int _tmp_iChatIndex, _tmp_dx, _tmp_dy, _tmp_iApprColor, _tmp_iEffectType, _tmp_iEffectFrame, _tmp_dX, _tmp_dY;
+extern uint16_t _tmp_wObjectID;
 extern char cDynamicObjectData1, cDynamicObjectData2, cDynamicObjectData3, cDynamicObjectData4;
-extern uint16_t  wFocusObjectID;
+extern uint16_t wFocusObjectID;
 extern short sFocus_dX, sFocus_dY;
-extern char  cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
+extern char cFocusAction, cFocusFrame, cFocusDir, cFocusName[12];
 extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, sFocusAppr4;
-extern int sFocusStatus;
-extern int   iFocusApprColor;
+extern int iFocusStatus;
+extern int iFocusApprColor;
 
-
-void CGame::ChatMsgHandler(char * pData)
+bool CGame::GameRecvMsgHandler(char * pData, uint32_t dwMsgSize)
 {
-    int i, iObjectID, iLoc;
-    short * sp, sX, sY;
-    char * cp, cMsgType, cName[21], cTemp[100], cMsg[100], cTxt1[100], cTxt2[100];
-    uint32_t dwTime;
+    uint32_t * dwpMsgID, * dwp{};
+    int64_t dwTimeSent{}, dwTimeRcv{};
     uint16_t * wp;
-    bool bFlag;
+    char * cp, cName[11];
+    int i, * ip, itmp, itmp2, itmp3;//, iTotalFriends;
 
-    char cHeadMsg[200];
+    dwpMsgID = (uint32_t *)(pData + DEF_INDEX4_MSGID);
 
-    dwTime = m_dwCurTime;
+    if (*dwpMsgID == MSGID_EVENT_MOTION)
+    {
+        MotionEventHandler(pData);
+        return true;
+    }
 
-    memset(cTxt1, 0, sizeof(cTxt1));
-    memset(cTxt2, 0, sizeof(cTxt2));
-    memset(cMsg, 0, sizeof(cMsg));
+    uint8_t v = 0;
+
+    stream_read sr(pData, dwMsgSize);
+    int32_t message_id = sr.read_int32();
+    int16_t command_id = sr.read_int16();
+
+    switch (*dwpMsgID)
+    {
+        case MSGID_COMMAND_CHECKCONNECTION:
+            return true;
+
+        case MSGID_RESPONSE_PING:
+            // round trip ping
+            m_iPing = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - sr.read_int64()) / 2;
+            // server->client ping
+            //sr.read_int64();
+            return true;
+
+        case MSGID_RESPONSE_FRIENDSLIST:
+
+            memset(cName, 0, 11);
+            wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
+
+            switch (*wp)
+            {
+                case 1://Add
+                    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+                    //cp++;
+
+                    memcpy(m_stFriendsList[m_iTotalFriends].cCharName, cp, 10);
+                    cp += 10;
+
+                    memcpy(m_stFriendsList[m_iTotalFriends].cMapName, cp, 10);
+                    cp += 10;
+
+                    m_stFriendsList[m_iTotalFriends].cSide = *cp;
+                    cp++;
+
+                    ip = (int *)cp;
+                    m_stFriendsList[m_iTotalFriends].iLevel = *ip;
+                    cp += 4;
+
+                    ip = (int *)cp;
+                    m_stFriendsList[m_iTotalFriends].iPKs = *ip;
+                    cp += 4;
+
+                    //				StringCbPrintf(G_cTxt, 128, "Friend {} has been added to your list.", m_stFriendsList[m_iTotalFriends].cCharName);
+                    format_to_local(G_cTxt, "Friend {} has been added to your list.", m_stFriendsList[m_iTotalFriends].cCharName);
+                    AddEventList(G_cTxt, 10);
+
+                    m_stFriendsList[m_iTotalFriends].bIsOnline = true;
+                    m_iTotalFriends++;
+
+                    break;
+                case 2://Delete
+                    break;
+                case 3://Update
+
+                    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+                    m_iTotalFriends = *cp;
+                    cp++;
+
+                    itmp = itmp2 = itmp3 = 0;
+
+                    memset(m_stFriendsList, 0, sizeof(m_stFriendsList));
+
+                    for (i = 0; i < m_iTotalFriends; i++)
+                    {
+                        if (*cp == 1)
+                        {
+                            cp++;
+                            memcpy(m_stFriendsList[i].cCharName, cp, 10);
+                            cp += 10;
+                            memcpy(m_stFriendsList[i].cMapName, cp, 10);
+                            cp += 10;
+
+                            m_stFriendsList[i].cSide = *cp;
+                            cp++;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iLevel = *ip;
+                            cp += 4;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iPKs = *ip;
+                            cp += 4;
+
+                            m_stFriendsList[i].bIsOnline = true;
+                        }
+                        else
+                        {
+                            cp++;
+                            memcpy(m_stFriendsList[i].cCharName, cp, 10);
+                            cp += 10;
+                            m_stFriendsList[i].bIsOnline = false;
+                        }
+                    }
+
+                    break;
+                case 4://Come Online
+
+                    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+                    memcpy(cName, cp, 10);
+                    cp += 10;
+                    for (i = 0; i < 50; i++)
+                    {
+                        if (memcmp(m_stFriendsList[i].cCharName, cName, 10) == 0)
+                        {
+                            memcpy(m_stFriendsList[i].cMapName, cp, 10);
+                            cp += 10;
+
+                            m_stFriendsList[i].cSide = *cp;
+                            cp++;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iLevel = *ip;
+                            cp += 4;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iPKs = *ip;
+                            cp += 4;
+
+                            m_stFriendsList[i].bIsOnline = true;
+                            format_to_local(G_cTxt, "Friend {} has come online.", cName);
+                            //						StringCbPrintf(G_cTxt, 128, "Friend {} has come online.", cName);
+                            AddEventList(G_cTxt, 10);
+                            break;
+                        }
+                    }
+                    break;
+                case 5://Go Offline
+                    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+                    for (i = 0; i < m_iTotalFriends; i++)
+                    {
+                        if (memcmp(m_stFriendsList[i].cCharName, cp, 10) == 0)
+                        {
+                            m_stFriendsList[i].bIsOnline = false;
+                            format_to_local(G_cTxt, "Friend {} is now offline.", cp);
+                            //						StringCbPrintf(G_cTxt, 128, "Friend {} is now offline.", cp);
+                            AddEventList(G_cTxt, 10);
+                        }
+                    }
+                    break;
+
+                case 6://Single Update
+
+                    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+                    for (i = 0; i < m_iTotalFriends; i++)
+                    {
+                        if (memcmp(m_stFriendsList[i].cCharName, cp, 10) == 0)
+                        {
+                            cp += 10;
+
+                            memcpy(m_stFriendsList[i].cMapName, cp, 10);
+                            cp += 10;
+                            if (strlen(m_stFriendsList[i].cMapName) > 0)
+                                m_stFriendsList[i].bIsOnline = true;
+                            else
+                                m_stFriendsList[i].bIsOnline = false;
+
+                            m_stFriendsList[i].cSide = *cp;
+                            cp++;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iLevel = *ip;
+                            cp += 4;
+
+                            ip = (int *)cp;
+                            m_stFriendsList[i].iPKs = *ip;
+                            cp += 4;
+                        }
+                    }
+
+                    return true;
+            }
+
+
+
+            //struct {
+            //	char  cCharName[11];
+            //	char  cMapName[10];
+            //	int   iLevel, iPKs;
+            //	bool  bIsOnline;
+            //} m_stFriendsList[50];
+
+
+            return true;
+
+            //case MSGID_RESPONSE_PKLIST:
+
+            //	cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+            //	ip = (int *)cp;
+            //	itmp = *ip;
+
+            //	cp+=4;
+
+            //	memset(m_stPKList, 0, sizeof(m_stPKList));
+
+            //	for (i = 0; i < itmp; i++)
+            //	{
+            //		memcpy(m_stPKList[i].m_cCharName, cp, 10);
+            //		cp+=10;
+
+            //		ip = (int *)cp;
+            //		m_stPKList[i].m_iPKs = *ip;
+            //		cp+=4;
+
+            //		ip = (int *)cp;
+            //		m_stPKList[i].m_iGM = *ip;
+            //		cp+=4;
+            //	}
+                //format_to_local(G_cTxt, "PKers found: {} - name {} pks {}", itmp, m_stPKList[0].m_cCharName, m_stPKList[0].m_iPKs);
+                //AddEventList(G_cTxt, 10);
+
+            break;
+
+        case MSGID_RESPONSE_REGISTER:
+
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+            itmp = *cp;
+            cp++;
+
+            if (itmp != 1)
+                ChangeGameMode(DEF_GAMEMODE_ONVERSIONNOTMATCH);
+
+            return true;
+
+#ifdef DEF_ADMINCLIENT
+        case MSGID_RESPONSE_CHARLIST:
+
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+            ip = (int *)cp;
+            m_iTotalCharList = *ip;
+
+            cp += 4;
+
+            memset(m_stCharList, 0, sizeof(m_stCharList));
+
+            for (i = 0; i < m_iTotalCharList; i++)
+            {
+                memcpy(m_stCharList[i].cCharName, cp, 10);
+                cp += 10;
+                memcpy(m_stCharList[i].cTown, cp, 10);
+                cp += 10;
+                memcpy(m_stCharList[i].cMapName, cp, 10);
+                cp += 10;
+                memcpy(m_stCharList[i].cAddress, cp, 20);
+                cp += 20;
+
+                ip = (int *)cp;
+                m_stCharList[i].iX = *ip;
+                cp += 4;
+
+                ip = (int *)cp;
+                m_stCharList[i].iY = *ip;
+                cp += 4;
+
+                ip = (int *)cp;
+                m_stCharList[i].iLevel = *ip;
+                cp += 4;
+
+                ip = (int *)cp;
+                m_stCharList[i].iPKs = *ip;
+                cp += 4;
+
+                m_stCharList[i].bIsGM = *cp;
+                cp++;
+            }
+
+            ip = (int *)cp;
+            m_iTotalMapList = *ip;
+
+            cp += 4;
+
+            memset(m_stMapList, 0, sizeof(m_stMapList));
+
+            for (i = 0; i < m_iTotalMapList; i++)
+            {
+                memcpy(m_stMapList[i].cMapName, cp, 10);
+                cp += 10;
+
+                ip = (int *)cp;
+                m_stMapList[i].iClients = *ip;
+                cp += 4;
+
+                ip = (int *)cp;
+                m_stMapList[i].iMobs = *ip;
+                cp += 4;
+
+                ip = (int *)cp;
+                m_stMapList[i].iItems = *ip;
+                cp += 4;
+            }
+
+            return true;
+#endif
+        case MSGID_RESPONSE_FLOORSTATS:
+            return true;
+
+        case MSGID_RESPONSE_CHARGED_TELEPORT:
+            ResponseChargedTeleport(pData);
+            return true;
+
+        case MSGID_RESPONSE_TELEPORT_LIST:
+            ResponseTeleportList(pData);
+            return true;
+
+        case MSGID_RESPONSE_NOTICEMENT:
+            NoticementHandler(pData);
+            return true;
+
+        case MSGID_DYNAMICOBJECT:
+            DynamicObjectHandler(pData);
+            return true;
+
+        case MSGID_RESPONSE_INITDATA:
+            InitDataResponseHandler(pData);
+            bSendCommand(MSGID_REQUEST_REGISTER, 0, 0, 0, 0, 0, 0);
+            return true;
+
+        case MSGID_RESPONSE_MOTION:
+            MotionResponseHandler(pData);
+            return true;
+
+        case MSGID_EVENT_COMMON:
+            CommonEventHandler(pData);
+            return true;
+
+        case MSGID_EVENT_MOTION:
+            MotionEventHandler(pData);
+            return true;
+
+        case MSGID_EVENT_LOG:
+            LogEventHandler(pData);
+            return true;
+
+        case MSGID_COMMAND_CHATMSG:
+            ChatMsgHandler(pData, dwMsgSize);
+            return true;
+
+        case MSGID_PLAYERITEMLISTCONTENTS:
+            InitItemList(pData);
+            return true;
+
+        case MSGID_NOTIFY:
+            NotifyMsgHandler(pData);
+            return true;
+
+        case MSGID_GMLIST:
+            memset(m_cGMList, 0, 200);
+            memcpy(m_cGMList, pData + 6, dwMsgSize - 6);
+            return true;
+
+        case MSGID_RESPONSE_CREATENEWGUILD:
+            CreateNewGuildResponseHandler(pData);
+            return true;
+
+        case MSGID_RESPONSE_DISBANDGUILD:
+            DisbandGuildResponseHandler(pData);
+            return true;
+
+        case MSGID_PLAYERCHARACTERCONTENTS:
+            InitPlayerCharacteristics(pData);
+            return true;
+
+        case MSGID_RESPONSE_CIVILRIGHT:
+            CivilRightAdmissionHandler(pData);
+            return true;
+
+        case MSGID_RESPONSE_RETRIEVEITEM:
+            RetrieveItemHandler(pData);
+            return true;
+
+        case MSGID_RESPONSE_PANNING:
+            ResponsePanningHandler(pData);
+            return true;
+
+        case MSGID_RESPONSE_FIGHTZONE_RESERVE:
+            ReserveFightzoneResponseHandler(pData);
+            return true;
+    }
+    return false;
+}
+
+
+void CGame::CommonEventHandler(char * pData)
+{
+    uint16_t * wp, wEventType;
+    short * sp, sX, sY, sV1, sV2, sV3, sV4;
+    char * cp;
 
     wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-    iObjectID = (int)*wp;
+    wEventType = *wp;
 
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
 
@@ -78,25 +469,929 @@ void CGame::ChatMsgHandler(char * pData)
     sp = (short *)cp;
     sY = *sp;
     cp += 2;
-    memset(cName, 0, sizeof(cName));
-    memcpy(cName, (char *)cp, 10);
-    cp += 10;
 
-    cMsgType = *cp;
+    sp = (short *)cp;
+    sV1 = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sV2 = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sV3 = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sV4 = *sp;
+    cp += 2;
+
+    switch (wEventType)
+    {
+        case DEF_COMMONTYPE_ITEMDROP:
+            if ((sV1 == 6) && (sV2 == 0))
+            {
+                bAddNewEffect(4, sX, sY, 0, 0, 0);
+            }
+            //else
+
+            m_pMapData->bSetItem(sX, sY, sV1, sV2, (char)sV3);
+            break;
+
+        case DEF_COMMONTYPE_SETITEM:
+            m_pMapData->bSetItem(sX, sY, sV1, sV2, (char)sV3, false);
+            break;
+
+        case DEF_COMMONTYPE_MAGIC:
+            bAddNewEffect(sV3, sX, sY, sV1, sV2, 0, sV4);
+            break;
+        case DEF_COMMONTYPE_CLEARGUILDNAME:
+            ClearGuildNameList();
+            break;
+    }
+}
+
+void CGame::InitPlayerCharacteristics(char * pData)
+{
+    int * ip;
+    char * cp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    ip = (int *)cp;
+    m_iHP = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iMP = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iSP = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iAC = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iTHAC0 = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iLevel = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iStr = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iInt = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iVit = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iDex = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iMag = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iCharisma = *ip;
+    cp += 4;
+
+    /*m_cLU_Str = *cp;
+    cp++;
+    m_cLU_Vit = *cp;
+    cp++;
+    m_cLU_Dex = *cp;
+    cp++;
+    m_cLU_Int = *cp;
+    cp++;
+    m_cLU_Mag = *cp;
+    cp++;
+    m_cLU_Char = *cp;
+    cp++;*/
+
+    //m_iLU_Point = 3 - (m_cLU_Str + m_cLU_Vit + m_cLU_Dex + m_cLU_Int + m_cLU_Mag + m_cLU_Char);
+    uint16_t * wp = (uint16_t *)cp;
+    m_iLU_Point = *wp;
+    cp += (5 + 2);
+
+    ip = (int *)cp;
+    m_iExp = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iEnemyKillCount = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iPKCount = *ip;
+    cp += 4;
+
+    ip = (int *)cp;
+    m_iRewardGold = *ip;
+    cp += 4;
+
+    memcpy(m_cLocation, cp, 10);
+    cp += 10;
+    if (memcmp(m_cLocation, "aresden", 7) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
+    {
+        m_bAresden = true;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else if (memcmp(m_cLocation, "elvine", 6) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = false;
+    }
+    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
+    {
+        m_bAresden = false;
+        m_bCitizen = true;
+        m_bHunter = true;
+    }
+    else
+    {
+        m_bAresden = true;
+        m_bCitizen = false;
+        m_bHunter = true;
+    }
+
+    cp = (char *)cp;
+    memcpy(m_cGuildName, cp, 20);
+    cp += 20;
+
+    if (strcmp(m_cGuildName, "NONE") == 0)
+        memset(m_cGuildName, 0, sizeof(m_cGuildName));
+
+    m_Misc.ReplaceString(m_cGuildName, '_', ' ');
+
+    ip = (int *)cp;
+    m_iGuildRank = *ip;
+    cp += 4;
+
+    m_iSuperAttackLeft = (int)*cp;
     cp++;
 
+    ip = (int *)cp;
+    m_iFightzoneNumber = *ip;
+    cp += 4;
+
+    bSendCommand(MSGID_REQUEST_FRIENDSLIST, 0, 3, 0, 0, 0, 0);
+}
+
+void CGame::CreateNewGuildResponseHandler(char * pData)
+{
+    uint16_t * wpResult;
+
+    wpResult = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
+    switch (*wpResult)
+    {
+        case DEF_MSGTYPE_CONFIRM:
+            m_iGuildRank = 0;
+            m_stDialogBoxInfo[7].cMode = 3;
+            break;
+
+        case DEF_MSGTYPE_REJECT:
+            m_iGuildRank = -1;
+            m_stDialogBoxInfo[7].cMode = 4;
+            break;
+    }
+}
+
+void CGame::DisbandGuildResponseHandler(char * pData)
+{
+    uint16_t * wpResult;
+
+    wpResult = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
+    switch (*wpResult)
+    {
+        case DEF_MSGTYPE_CONFIRM:
+            memset(m_cGuildName, 0, sizeof(m_cGuildName));
+            m_iGuildRank = -1;
+            m_stDialogBoxInfo[7].cMode = 7;
+            break;
+
+        case DEF_MSGTYPE_REJECT:
+            m_stDialogBoxInfo[7].cMode = 8;
+            break;
+    }
+}
+void CGame::LogEventHandler(char * pData)
+{
+    uint16_t * wp, wEventType, wObjectID;
+    short * sp, sX, sY, sType, sAppr1 = 0, sAppr2 = 0, sAppr3 = 0, sAppr4 = 0;
+    int iStatus;
+    char * cp, cDir, cName[12];
+    int * ip, iApprColor = 0;
+
+    wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
+    wEventType = *wp;
+
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    wp = (uint16_t *)cp;
+    wObjectID = *wp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sX = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sY = *sp;
+    cp += 2;
+
+    sp = (short *)cp;
+    sType = *sp;
+    cp += 2;
+
+    cDir = *cp;
+    cp++;
+
+    memset(cName, 0, sizeof(cName));
+    if (wObjectID < 10000)
+    {
+        memcpy(cName, cp, 10);
+        cp += 10;
+
+        sp = (short *)cp;
+        sAppr1 = *sp;
+        cp += 2;
+
+        sp = (short *)cp;
+        sAppr2 = *sp;
+        cp += 2;
+
+        sp = (short *)cp;
+        sAppr3 = *sp;
+        cp += 2;
+
+        sp = (short *)cp;
+        sAppr4 = *sp;
+        cp += 2;
+
+        ip = (int *)cp;
+        iApprColor = *ip;
+        cp += 4;
+
+        ip = (int *)cp;
+        iStatus = *ip;
+        cp += 4;
+
+        m_stNPCList[wObjectID].m_iMaxHP = 0;
+
+        m_stNPCList[wObjectID].m_iHP = 0;
+        //Change HP Bar
+    }
+    else
+    {
+        memcpy(cName, cp, 5);
+        cp += 5;
+
+        sAppr1 = sAppr3 = sAppr4 = 0;
+
+        sp = (short *)cp;
+        sAppr2 = *sp;
+        cp += 2;
+
+        ip = (int *)cp;
+        iStatus = *ip;
+        cp += 4;
+
+        m_stNPCList[wObjectID].m_iMaxHP = 0;
+
+        m_stNPCList[wObjectID].m_iHP = 0;
+        //Change HP Bar
+    }
+
+    switch (wEventType)
+    {
+        case DEF_MSGTYPE_CONFIRM:
+            m_pMapData->bSetOwner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, iStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
+            switch (sType)
+            {
+                case 43:
+                case 44:
+                case 45:
+                case 46:
+                case 47:
+                    bAddNewEffect(64, (sX) * 32, (sY) * 32, 0, 0, 0);
+                    break;
+            }
+            break;
+
+        case DEF_MSGTYPE_REJECT:
+            m_pMapData->bSetOwner(wObjectID, -1, -1, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, iStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
+            break;
+    }
+    _RemoveChatMsgListByObjectID(wObjectID);
+}
+void CGame::LogResponseHandler(char * pData, int64_t size)
+{
+    stream_read sr(pData, size);
+    uint16_t * wp, wResponse;
+    uint16_t wServerUpperVersion, wServerLowerVersion, wServerPatchVersion;
+    uint32_t * dwp;
+    char * cp, cCharName[12];
+    int * ip, i;
+
+    dwp = (uint32_t *)(pData);
+    wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
+    wResponse = *wp;
+    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+
+    uint32_t unused = sr.read_int32();
+    wResponse = sr.read_uint16();
+    if (GameRecvMsgHandler(pData, size)) return;
+
+    switch (wResponse)
+    {
+        case DEF_LOGRESMSGTYPE_CHARACTERDELETED:
+            cp = (pData + DEF_INDEX2_MSGTYPE + 2);
+
+            //m_iAccountStatus = (int)*cp;
+            cp++;
+
+            m_iTotalChar = (int)*cp;
+            cp++;
+
+            for (i = 0; i < 4; i++)
+                if (m_pCharList[i] != 0)
+                {
+                    delete m_pCharList[i];
+                    m_pCharList[i] = 0;
+                }
+
+            for (i = 0; i < m_iTotalChar; i++)
+            {
+                m_pCharList[i] = new CCharInfo;
+                memcpy(m_pCharList[i]->m_cName, cp, 10);
+                cp += 10;
+                if (*cp == 0)
+                {
+                    m_pCharList[i]->m_sSex = 0;
+                    cp += 40;
+                }
+                else
+                {
+                    cp++;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr1 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr2 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr3 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr4 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSkinCol = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sLevel = *wp;
+                    cp += 2;
+
+                    dwp = (uint32_t *)cp;
+                    m_pCharList[i]->m_iExp = *dwp;
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sStr = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sVit = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sDex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sInt = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sMag = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sChr = *wp;
+                    cp += 2;
+
+                    ip = (int *)cp; // v1.4
+                    m_pCharList[i]->m_iApprColor = *ip;
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iYear = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMonth = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iDay = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iHour = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMinute = (int)*wp;
+                    cp += 2;
+
+                    memset(m_pCharList[i]->m_cMapName, 0, sizeof(m_pCharList[i]->m_cMapName));
+                    memcpy(m_pCharList[i]->m_cMapName, cp, 10);
+                    cp += 10;
+                }
+            }
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "3A");
+            break;
+
+        case DEF_LOGRESMSGTYPE_CONFIRM:
+            loggedin = true;
+            cp = (pData + DEF_INDEX2_MSGTYPE + 2);
+            wp = (uint16_t *)cp;
+            wServerUpperVersion = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            wServerLowerVersion = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            wServerPatchVersion = *wp;
+            cp += 2;
+            ////////////////////////////
+
+    //		m_iAccountStatus = (int)*cp;
+            cp++;
+            wp = (uint16_t *)cp;
+            m_iAccntYear = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            m_iAccntMonth = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            m_iAccntDay = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            m_iIpYear = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            m_iIpMonth = *wp;
+            cp += 2;
+
+            wp = (uint16_t *)cp;
+            m_iIpDay = *wp;
+            cp += 2;
+
+            m_iTotalChar = (int)*cp;
+            cp++;
+
+            for (i = 0; i < 4; i++)
+                if (m_pCharList[i] != 0)
+                {
+                    delete m_pCharList[i];
+                    m_pCharList[i] = 0;
+                }
+
+            for (i = 0; i < m_iTotalChar; i++)
+            {
+                m_pCharList[i] = new CCharInfo;
+                memcpy(m_pCharList[i]->m_cName, cp, 10);
+                cp += 10;
+                if (*cp == 0)
+                {
+                    m_pCharList[i]->m_sSex = 0;
+                    cp += 40;
+                }
+                else
+                {
+                    cp++;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr1 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr2 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr3 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr4 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSkinCol = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sLevel = *wp;
+                    cp += 2;
+
+                    dwp = (uint32_t *)cp;
+                    m_pCharList[i]->m_iExp = *dwp;
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sStr = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sVit = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sDex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sInt = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sMag = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sChr = *wp;
+                    cp += 2;
+
+                    ip = (int *)cp;
+                    m_pCharList[i]->m_iApprColor = *ip; // v1.4
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iYear = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMonth = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iDay = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iHour = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMinute = (int)*wp;
+                    cp += 2;
+
+                    memset(m_pCharList[i]->m_cMapName, 0, sizeof(m_pCharList[i]->m_cMapName));
+                    memcpy(m_pCharList[i]->m_cMapName, cp, 10);
+                    cp += 10;
+                }
+            }
+            ip = (int *)cp;
+            m_iTimeLeftSecAccount = *ip;
+            cp += 4;
+
+            ip = (int *)cp;
+            m_iTimeLeftSecIP = *ip;
+            cp += 4;
+
+            ChangeGameMode(DEF_GAMEMODE_ONSELECTCHARACTER);
+            ClearContents_OnSelectCharacter();
+
+            //m_iUpperVersion = wServerUpperVersion;//Changed added -- Always will connect no matter the version
+            //m_iLowerVersion = wServerLowerVersion;
+
+            //if (m_iUpperVersion != (3 || 2)) m_iUpperVersion = 2;
+            if ((wServerUpperVersion != DEF_UPPERVERSION) || (wServerLowerVersion != DEF_LOWERVERSION) || (wServerPatchVersion != DEF_PATCHVERSION)) ChangeGameMode(DEF_GAMEMODE_ONVERSIONNOTMATCH);
+
+            break;
+
+        case DEF_LOGRESMSGTYPE_REJECT:
+            cp = (pData + DEF_INDEX2_MSGTYPE + 2);
+            ip = (int *)cp;
+            m_iBlockYear = *ip;
+            cp += 4;
+
+            ip = (int *)cp;
+            m_iBlockMonth = *ip;
+            cp += 4;
+
+            ip = (int *)cp;
+            m_iBlockDay = *ip;
+            cp += 4;
+
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "7H");
+            break;
+        case DEF_LOGRESMSGTYPE_ACCOUNTLOCKED:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "7K");
+            break;
+        case DEF_LOGRESMSGTYPE_SERVICENOTAVAILABLE:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "7L");
+            break;
+
+        case DEF_LOGRESMSGTYPE_PASSWORDCHANGESUCCESS:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "6B");
+            break;
+
+        case DEF_LOGRESMSGTYPE_PASSWORDCHANGEFAIL:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "6C");
+            break;
+
+        case DEF_LOGRESMSGTYPE_PASSWORDMISMATCH:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "11");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NOTEXISTINGACCOUNT:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "12");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NEWACCOUNTCREATED:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "54");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NEWACCOUNTFAILED:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "05");
+            break;
+
+        case DEF_LOGRESMSGTYPE_ALREADYEXISTINGACCOUNT:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "06");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NOTEXISTINGCHARACTER:
+            ChangeGameMode(DEF_GAMEMODE_ONMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "Not existing character!");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NEWCHARACTERCREATED:
+            memset(cCharName, 0, sizeof(cCharName));
+            memcpy(cCharName, cp, 10);
+            cp += 10;
+
+            m_iTotalChar = (int)*cp;
+            cp++;
+
+            for (i = 0; i < 4; i++)
+                if (m_pCharList[i] != 0) delete m_pCharList[i];
+            //
+            for (i = 0; i < m_iTotalChar; i++)
+            {
+                m_pCharList[i] = new CCharInfo;
+                memcpy(m_pCharList[i]->m_cName, cp, 10);
+                cp += 10;
+                if (*cp == 0)
+                {
+                    m_pCharList[i]->m_sSex = 0;
+                    cp += 40;
+                }
+                else
+                {
+                    cp++;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr1 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr2 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr3 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sAppr4 = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sSkinCol = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sLevel = *wp;
+                    cp += 2;
+
+                    dwp = (uint32_t *)cp;
+                    m_pCharList[i]->m_iExp = *dwp;
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sStr = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sVit = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sDex = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sInt = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sMag = *wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_sChr = *wp;
+                    cp += 2;
+
+                    ip = (int *)cp; // v1.4
+                    m_pCharList[i]->m_iApprColor = *ip;
+                    cp += 4;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iYear = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMonth = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iDay = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iHour = (int)*wp;
+                    cp += 2;
+
+                    wp = (uint16_t *)cp;
+                    m_pCharList[i]->m_iMinute = (int)*wp;
+                    cp += 2;
+
+                    memset(m_pCharList[i]->m_cMapName, 0, sizeof(m_pCharList[i]->m_cMapName));
+                    memcpy(m_pCharList[i]->m_cMapName, cp, 10);
+                    cp += 10;
+                }
+            }
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "47");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NEWCHARACTERFAILED:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "28");
+            break;
+
+        case DEF_LOGRESMSGTYPE_ALREADYEXISTINGCHARACTER:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "29");
+            break;
+
+        case DEF_ENTERGAMERESTYPE_PLAYING:
+            ChangeGameMode(DEF_GAMEMODE_ONQUERYFORCELOGIN);
+            break;
+
+        case DEF_ENTERGAMERESTYPE_CONFIRM:
+        {
+            socket_mode(true);
+            ConnectionEstablishHandler(DEF_SERVERTYPE_GAME);
+
+            m_bIllusionMVT = false;
+            m_iIlusionOwnerH = 0;
+            m_cIlusionOwnerType = 0;
+        }
+        break;
+
+        case DEF_ENTERGAMERESTYPE_REJECT:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            switch (*cp)
+            {
+                case 1:	strcpy(m_cMsg, "3E"); break;
+                case 2:	strcpy(m_cMsg, "3F"); break;
+                case 3:	strcpy(m_cMsg, "33"); break;
+                case 4: strcpy(m_cMsg, "3D"); break;
+                case 5: strcpy(m_cMsg, "3G"); break;
+                case 6: strcpy(m_cMsg, "3Z"); break;
+                case 7: strcpy(m_cMsg, "3J"); break;
+            }
+            break;
+
+        case DEF_ENTERGAMERESTYPE_FORCEDISCONN:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "3X");
+            break;
+
+        case DEF_LOGRESMSGTYPE_NOTEXISTINGWORLDSERVER:
+            ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
+            memset(m_cMsg, 0, sizeof(m_cMsg));
+            strcpy(m_cMsg, "1Y");
+            break;
+    }
+}
+
+void CGame::ChatMsgHandler(char * pData, uint32_t size)
+{
+    int i, iObjectID, iLoc, iGM = 0;
+    short sX, sY;
+    char * cp, cMsgType, cName[21], cTemp[100], cMsg[100];
+    int64_t dwTime;
+    bool bFlag;
+
+    char cHeadMsg[200];
+
+    dwTime = m_dwCurTime;
+
+    stream_read sr(pData, size);
+
+    sr.read_uint32();
+    sr.read_uint16();
+    iObjectID = sr.read_uint16();
+    sX = sr.read_int16();
+    sY = sr.read_int16();
+    memset(cName, 0, sizeof(cName));
+    sr.read_bytes(cName, 10);
+    cMsgType = sr.read_byte();
+    std::string msg = sr.read_string();
 
     if (bCheckExID(cName) == true) return;
 
-    memset(cTemp, 0, sizeof(cTemp));
-    strcpy(cTemp, cp);
-
-#if DEF_LANGUAGE == 4
     if ((cMsgType == 0) || (cMsgType == 2) || (cMsgType == 3))
     {
-        if (m_Misc.bCheckIMEString(cTemp) == false) return;
+        //if (m_Misc.bCheckIMEString(cTemp) == false) return;
     }
-#endif
     if (!m_bWhisper)
     {
         if (cMsgType == 20) return;
@@ -105,9 +1400,11 @@ void CGame::ChatMsgHandler(char * pData)
     {
         if (cMsgType == 2 || cMsgType == 3) return;
     }
+    if (!m_stConfigList.bGMChat)
+        if (cMsgType == 4) return;
 
     memset(cMsg, 0, sizeof(cMsg));
-    format_to_local(cMsg, "{}: {}", cName, cTemp);
+    format_to_local(cMsg, "{}: {}", cName, msg);
 
     bFlag = false;
     short sCheckByte = 0;
@@ -118,17 +1415,16 @@ void CGame::ChatMsgHandler(char * pData)
         for (int i = 0; i < iLoc; i++) if (cMsg[i] < 0) sCheckByte++;
         if (iLoc == 0)
         {
-            PutChatScrollList(cMsg, cMsgType);
+            PutChatScrollList(cMsg, cMsgType, iGM);
             bFlag = true;
         }
         else
         {
             if ((sCheckByte % 2) == 0)
             {
-
                 memset(cTemp, 0, sizeof(cTemp));
                 memcpy(cTemp, cMsg, iLoc);
-                PutChatScrollList(cTemp, cMsgType);
+                PutChatScrollList(cTemp, cMsgType, iGM);
 
                 memset(cTemp, 0, sizeof(cTemp));
                 strcpy(cTemp, cMsg + iLoc);
@@ -138,10 +1434,9 @@ void CGame::ChatMsgHandler(char * pData)
             }
             else
             {
-
                 memset(cTemp, 0, sizeof(cTemp));
                 memcpy(cTemp, cMsg, iLoc + 1);
-                PutChatScrollList(cTemp, cMsgType);
+                PutChatScrollList(cTemp, cMsgType, iGM);
 
                 memset(cTemp, 0, sizeof(cTemp));
                 strcpy(cTemp, cMsg + iLoc + 1);
@@ -152,15 +1447,14 @@ void CGame::ChatMsgHandler(char * pData)
         }
     }
 
-
     _RemoveChatMsgListByObjectID(iObjectID);
-
 
     for (i = 1; i < DEF_MAXCHATMSGS; i++)
         if (m_pChatMsgList[i] == 0)
         {
-            m_pChatMsgList[i] = new CMsg(1, (char *)(cp), dwTime);
+            m_pChatMsgList[i] = new CMsg(1, msg, dwTime);
             m_pChatMsgList[i]->m_iObjectID = iObjectID;
+            m_pChatMsgList[i]->m_iGM = iGM;
 
             if (m_pMapData->bSetChatMsgOwner(iObjectID, sX, sY, i) == false)
             {
@@ -172,7 +1466,7 @@ void CGame::ChatMsgHandler(char * pData)
             {
                 memset(cHeadMsg, 0, sizeof(cHeadMsg));
                 format_to_local(cHeadMsg, "{}:{}", cName, cp);
-                AddEventList(cHeadMsg, cMsgType);
+                AddEventList(cHeadMsg, cMsgType, true, iGM);
             }
             return;
         }
@@ -189,12 +1483,10 @@ void CGame::CivilRightAdmissionHandler(char * pData)
     switch (wResult)
     {
         case 0:
-
             m_stDialogBoxInfo[13].cMode = 4;
             break;
 
         case 1:
-
             m_stDialogBoxInfo[13].cMode = 3;
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             memset(m_cLocation, 0, sizeof(m_cLocation));
@@ -232,7 +1524,6 @@ void CGame::CivilRightAdmissionHandler(char * pData)
             break;
     }
 }
-
 void CGame::DynamicObjectHandler(char * pData)
 {
     uint16_t * wp;
@@ -256,7 +1547,7 @@ void CGame::DynamicObjectHandler(char * pData)
     cp += 2;
 
     sp = (short *)cp;
-    sV2 = *sp;		   // Dynamic Object Index
+    sV2 = *sp;		   // Dyamic Object Index
     cp += 2;
 
     sp = (short *)cp;
@@ -266,17 +1557,14 @@ void CGame::DynamicObjectHandler(char * pData)
     switch (*wp)
     {
         case DEF_MSGTYPE_CONFIRM:
-
             m_pMapData->bSetDynamicObject(sX, sY, sV2, sV1, true);
             break;
 
         case DEF_MSGTYPE_REJECT:
-
             m_pMapData->bSetDynamicObject(sX, sY, sV2, 0, true);
             break;
     }
 }
-
 void CGame::NoticementHandler(char * pData)
 {
     char * cp;
@@ -288,28 +1576,22 @@ void CGame::NoticementHandler(char * pData)
     switch (*wp)
     {
         case DEF_MSGTYPE_CONFIRM:
-
             break;
 
         case DEF_MSGTYPE_REJECT:
-
-            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2 + 110);
             pFile = fopen("contents\\contents1000.txt", "wt");
             if (pFile == 0) return;
             fwrite(cp, strlen(cp), 1, pFile);
             fclose(pFile);
             break;
     }
-
-
-
     EnableDialogBox(18, 1000, 0, 0);
 
 
     if (m_iLevel < 42) EnableDialogBox(35, 0, 0, 0);
 
 }
-
 void CGame::ResponsePanningHandler(char * pData)
 {
     char * cp, cDir;
@@ -341,65 +1623,52 @@ void CGame::ResponsePanningHandler(char * pData)
     }
 
     m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
-    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height()) / 32) / 2;
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;
 
     m_bIsObserverCommanded = false;
 }
-
-
 void CGame::ReserveFightzoneResponseHandler(char * pData)
 {
     uint16_t * wpResult;
     char * cp;
     int * ip;
     wpResult = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-
-
     switch (*wpResult)
     {
         case DEF_MSGTYPE_CONFIRM:
-
             AddEventList(RESERVE_FIGHTZONE_RESPONSE_HANDLER1, 10);
-
             m_stDialogBoxInfo[7].cMode = 14;
             m_iFightzoneNumber = m_iFightzoneNumberTemp;
             break;
 
         case DEF_MSGTYPE_REJECT:
-
             cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
             ip = (int *)cp;
             cp += 4;
             AddEventList(RESERVE_FIGHTZONE_RESPONSE_HANDLER2, 10);
-
             m_iFightzoneNumberTemp = 0;
 
             if (*ip == 0)
             {
-
                 m_stDialogBoxInfo[7].cMode = 15;
             }
             else if (*ip == -1)
             {
-
                 m_stDialogBoxInfo[7].cMode = 16;
             }
             else if (*ip == -2)
             {
-
                 m_stDialogBoxInfo[7].cMode = 17;
             }
             else if (*ip == -3)
             {
-
                 m_stDialogBoxInfo[7].cMode = 21;
             }
             else if (*ip == -4)
             {
-
                 m_stDialogBoxInfo[7].cMode = 22;
             }
             break;
@@ -416,7 +1685,6 @@ void CGame::RetrieveItemHandler(char * pData)
 
     if (*wp != DEF_MSGTYPE_REJECT)
     {
-
         cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
         cBankItemIndex = *cp;
         cp++;
@@ -425,7 +1693,6 @@ void CGame::RetrieveItemHandler(char * pData)
 
         if (m_pBankList[cBankItemIndex] != 0)
         {
-
             char cStr1[64]{}, cStr2[64]{}, cStr3[64]{};
             GetItemName(m_pBankList[cBankItemIndex], cStr1, cStr2, cStr3, 64);
 
@@ -437,17 +1704,11 @@ void CGame::RetrieveItemHandler(char * pData)
                 (m_pBankList[cBankItemIndex]->m_cItemType == DEF_ITEMTYPE_ARROW))
             {
 
-
-
                 if (m_pItemList[cItemIndex] == 0) goto RIH_STEP2;
-
-
                 //m_pItemList[cItemIndex]->m_dwCount += m_pBankList[cBankItemIndex]->m_dwCount;
 
                 delete m_pBankList[cBankItemIndex];
                 m_pBankList[cBankItemIndex] = 0;
-
-
                 for (j = 0; j <= DEF_MAXBANKITEMS - 2; j++)
                 {
                     if ((m_pBankList[j + 1] != 0) && (m_pBankList[j] == 0))
@@ -461,9 +1722,7 @@ void CGame::RetrieveItemHandler(char * pData)
             else
             {
                 RIH_STEP2:;
-
                 if (m_pItemList[cItemIndex] != 0) return;
-
                 short nX, nY;
                 nX = 40;
                 nY = 30;
@@ -476,7 +1735,6 @@ void CGame::RetrieveItemHandler(char * pData)
                         break;
                     }
                 }
-
                 m_pItemList[cItemIndex] = m_pBankList[cBankItemIndex];
                 //m_pItemList[cItemIndex]->m_sX =	40;
                 //m_pItemList[cItemIndex]->m_sY =	30;
@@ -496,8 +1754,6 @@ void CGame::RetrieveItemHandler(char * pData)
                 m_bIsItemDisabled[cItemIndex] = false;
 
                 m_pBankList[cBankItemIndex] = 0;
-
-
                 for (j = 0; j <= DEF_MAXBANKITEMS - 2; j++)
                 {
                     if ((m_pBankList[j + 1] != 0) && (m_pBankList[j] == 0))
@@ -511,10 +1767,9 @@ void CGame::RetrieveItemHandler(char * pData)
 
         }
     }
-
-
     m_stDialogBoxInfo[14].cMode = 0;
 }
+
 
 void CGame::NpcTalkHandler(char * pData)
 {
@@ -573,8 +1828,6 @@ void CGame::NpcTalkHandler(char * pData)
 
     if ((sType >= 1) && (sType <= 100))
     {
-
-
         iIndex = m_stDialogBoxInfo[21].sV1;
         m_pMsgTextList2[iIndex] = new CMsg(0, "  ", 0);
         iIndex++;
@@ -586,11 +1839,7 @@ void CGame::NpcTalkHandler(char * pData)
                 memset(cTemp, 0, sizeof(cTemp));
                 GetNpcName(iTargetType, cTemp);
                 memset(cTxt, 0, sizeof(cTxt));
-#if DEF_LANGUAGE == 4	//¾ð¾î:English
                 format_to_local(cTxt, NPC_TALK_HANDLER16, iTargetCount, cTemp);
-#else
-                format_to_local(cTxt, NPC_TALK_HANDLER16, cTemp, iTargetCount);
-#endif
                 m_pMsgTextList2[iIndex] = new CMsg(0, cTxt, 0);
                 iIndex++;
 
@@ -736,7 +1985,6 @@ void CGame::NpcTalkHandler(char * pData)
         }
     }
 }
-
 void CGame::MotionResponseHandler(char * pData)
 {
     uint16_t * wp, wResponse;
@@ -756,12 +2004,10 @@ void CGame::MotionResponseHandler(char * pData)
     switch (wResponse)
     {
         case DEF_OBJECTMOTION_CONFIRM:
-
             m_cCommandCount--;
             break;
 
         case DEF_OBJECTMOTION_ATTACK_CONFIRM:
-
             m_cCommandCount--;
             break;
 
@@ -781,23 +2027,21 @@ void CGame::MotionResponseHandler(char * pData)
             m_sCommX = m_sPlayerX;
             m_sCommY = m_sPlayerY;
 
-            m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+            m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                 m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                m_sPlayerStatus, m_cPlayerName,
+                m_iPlayerStatus, m_cPlayerName,
                 DEF_OBJECTSTOP, 0, 0, 0);
             m_cCommandCount = 0;
-
             m_bIsGetPointingMode = false;
+            ClearCoords();
 
-
-            m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32 - 32;
-            m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32 - 32;
+            m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32)- (get_virtual_width() / 2));
+            m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
             m_bIsRedrawPDBGS = true;
             break;
 
         case DEF_OBJECTMOVE_CONFIRM:
-
             sp = (short *)cp;
             sX = *sp;
             cp += 2;
@@ -817,7 +2061,7 @@ void CGame::MotionResponseHandler(char * pData)
             //m_iOccupyStatus = (int)*cp;
             cp++;
 
-
+            // v1.4
             iPreHP = m_iHP;
             ip = (int *)cp;
             m_iHP = *ip;
@@ -829,9 +2073,7 @@ void CGame::MotionResponseHandler(char * pData)
                 {
                     format_to_local(G_cTxt, NOTIFYMSG_HP_DOWN, iPreHP - m_iHP);
                     AddEventList(G_cTxt, 10);
-
-
-                    m_dwDamagedTime = unixtime();
+                    m_dwDamagedTime = m_dwCurTime;
 
                     if ((m_cLogOutCount > 0) && (m_bForceDisconn == false))
                     {
@@ -845,6 +2087,7 @@ void CGame::MotionResponseHandler(char * pData)
                     AddEventList(G_cTxt, 10);
                 }
             }
+
             m_sVDL_X = sX;
             m_sVDL_Y = sY;
             _ReadMapData(sX, sY, cp);
@@ -855,7 +2098,6 @@ void CGame::MotionResponseHandler(char * pData)
             break;
 
         case DEF_OBJECTMOVE_REJECT:
-
             if (m_iHP <= 0) return;
 
             wp = (uint16_t *)cp;
@@ -900,25 +2142,25 @@ void CGame::MotionResponseHandler(char * pData)
             m_iPlayerApprColor = *ip;
             cp += 4;
 
-            sp = (short *)cp;
-            m_sPlayerStatus = *sp;
-            cp += 2;
+            ip = (int *)cp;
+            m_iPlayerStatus = *ip;
+            cp += 4;
 
             m_cCommand = DEF_OBJECTSTOP;
             m_sCommX = m_sPlayerX;
             m_sCommY = m_sPlayerY;
 
-            m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+            m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
                 m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-                m_sPlayerStatus, m_cPlayerName,
+                m_iPlayerStatus, m_cPlayerName,
                 DEF_OBJECTSTOP, 0, 0, 0,
                 0, 7);
             m_cCommandCount = 0;
-
             m_bIsGetPointingMode = false;
+            ClearCoords();
 
-            m_sViewDstX = m_sViewPointX = (m_sPlayerX - ((get_virtual_width() / 32) / 2)) * 32 - 32;
-            m_sViewDstY = m_sViewPointY = (m_sPlayerY - ((get_virtual_height() / 32) / 2)) * 32 - 32;
+            m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32)- (get_virtual_width() / 2));
+            m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
             m_bIsPrevMoveBlocked = true;
 
@@ -939,15 +2181,14 @@ void CGame::MotionResponseHandler(char * pData)
             break;
     }
 }
-
 void CGame::InitDataResponseHandler(char * pData)
 {
     int * ip, i;
     short * sp, sX, sY;
     char * cp, cMapFileName[32], cTxt[120]{}, cPreCurLocation[12];
-    bool  bIsObserverMode;
+    bool bIsObserverMode;
     HANDLE hFile;
-    uint32_t  dwFileSize;
+    uint32_t dwFileSize;
 
     memset(cPreCurLocation, 0, sizeof(cPreCurLocation));
 
@@ -956,7 +2197,6 @@ void CGame::InitDataResponseHandler(char * pData)
 
     m_sMonsterID = 0;
     m_dwMonsterEventTime = 0;
-
 
     DisableDialogBox(7);
     DisableDialogBox(11);
@@ -975,19 +2215,17 @@ void CGame::InitDataResponseHandler(char * pData)
 
     m_bIsGetPointingMode = false;
     m_iPointCommandType = -1;
-
+    ClearCoords();
 
     m_iIlusionOwnerH = 0;
     m_cIlusionOwnerType = 0;
 
-
     m_bIsTeleportRequested = false;
-
-
     m_bIsConfusion = false;
 
-    m_bSkillUsingStatus = false;
+    if (m_bIllusionMVT != true) m_bIllusionMVT = false;
 
+    m_bSkillUsingStatus = false;
     m_bItemUsingStatus = false;
 
     m_cRestartCount = -1;
@@ -999,11 +2237,11 @@ void CGame::InitDataResponseHandler(char * pData)
         m_pEffectList[i] = 0;
     }
 
-    for (i = 0; i < DEF_MAXWHETHEROBJECTS; i++)
+    for (i = 0; i < DEF_MAXWEATHEROBJECTS; i++)
     {
-        m_stWhetherObject[i].sX = 0;
-        m_stWhetherObject[i].sY = 0;
-        m_stWhetherObject[i].cStep = 0;
+        weather_object[i].sX = 0;
+        weather_object[i].sY = 0;
+        weather_object[i].cStep = 0;
     }
 
     for (i = 0; i < DEF_MAXGUILDNAMES; i++)
@@ -1013,18 +2251,13 @@ void CGame::InitDataResponseHandler(char * pData)
         memset(m_stGuildName[i].cCharName, 0, sizeof(m_stGuildName[i].cCharName));
         memset(m_stGuildName[i].cGuildName, 0, sizeof(m_stGuildName[i].cGuildName));
     }
-
-
     for (i = 0; i < DEF_MAXCHATMSGS; i++)
     {
         if (m_pChatMsgList[i] != 0) delete m_pChatMsgList[i];
         m_pChatMsgList[i] = 0;
     }
 
-
     cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-
     sp = (short *)cp;
     m_sPlayerObjectID = *sp;
     cp += 2;
@@ -1039,6 +2272,10 @@ void CGame::InitDataResponseHandler(char * pData)
 
     sp = (short *)cp;
     m_sPlayerType = *sp;
+    if (m_sPlayerType > 0 && m_sPlayerType <= 3)
+        m_cGender = 0;
+    if (m_sPlayerType > 3 && m_sPlayerType <= 6)
+        m_cGender = 1;
     cp += 2;
 
     sp = (short *)cp;
@@ -1062,9 +2299,8 @@ void CGame::InitDataResponseHandler(char * pData)
     cp += 4;
 
     ip = (int *)cp;
-    m_sPlayerStatus = *ip;
+    m_iPlayerStatus = *ip;
     cp += 4;
-
 
     memset(m_cMapName, 0, sizeof(m_cMapName));
     memset(m_cMapMessage, 0, sizeof(m_cMapMessage));
@@ -1086,28 +2322,21 @@ void CGame::InitDataResponseHandler(char * pData)
     memset(m_cCurLocation, 0, sizeof(m_cCurLocation));
     memcpy(m_cCurLocation, cp, 10);
     cp += 10;
-
-
     G_cSpriteAlphaDegree = *cp;
     cp++;
-
-
     m_cWhetherStatus = *cp;
     cp++;
-
 
     ip = (int *)cp;
     m_iContribution = *ip;
     cp += 4;
 
-
     bIsObserverMode = (bool)*cp;
     cp++;
 
     ip = (int *)cp;
-    //m_iRating = *ip;
+    m_iRating = *ip;
     cp += 4;
-
 
     ip = (int *)cp;
     m_iHP = *ip;
@@ -1126,28 +2355,24 @@ void CGame::InitDataResponseHandler(char * pData)
     strcat(cMapFileName, ".amd");
     m_pMapData->OpenMapDataFile(cMapFileName);
 
-    //     m_pMapData->m_sPivotX = sX;
-    //     m_pMapData->m_sPivotY = sY;
-
-    m_sPlayerX = sX;// + 14 + 5;
-    m_sPlayerY = sY;// + 12 + 5;
+    m_sPlayerX = sX;
+    m_sPlayerY = sY;
 
     m_cPlayerDir = 5;
-
-
     if (bIsObserverMode == false)
     {
-        m_pMapData->set_owner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
-            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor,
-            m_sPlayerStatus, m_cPlayerName,
+        m_pMapData->bSetOwner(m_sPlayerObjectID, m_sPlayerX, m_sPlayerY, m_sPlayerType, m_cPlayerDir,
+            m_sPlayerAppr1, m_sPlayerAppr2, m_sPlayerAppr3, m_sPlayerAppr4, m_iPlayerApprColor, // v1.4
+            m_iPlayerStatus, m_cPlayerName,
             DEF_OBJECTSTOP, 0, 0, 0);
     }
 
-    m_sViewDstX = m_sViewPointX = sX * 32 - (get_virtual_width() / 2);
-    m_sViewDstY = m_sViewPointY = sY * 32 - ((get_virtual_height() - 60) / 2) - 16;
+    m_sViewDstX = m_sViewPointX = m_sViewStartX = ((m_sPlayerX * 32) - (get_virtual_width() / 2));
+    m_sViewDstY = m_sViewPointY = m_sViewStartY = ((m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16));
 
     m_sVDL_X = sX - (get_virtual_width() / 32) / 2;
-    m_sVDL_Y = sY - ((get_virtual_height() - 60) / 32) / 2;
+    m_sVDL_Y = sY - ((get_virtual_height()) / 32) / 2;
+
     _ReadMapData(sX, sY, cp);
 
     m_bIsRedrawPDBGS = true;
@@ -1155,11 +2380,8 @@ void CGame::InitDataResponseHandler(char * pData)
     format_to_local(cTxt, INITDATA_RESPONSE_HANDLER1, m_cMapMessage);
     AddEventList(cTxt, 10);
 
-#if DEF_LANGUAGE > 2
     m_stDialogBoxInfo[6].sX = 150;
     m_stDialogBoxInfo[6].sY = 130;
-
-
     if ((memcmp(m_cCurLocation, "middleland", 10) == 0) ||
         (memcmp(m_cCurLocation, "dglv2", 5) == 0) ||
         (memcmp(m_cCurLocation, "middled1n", 9) == 0))
@@ -1186,25 +2408,16 @@ void CGame::InitDataResponseHandler(char * pData)
         if (bNowSafe) SetTopMsg(DEF_MSG_SAFEZONE, 5);
     }
 
-#endif
-
-    // ------------------------------------------------------------------------+
-
-
-    change_game_mode(DEF_GAMEMODE_ONMAINGAME);
-
+    ChangeGameMode(DEF_GAMEMODE_ONMAINGAME);
 
     if ((m_sPlayerAppr2 & 0xF000) != 0)
         m_bIsCombatMode = true;
     else m_bIsCombatMode = false;
 
-
     if (m_bIsFirstConn == true)
     {
         m_bIsFirstConn = false;
-
-
-        hFile = CreateFileA("data\\contents\\contents1000.txt", GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+        hFile = CreateFileA("contents\\contents1000.txt", GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
         if (hFile == INVALID_HANDLE_VALUE)
             dwFileSize = 0;
         else
@@ -1215,9 +2428,6 @@ void CGame::InitDataResponseHandler(char * pData)
 
         bSendCommand(MSGID_REQUEST_NOTICEMENT, 0, 0, (int)dwFileSize, 0, 0, 0);
     }
-
-
-    //cp += 2;
 }
 
 void CGame::MotionEventHandler(char * pData)
@@ -1225,10 +2435,12 @@ void CGame::MotionEventHandler(char * pData)
     uint16_t * wp, wEventType{}, wObjectID{};
     short * sp, sX{}, sY{}, sType{}, sAppr1{}, sAppr2{}, sAppr3{}, sAppr4{}, sV1{}, sV2{}, sV3{}, sPrevAppr2{};
     char * cp, cDir{}, cName[12]{};
-    int sStatus{};
+    int iStatus{};
     int * ip, iApprColor{}, iLoc{};
-    char    cTxt[120]{};
+    char cTxt[120]{};
     int i;
+
+    sX = sY = sType = sAppr1 = sAppr2 = sAppr3 = sAppr4 = sV1 = sV2 = sV3 = sPrevAppr2 = iApprColor = iLoc = iStatus = wEventType = wObjectID = -1;
 
     memset(cName, 0, sizeof(cName));
     sV1 = sV2 = sV3 = 0;
@@ -1246,7 +2458,6 @@ void CGame::MotionEventHandler(char * pData)
 
     if (wObjectID < 30000)
     {
-
         if (wObjectID < 10000)
         {
 
@@ -1289,15 +2500,23 @@ void CGame::MotionEventHandler(char * pData)
             cp += 4;
 
             ip = (int *)cp;
-            sStatus = *ip;
+            iStatus = *ip;
             cp += 4;
 
             iLoc = *cp;
             cp++;
+
+            // todo: hp bars for npcs
+            //			ip  = (int *)cp;
+            //			m_stNPCList[wObjectID].m_iMaxHP = *ip;
+            //			cp += 4;
+
+            //			ip  = (int *)cp;
+            //			m_stNPCList[wObjectID].m_iHP = *ip;
+            //			cp += 4;
         }
         else
         {
-
             sp = (short *)cp;
             sX = *sp;
             cp += 2;
@@ -1323,16 +2542,23 @@ void CGame::MotionEventHandler(char * pData)
             cp += 2;
 
             ip = (int *)cp;
-            sStatus = *ip;
+            iStatus = *ip;
             cp += 4;
 
             iLoc = *cp;
             cp++;
+
+            ip = (int *)cp;
+            m_stNPCList[wObjectID].m_iMaxHP = *ip;
+            cp += 4;
+
+            ip = (int *)cp;
+            m_stNPCList[wObjectID].m_iHP = *ip;
+            cp += 4;
         }
     }
     else
     {
-
         switch (wEventType)
         {
             case DEF_OBJECTMAGIC:
@@ -1366,7 +2592,6 @@ void CGame::MotionEventHandler(char * pData)
                 break;
 
             case DEF_OBJECTATTACK:
-
                 cDir = *cp;
                 cp++;
 
@@ -1390,7 +2615,6 @@ void CGame::MotionEventHandler(char * pData)
 
     if ((wEventType == DEF_OBJECTNULLACTION) && (memcmp(cName, m_cPlayerName, 10) == 0))
     {
-
         m_sPlayerType = sType;
         m_sPlayerAppr1 = sAppr1;
         sPrevAppr2 = m_sPlayerAppr2;
@@ -1398,7 +2622,7 @@ void CGame::MotionEventHandler(char * pData)
         m_sPlayerAppr3 = sAppr3;
         m_sPlayerAppr4 = sAppr4;
         m_iPlayerApprColor = iApprColor;
-        m_sPlayerStatus = sStatus;
+        m_iPlayerStatus = iStatus;
 
         if ((sPrevAppr2 & 0xF000) == 0)
         {
@@ -1416,24 +2640,40 @@ void CGame::MotionEventHandler(char * pData)
                 m_bIsCombatMode = false;
             }
         }
-
-
-        if (m_cCommand != DEF_OBJECTRUN) m_pMapData->set_owner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, (char)wEventType, sV1, sV2, sV3, iLoc);
+        if (m_cCommand != DEF_OBJECTRUN) m_pMapData->bSetOwner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, iStatus, cName, (char)wEventType, sV1, sV2, sV3, iLoc);
     }
-    else m_pMapData->set_owner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, (char)wEventType, sV1, sV2, sV3, iLoc);
+    else
+    {
+#ifdef DEF_HACKCLIENT
+//		if (m_stConfigList.bDebugNpc == true) {
+//			format_to_local(G_cTxt, "wObjectID({})sX(%hd)sY(%hd)iStatus(0x%X)cName({})iLoc({})", wObjectID, sX, sY, iStatus, cName, iLoc);
+//			PutChatScrollList(G_cTxt, 1);
+//		}
+#endif
+#ifndef DEF_HACKCLIENT
+        m_pMapData->bSetOwner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, iStatus, cName, (char)wEventType, sV1, sV2, sV3, iLoc);
+#else
+        if (wEventType != DEF_OBJECTDAMAGE)
+            m_pMapData->bSetOwner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, iStatus, cName, (char)wEventType, sV1, sV2, sV3, iLoc);
+#endif
+    }
 
     switch (wEventType)
     {
         case DEF_OBJECTMAGIC:
-
             _RemoveChatMsgListByObjectID(wObjectID - 30000);
 
             for (i = 1; i < DEF_MAXCHATMSGS; i++)
                 if (m_pChatMsgList[i] == 0)
                 {
                     memset(cTxt, 0, sizeof(cTxt));
-                    format_to_local(cTxt, "{}!", m_pMagicCfgList[sV1]->m_cName);
-                    m_pChatMsgList[i] = new CMsg(chat_types::magic, cTxt, m_dwCurTime);
+
+                    if (m_pMagicCfgList[sV1] == 0)//Change Invalid spell
+                        format_to_local(cTxt, "Invalid Spell!");
+                    else
+                        format_to_local(cTxt, "{}!", m_pMagicCfgList[sV1]->m_cName);
+
+                    m_pChatMsgList[i] = new CMsg(41, cTxt, m_dwCurTime);
                     m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;
                     if (m_pMapData->bSetChatMsgOwner(wObjectID - 30000, -10, -10, i) == false)
                     {
@@ -1455,10 +2695,12 @@ void CGame::MotionEventHandler(char * pData)
                         format_to_local(cTxt, "-{}Pts!", sV1); //pts
                     else strcpy(cTxt, "Critical!");
 
-                    int iFontType{};
-                    if ((sV1 >= 0) && (sV1 < 12))		iFontType = chat_types::small_damage;
-                    else if ((sV1 >= 12) && (sV1 < 40)) iFontType = chat_types::medium_damage;
-                    else if ((sV1 >= 40) || (sV1 < 0))	iFontType = chat_types::critical_damage;
+                    int iFontType;
+                    if ((sV1 >= 0) && (sV1 < 12))		iFontType = 21;
+                    else if ((sV1 >= 12) && (sV1 < 40)) iFontType = 22;
+                    else if ((sV1 >= 40) || (sV1 < 0))	iFontType = 23;
+
+                    m_stNPCList[wObjectID - 30000].m_iMaxHP = m_stNPCList[wObjectID - 30000].m_iHP = 0;//Change HP Bar
 
                     m_pChatMsgList[i] = new CMsg(iFontType, cTxt, m_dwCurTime);
                     m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;
@@ -1474,19 +2716,16 @@ void CGame::MotionEventHandler(char * pData)
 
         case DEF_OBJECTDAMAGEMOVE:
         case DEF_OBJECTDAMAGE:
-
             if (memcmp(cName, m_cPlayerName, 10) == 0)
             {
+#ifndef DEF_HACKCLIENT
                 m_bIsGetPointingMode = false;
-                m_iPointCommandType = -1;
-
+                ClearCoords();
+                m_iPointCommandType = -1;  // v2.15 0 -> -1
                 m_stMCursor.sCursorFrame = 0;
-
-
                 ClearSkillUsingStatus();
+#endif
             }
-
-
             _RemoveChatMsgListByObjectID(wObjectID - 30000);
 
             for (i = 1; i < DEF_MAXCHATMSGS; i++)
@@ -1497,20 +2736,23 @@ void CGame::MotionEventHandler(char * pData)
                     if (sV1 != 0)
                     {
                         if (sV1 > 0)
+                        {
                             format_to_local(cTxt, "-{}Pts", sV1); //pts
+                            m_stNPCList[wObjectID - 30000].m_iHP -= sV1;//Change HP Bar
+                        }
                         else strcpy(cTxt, "Critical!");
 
-                        int iFontType{};
-                        if ((sV1 >= 0) && (sV1 < 12))		iFontType = chat_types::small_damage;
-                        else if ((sV1 >= 12) && (sV1 < 40)) iFontType = chat_types::medium_damage;
-                        else if ((sV1 >= 40) || (sV1 < 0))	iFontType = chat_types::critical_damage;
+                        int iFontType;
+                        if ((sV1 >= 0) && (sV1 < 12))		iFontType = 21;
+                        else if ((sV1 >= 12) && (sV1 < 40)) iFontType = 22;
+                        else if ((sV1 >= 40) || (sV1 < 0))	iFontType = 23;
 
                         m_pChatMsgList[i] = new CMsg(iFontType, cTxt, m_dwCurTime);
                     }
                     else
                     {
                         strcpy(cTxt, " * Failed! *");
-                        m_pChatMsgList[i] = new CMsg(chat_types::medium_damage, cTxt, m_dwCurTime);
+                        m_pChatMsgList[i] = new CMsg(22, cTxt, m_dwCurTime);
                         PlaySound('C', 17, 0);
                     }
                     m_pChatMsgList[i]->m_iObjectID = wObjectID - 30000;
@@ -1525,1106 +2767,6 @@ void CGame::MotionEventHandler(char * pData)
             break;
     }
 }
-
-void CGame::CommonEventHandler(char * pData)
-{
-    uint16_t * wp, wEventType;
-    short * sp, sX, sY, sV1, sV2, sV3, sV4;
-    char * cp;
-
-    wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-    wEventType = *wp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    sp = (short *)cp;
-    sX = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sY = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sV1 = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sV2 = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sV3 = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sV4 = *sp;
-    cp += 2;
-
-    switch (wEventType)
-    {
-        case DEF_COMMONTYPE_ITEMDROP:
-            if ((sV1 == 6) && (sV2 == 0))
-            {
-                bAddNewEffect(4, sX, sY, 0, 0, 0);
-            }
-            //else
-
-            m_pMapData->bSetItem(sX, sY, sV1, sV2, (char)sV3);
-            break;
-
-        case DEF_COMMONTYPE_SETITEM:
-            m_pMapData->bSetItem(sX, sY, sV1, sV2, (char)sV3, false);
-            break;
-
-        case DEF_COMMONTYPE_MAGIC:
-            bAddNewEffect(sV3, sX, sY, sV1, sV2, 0, sV4);
-            break;
-        case DEF_COMMONTYPE_CLEARGUILDNAME:
-            ClearGuildNameList();
-            break;
-    }
-}
-
-void CGame::CreateNewGuildResponseHandler(char * pData)
-{
-    uint16_t * wpResult;
-
-    wpResult = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-
-    switch (*wpResult)
-    {
-        case DEF_MSGTYPE_CONFIRM:
-
-            m_iGuildRank = 0;
-            m_stDialogBoxInfo[7].cMode = 3;
-            break;
-
-        case DEF_MSGTYPE_REJECT:
-
-            m_iGuildRank = -1;
-            m_stDialogBoxInfo[7].cMode = 4;
-            break;
-    }
-}
-
-void CGame::DisbandGuildResponseHandler(char * pData)
-{
-    uint16_t * wpResult;
-
-    wpResult = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-
-    switch (*wpResult)
-    {
-        case DEF_MSGTYPE_CONFIRM:
-
-            memset(m_cGuildName, 0, sizeof(m_cGuildName));
-            m_iGuildRank = -1;
-            m_stDialogBoxInfo[7].cMode = 7;
-            break;
-
-        case DEF_MSGTYPE_REJECT:
-
-            m_stDialogBoxInfo[7].cMode = 8;
-            break;
-    }
-}
-
-bool CGame::GameRecvMsgHandler(char * pData, uint64_t size)
-{
-    uint32_t * dwpMsgID;
-    dwpMsgID = (uint32_t *)(pData + DEF_INDEX4_MSGID);
-
-    if (*dwpMsgID == MSGID_EVENT_MOTION)
-    {
-        MotionEventHandler(pData);
-        return true;
-    }
-
-    //std::cout << "Received " << std::hex << *dwpMsgID << " - " << std::dec << size << " bytes of data\n";
-
-    uint8_t v = 0;
-
-    stream_read sr(pData, size);
-    int32_t message_id = sr.read_int32();
-    int16_t command_id = sr.read_int16();
-
-    switch (*dwpMsgID)
-    {
-        case MSGID_COMMAND_CHECKCONNECTION:
-            ping = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - sr.read_int64();
-            return true;
-
-        case MSGID_RESPONSE_CHARGED_TELEPORT:
-            ResponseChargedTeleport(pData);
-            return true;
-
-        case MSGID_RESPONSE_TELEPORT_LIST:
-            ResponseTeleportList(pData);
-            return true;
-
-        case MSGID_RESPONSE_NOTICEMENT:
-            NoticementHandler(pData);
-            return true;
-
-        case MSGID_DYNAMICOBJECT:
-            DynamicObjectHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_INITDATA:
-            InitDataResponseHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_MOTION:
-            MotionResponseHandler(pData);
-            return true;
-
-        case MSGID_EVENT_COMMON:
-            CommonEventHandler(pData);
-            return true;
-
-        case MSGID_EVENT_LOG:
-            LogEventHandler(pData);
-            return true;
-
-        case MSGID_COMMAND_CHATMSG:
-            ChatMsgHandler(pData);
-            return true;
-
-        case MSGID_PLAYERITEMLISTCONTENTS:
-            InitItemList(pData);
-            return true;
-
-        case MSGID_NOTIFY:
-            NotifyMsgHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_CREATENEWGUILD:
-            CreateNewGuildResponseHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_DISBANDGUILD:
-            DisbandGuildResponseHandler(pData);
-            return true;
-
-        case MSGID_PLAYERCHARACTERCONTENTS:
-            InitPlayerCharacteristics(pData);
-            return true;
-
-        case MSGID_RESPONSE_CIVILRIGHT:
-            CivilRightAdmissionHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_RETRIEVEITEM:
-            RetrieveItemHandler(pData);
-            return true;
-
-        case MSGID_RESPONSE_PANNING:
-            ResponsePanningHandler(pData);
-            return true;
-
-
-        case MSGID_RESPONSE_FIGHTZONE_RESERVE:
-            ReserveFightzoneResponseHandler(pData);
-            return true;
-    }
-    return false;
-}
-
-void CGame::ConnectionEstablishHandler(char cWhere)
-{
-    if (m_bIsCheckingGateway == false)
-        change_game_mode(DEF_GAMEMODE_ONWAITINGRESPONSE);
-
-    switch (cWhere)
-    {
-        case DEF_SERVERTYPE_GAME:
-
-            bSendCommand(MSGID_REQUEST_INITDATA, 0, 0, 0, 0, 0, 0);
-            change_game_mode(DEF_GAMEMODE_ONWAITINGINITDATA);
-            break;
-
-        case DEF_SERVERTYPE_LOG:
-            if (m_bIsCheckingGateway == true)
-            {
-                bSendCommand(MSGID_GETMINIMUMLOADGATEWAY, 0, 0, 0, 0, 0, 0);
-            }
-            else
-            {
-                switch (m_dwConnectMode)
-                {
-                    case MSGID_REQUEST_LOGIN:
-                        bSendCommand(MSGID_REQUEST_LOGIN, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_CREATENEWACCOUNT:
-                        bSendCommand(MSGID_REQUEST_CREATENEWACCOUNT, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_CREATENEWCHARACTER:
-                        bSendCommand(MSGID_REQUEST_CREATENEWCHARACTER, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_ENTERGAME:
-                        send_screen_settings_to_server();
-                        bSendCommand(MSGID_REQUEST_ENTERGAME, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_DELETECHARACTER:
-                        bSendCommand(MSGID_REQUEST_DELETECHARACTER, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_CHANGEPASSWORD:
-                        bSendCommand(MSGID_REQUEST_CHANGEPASSWORD, 0, 0, 0, 0, 0, 0);
-                        break;
-
-                    case MSGID_REQUEST_INPUTKEYCODE:
-                        bSendCommand(MSGID_REQUEST_INPUTKEYCODE, 0, 0, 0, 0, 0, 0);
-                        break;
-                }
-            }
-            break;
-    }
-}
-
-void CGame::LogEventHandler(char * pData)
-{
-    uint16_t * wp, wEventType{}, wObjectID{};
-    short * sp, sX{}, sY{}, sType{}, sAppr1{}, sAppr2{}, sAppr3{}, sAppr4{};
-    char * cp, cDir{}, cName[12]{};
-    int * ip, iApprColor{}, sStatus{};
-
-    wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-    wEventType = *wp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    wp = (uint16_t *)cp;
-    wObjectID = *wp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sX = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sY = *sp;
-    cp += 2;
-
-    sp = (short *)cp;
-    sType = *sp;
-    cp += 2;
-
-    cDir = *cp;
-    cp++;
-
-    memset(cName, 0, sizeof(cName));
-    if (wObjectID < 10000)
-    {
-
-        memcpy(cName, cp, 10);
-        cp += 10;
-
-        sp = (short *)cp;
-        sAppr1 = *sp;
-        cp += 2;
-
-        sp = (short *)cp;
-        sAppr2 = *sp;
-        cp += 2;
-
-        sp = (short *)cp;
-        sAppr3 = *sp;
-        cp += 2;
-
-        sp = (short *)cp;
-        sAppr4 = *sp;
-        cp += 2;
-
-        ip = (int *)cp;
-        iApprColor = *ip;
-        cp += 4;
-
-        ip = (int *)cp;
-        sStatus = *ip;
-        cp += 4;
-    }
-    else
-    {
-
-        memcpy(cName, cp, 5);
-        cp += 5;
-
-        sAppr1 = sAppr3 = sAppr4 = 0;
-
-        sp = (short *)cp;
-        sAppr2 = *sp;
-        cp += 2;
-
-        ip = (int *)cp;
-        sStatus = *ip;
-        cp += 4;
-    }
-
-    switch (wEventType)
-    {
-        case DEF_MSGTYPE_CONFIRM:
-            m_pMapData->set_owner(wObjectID, sX, sY, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
-            switch (sType)
-            {
-                case 43:
-                case 44:
-                case 45:
-                case 46:
-                case 47:
-                    bAddNewEffect(64, (sX) * 32, (sY) * 32, 0, 0, 0);
-                    break;
-            }
-            break;
-
-        case DEF_MSGTYPE_REJECT:
-
-            m_pMapData->set_owner(wObjectID, -1, -1, sType, cDir, sAppr1, sAppr2, sAppr3, sAppr4, iApprColor, sStatus, cName, DEF_OBJECTSTOP, 0, 0, 0);
-            break;
-    }
-
-    _RemoveChatMsgListByObjectID(wObjectID);
-}
-
-void CGame::LogResponseHandler(char * pData, uint64_t size)
-{
-    stream_read sr(pData, size);
-    uint16_t * wp, wResponse;
-    uint16_t wServerUpperVersion = {}, wServerLowerVersion = {}, wServerPatchVersion = {};
-    uint32_t * dwp;
-    char * cp, cCharName[12];
-    int * ip, i;
-
-    dwp = (uint32_t *)(pData);
-    wp = (uint16_t *)(pData + DEF_INDEX2_MSGTYPE);
-    wResponse = *wp;
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    uint32_t unused = sr.read_int32();
-    wResponse = sr.read_uint16();
-    if (GameRecvMsgHandler(pData, size)) return;
-
-    switch (wResponse)
-    {
-        case DEF_LOGRESMSGTYPE_CHARACTERDELETED:
-
-            cp = (pData + DEF_INDEX2_MSGTYPE + 2);
-
-
-            cp++;
-
-            m_iTotalChar = (int)*cp;
-            cp++;
-
-            for (i = 0; i < 4; i++)
-                if (m_pCharList[i] != 0)
-                {
-                    delete m_pCharList[i];
-                    m_pCharList[i] = 0;
-                }
-
-            for (i = 0; i < m_iTotalChar; i++)
-            {
-                m_pCharList[i] = new CCharInfo;
-                memcpy(m_pCharList[i]->m_cName, cp, 10);
-                cp += 10;
-                if (*cp == 0)
-                {
-
-                    m_pCharList[i]->m_sSex = 0;
-                    cp += 40;
-                }
-                else
-                {
-                    cp++;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr1 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr2 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr3 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr4 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sSex = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sSkinCol = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sLevel = *wp;
-                    cp += 2;
-
-                    dwp = (uint32_t *)cp;
-                    m_pCharList[i]->m_iExp = *dwp;
-                    cp += 4;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sStr = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sVit = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sDex = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sInt = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sMag = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sChr = *wp;
-                    cp += 2;
-
-                    ip = (int *)cp;
-                    m_pCharList[i]->m_iApprColor = *ip;
-                    cp += 4;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iYear = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iMonth = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iDay = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iHour = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iMinute = (int)*wp;
-                    cp += 2;
-
-                    memset(m_pCharList[i]->m_cMapName, 0, sizeof(m_pCharList[i]->m_cMapName));
-                    memcpy(m_pCharList[i]->m_cMapName, cp, 10);
-                    cp += 10;
-                }
-            }
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "3A");
-            break;
-
-        case DEF_LOGRESMSGTYPE_CONFIRM:
-            loggedin = true;
-            sr.reset_pos();
-            sr.read_int32();
-            sr.read_int16();
-            wServerUpperVersion = sr.read_uint16();
-            wServerLowerVersion = sr.read_uint16();
-            wServerPatchVersion = sr.read_uint16();
-            /*m_iAccountStatus = */(int)sr.read_byte();
-            m_iAccntYear = sr.read_uint16();
-            m_iAccntMonth = sr.read_uint16();
-            m_iAccntDay = sr.read_uint16();
-            m_iIpYear = sr.read_uint16();
-            m_iIpMonth = sr.read_uint16();
-            m_iIpDay = sr.read_uint16();
-            m_iTotalChar = (int)sr.read_byte();
-            //m_pCharList.clear();
-
-            if (m_iTotalChar > 10) //error
-            {
-                m_iTotalChar = 10;
-            }
-
-            for (i = 0; i < 4; i++)
-                if (m_pCharList[i] != 0)
-                {
-                    delete m_pCharList[i];
-                    m_pCharList[i] = 0;
-                }
-
-            for (int i = 0; i < m_iTotalChar; i++)
-            {
-                //std::shared_ptr<CCharInfo> character = std::make_shared<CCharInfo>();
-                m_pCharList[i] = new CCharInfo;
-                auto * character = m_pCharList[i];
-                memset(m_pCharList[i]->m_cName, 0, 12);
-                memcpy(m_pCharList[i]->m_cName, sr.read_string(10).c_str(), 10);
-                if (sr.read_byte() == 0)
-                {
-                    character->m_sSex = 0;
-                    sr.position += 39;
-                }
-                else
-                {
-                    //character->id = sr.read_int64();
-                    character->m_sAppr1 = sr.read_uint16();
-                    character->m_sAppr2 = sr.read_uint16();
-                    character->m_sAppr3 = sr.read_uint16();
-                    character->m_sAppr4 = sr.read_uint16();
-                    //                 character->m_sHeadApprValue = sr.ReadShort();
-                    //                 character->m_sBodyApprValue = sr.ReadShort();
-                    //                 character->m_sArmApprValue = sr.ReadShort();
-                    //                 character->m_sLegApprValue = sr.ReadShort();
-                    character->m_sSex = sr.read_uint16();
-                    character->m_sSkinCol = sr.read_uint16();
-                    character->m_sLevel = sr.read_uint16();
-                    character->m_iExp = sr.read_uint32();
-                    character->m_sStr = sr.read_uint16();
-                    character->m_sVit = sr.read_uint16();
-                    character->m_sDex = sr.read_uint16();
-                    character->m_sInt = sr.read_uint16();
-                    character->m_sMag = sr.read_uint16();
-                    character->m_sChr = sr.read_uint16();
-                    character->m_iApprColor = sr.read_uint32();
-                    character->m_iYear = sr.read_uint16();
-                    character->m_iMonth = sr.read_uint16();
-                    character->m_iDay = sr.read_uint16();
-                    character->m_iHour = sr.read_uint16();
-                    character->m_iMinute = sr.read_uint16();
-                    memset(m_pCharList[i]->m_cMapName, 0, 12);
-                    memcpy(m_pCharList[i]->m_cMapName, sr.read_string(10).c_str(), 10);
-                }
-                //m_pCharList.push_back(character);
-                //m_pCharList[i] = character;
-            }
-            m_iTimeLeftSecAccount = sr.read_uint32();
-            m_iTimeLeftSecIP = sr.read_uint32();
-            //         for (unsigned char & i : key)
-            //             i = sr.read_byte();
-            //         has_key = true;
-            change_game_mode(DEF_GAMEMODE_ONSELECTCHARACTER);
-            ClearContents_OnSelectCharacter();
-
-#ifndef _DEBUG
-            if (wServerUpperVersion != DEF_UPPERVERSION || wServerLowerVersion != DEF_LOWERVERSION || wServerPatchVersion != DEF_PATCHVERSION)
-                change_game_mode(DEF_GAMEMODE_ONVERSIONNOTMATCH);
-#endif
-            break;
-
-        case DEF_LOGRESMSGTYPE_REJECT:
-
-            cp = (pData + DEF_INDEX2_MSGTYPE + 2);
-            ip = (int *)cp;
-            m_iBlockYear = *ip;
-            cp += 4;
-
-            ip = (int *)cp;
-            m_iBlockMonth = *ip;
-            cp += 4;
-
-            ip = (int *)cp;
-            m_iBlockDay = *ip;
-            cp += 4;
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "7H");
-            break;
-
-
-        case DEF_LOGRESMSGTYPE_NOTENOUGHPOINT:
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "7I");
-            break;
-
-
-        case DEF_LOGRESMSGTYPE_ACCOUNTLOCKED:
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "7K");
-            break;
-
-
-        case DEF_LOGRESMSGTYPE_SERVICENOTAVAILABLE:
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "7L");
-            break;
-
-        case DEF_LOGRESMSGTYPE_PASSWORDCHANGESUCCESS:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "6B");
-            break;
-
-        case DEF_LOGRESMSGTYPE_PASSWORDCHANGEFAIL:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "6C");
-            break;
-
-        case DEF_LOGRESMSGTYPE_PASSWORDMISMATCH:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "11");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NOTEXISTINGACCOUNT:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "12");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NEWACCOUNTCREATED:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "54");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NEWACCOUNTFAILED:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "05");
-            break;
-
-        case DEF_LOGRESMSGTYPE_ALREADYEXISTINGACCOUNT:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "06");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NOTEXISTINGCHARACTER:
-
-            change_game_mode(DEF_GAMEMODE_ONMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "Not existing character!");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NEWCHARACTERCREATED:
-
-
-            memset(cCharName, 0, sizeof(cCharName));
-            memcpy(cCharName, cp, 10);
-            cp += 10;
-
-            m_iTotalChar = (int)*cp;
-            cp++;
-
-            for (i = 0; i < 4; i++)
-                if (m_pCharList[i] != 0) delete m_pCharList[i];
-
-            for (i = 0; i < m_iTotalChar; i++)
-            {
-                m_pCharList[i] = new CCharInfo;
-                memcpy(m_pCharList[i]->m_cName, cp, 10);
-                cp += 10;
-                if (*cp == 0)
-                {
-
-                    m_pCharList[i]->m_sSex = 0;
-                    cp += 40;
-                }
-                else
-                {
-                    cp++;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr1 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr2 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr3 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sAppr4 = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sSex = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sSkinCol = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sLevel = *wp;
-                    cp += 2;
-
-                    dwp = (uint32_t *)cp;
-                    m_pCharList[i]->m_iExp = *dwp;
-                    cp += 4;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sStr = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sVit = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sDex = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sInt = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sMag = *wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_sChr = *wp;
-                    cp += 2;
-
-                    ip = (int *)cp;
-                    m_pCharList[i]->m_iApprColor = *ip;
-                    cp += 4;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iYear = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iMonth = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iDay = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iHour = (int)*wp;
-                    cp += 2;
-
-                    wp = (uint16_t *)cp;
-                    m_pCharList[i]->m_iMinute = (int)*wp;
-                    cp += 2;
-
-                    memset(m_pCharList[i]->m_cMapName, 0, sizeof(m_pCharList[i]->m_cMapName));
-                    memcpy(m_pCharList[i]->m_cMapName, cp, 10);
-                    cp += 10;
-                }
-            }
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "47");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NEWCHARACTERFAILED:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "28");
-            break;
-
-        case DEF_LOGRESMSGTYPE_ALREADYEXISTINGCHARACTER:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "29");
-            break;
-
-        case DEF_ENTERGAMERESTYPE_PLAYING:
-
-            change_game_mode(DEF_GAMEMODE_ONQUERYFORCELOGIN);
-            break;
-
-        case DEF_ENTERGAMERESTYPE_CONFIRM:
-        {
-            socket_mode(true);
-            printf("ENTERGAMERESTYPE_CONFIRM\n");
-            ConnectionEstablishHandler(DEF_SERVERTYPE_GAME);
-        }
-        break;
-
-        case DEF_ENTERGAMERESTYPE_REJECT:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-
-
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-            switch (*cp)
-            {
-                case 1:	strcpy(m_cMsg, "3E"); break;
-                case 2:	strcpy(m_cMsg, "3F"); break;
-                case 3:	strcpy(m_cMsg, "33"); break;
-                case 4: strcpy(m_cMsg, "3D"); break;
-                case 5: strcpy(m_cMsg, "3G"); break;
-                case 6: strcpy(m_cMsg, "3Z"); break;
-
-                case 7: strcpy(m_cMsg, "3J"); break;
-            }
-            break;
-
-        case DEF_ENTERGAMERESTYPE_FORCEDISCONN:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "3X");
-            break;
-
-        case DEF_LOGRESMSGTYPE_NOTEXISTINGWORLDSERVER:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "1Y");
-            break;
-
-        case DEF_LOGRESMSGTYPE_INPUTKEYCODE:
-
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-            switch (*cp)
-            {
-                case 1:	strcpy(m_cMsg, "8U"); break; //MainMenu, Keycode registration success
-                case 2:	strcpy(m_cMsg, "82"); break; //MainMenu, Not existing Account
-                case 3:	strcpy(m_cMsg, "81"); break; //MainMenu, Password wrong
-                case 4: strcpy(m_cMsg, "8V"); break; //MainMenu, Invalid Keycode
-                case 5: strcpy(m_cMsg, "8W"); break; //MainMenu, Already Used Keycode
-            }
-            break;
-
-
-        case DEF_LOGRESMSGTYPE_FORCECHANGEPASSWORD:
-            //		ChangeGameMode(DEF_GAMEMODE_ONLOGRESMSG);
-            //		memset(m_cMsg, 0, sizeof(m_cMsg));
-            //		strcpy(m_cMsg, "2M");
-
-                    // 2002-10-17 #1
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "6M");
-            break;
-
-        case DEF_LOGRESMSGTYPE_INVALIDKOREANSSN:
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "1a");
-            break;
-
-        case DEF_LOGRESMSGTYPE_LESSTHENFIFTEEN:
-            change_game_mode(DEF_GAMEMODE_ONLOGRESMSG);
-            memset(m_cMsg, 0, sizeof(m_cMsg));
-            strcpy(m_cMsg, "1b");
-            break;
-
-    }
-}
-
-void CGame::InitPlayerCharacteristics(char * pData)
-{
-    int * ip;
-    char * cp;
-    short * sp;
-
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
-
-    ip = (int *)cp;
-    m_iHP = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iMP = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iSP = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iAC = *ip; // defense ratio
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iTHAC0 = *ip; // hit ratio
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iLevel = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iStr = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iInt = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iVit = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iDex = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iMag = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iCharisma = *ip;
-    cp += 4;
-
-    sp = (short *)cp;
-    m_iLU_Point = *sp;
-    cp += 2;
-
-    // ????
-    cp += 5;
-
-    ip = (int *)cp;
-    m_iExp = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iEnemyKillCount = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iPKCount = *ip;
-    cp += 4;
-
-    ip = (int *)cp;
-    m_iRewardGold = *ip;
-    cp += 4;
-
-    memcpy(m_cLocation, cp, 10);
-    cp += 10;
-    if (memcmp(m_cLocation, "aresden", 7) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "arehunter", 9) == 0)
-    {
-        m_bAresden = true;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else if (memcmp(m_cLocation, "elvine", 6) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = false;
-    }
-    else if (memcmp(m_cLocation, "elvhunter", 9) == 0)
-    {
-        m_bAresden = false;
-        m_bCitizen = true;
-        m_bHunter = true;
-    }
-    else
-    {
-        m_bAresden = true;
-        m_bCitizen = false;
-        m_bHunter = true;
-    }
-
-    cp = (char *)cp;
-    memcpy(m_cGuildName, cp, 20);
-    cp += 20;
-
-    if (strcmp(m_cGuildName, "NONE") == 0)
-        memset(m_cGuildName, 0, sizeof(m_cGuildName));
-
-    m_Misc.ReplaceString(m_cGuildName, '_', ' ');
-
-    ip = (int *)cp;
-    m_iGuildRank = *ip;
-    cp += 4;
-
-
-    m_iSuperAttackLeft = (int)*cp;
-    cp++;
-
-
-    ip = (int *)cp;
-    m_iFightzoneNumber = *ip;
-    cp += 4;
-}
-
-void CGame::AddMapStatusInfo(char * pData, bool bIsLastData)
-{
-    char * cp, cTotal;
-    short * sp, sIndex;
-    int i;
-
-    memset(m_cStatusMapName, 0, sizeof(m_cStatusMapName));
-
-    cp = (char *)(pData + 6);
-    memcpy(m_cStatusMapName, cp, 10);
-    cp += 10;
-
-    sp = (short *)cp;
-    sIndex = *sp;
-    cp += 2;
-
-    cTotal = *cp;
-    cp++;
-
-    for (i = 1; i <= cTotal; i++)
-    {
-        m_stCrusadeStructureInfo[sIndex].cType = *cp;
-        cp++;
-        sp = (short *)cp;
-        m_stCrusadeStructureInfo[sIndex].sX = *sp;
-        cp += 2;
-        sp = (short *)cp;
-        m_stCrusadeStructureInfo[sIndex].sY = *sp;
-        cp += 2;
-        m_stCrusadeStructureInfo[sIndex].cSide = *cp;
-        cp++;
-
-        sIndex++;
-    }
-
-    if (bIsLastData == true)
-    {
-
-        while (sIndex < DEF_MAXCRUSADESTRUCTURES)
-        {
-            m_stCrusadeStructureInfo[sIndex].cType = 0;
-            m_stCrusadeStructureInfo[sIndex].sX = 0;
-            m_stCrusadeStructureInfo[sIndex].sY = 0;
-            m_stCrusadeStructureInfo[sIndex].cSide = 0;
-            sIndex++;
-        }
-    }
-}
-
 void CGame::ResponseTeleportList(char * pData)
 {
     char * cp;
@@ -2695,5 +2837,78 @@ void CGame::ResponseChargedTeleport(char * pData)
             break;
         default:
             AddEventList(RESPONSE_CHARGED_TELEPORT7, 10);
+    }
+}
+void CGame::ResponseHeldenianTeleportList(char * pData)
+{
+    char * cp;
+    int * ip, i;
+    cp = pData + 6;
+    ip = (int *)cp;
+    m_iTeleportMapCount = *ip;
+    cp += 4;
+    for (i = 0; i < m_iTeleportMapCount; i++)
+    {
+        ip = (int *)cp;
+        m_stTeleportList[i].iIndex = *ip;
+        cp += 4;
+        memset(m_stTeleportList[i].mapname, 0, sizeof(m_stTeleportList[i].mapname));
+        memcpy(m_stTeleportList[i].mapname, cp, 10);
+        cp += 10;
+        ip = (int *)cp;
+        m_stTeleportList[i].iX = *ip;
+        cp += 4;
+        ip = (int *)cp;
+        m_stTeleportList[i].iY = *ip;
+        cp += 4;
+        ip = (int *)cp;
+        m_stTeleportList[i].iCost = *ip;
+        cp += 4;
+    }
+}
+
+
+
+void CGame::ConnectionEstablishHandler(char cWhere)
+{
+    ChangeGameMode(DEF_GAMEMODE_ONWAITINGRESPONSE);
+
+    switch (cWhere)
+    {
+        case DEF_SERVERTYPE_GAME:
+            bSendCommand(MSGID_REQUEST_INITDATA, 0, 0, 0, 0, 0, 0);
+            ChangeGameMode(DEF_GAMEMODE_ONWAITINGINITDATA);
+            break;
+
+        case DEF_SERVERTYPE_LOG:
+            switch (m_dwConnectMode)
+            {
+                case MSGID_REQUEST_LOGIN:
+                    bSendCommand(MSGID_REQUEST_LOGIN, 0, 0, 0, 0, 0, 0);
+                    break;
+
+                case MSGID_REQUEST_CREATENEWACCOUNT:
+                    bSendCommand(MSGID_REQUEST_CREATENEWACCOUNT, 0, 0, 0, 0, 0, 0);
+                    break;
+
+                case MSGID_REQUEST_CREATENEWCHARACTER:
+                    bSendCommand(MSGID_REQUEST_CREATENEWCHARACTER, 0, 0, 0, 0, 0, 0);
+                    break;
+
+                case MSGID_REQUEST_ENTERGAME:
+                    send_screen_settings_to_server();
+                    bSendCommand(MSGID_REQUEST_ENTERGAME, 0, 0, 0, 0, 0, 0);
+                    break;
+
+                case MSGID_REQUEST_DELETECHARACTER:
+                    bSendCommand(MSGID_REQUEST_DELETECHARACTER, 0, 0, 0, 0, 0, 0);
+                    break;
+
+                case MSGID_REQUEST_CHANGEPASSWORD:
+                    bSendCommand(MSGID_REQUEST_CHANGEPASSWORD, 0, 0, 0, 0, 0, 0);
+                    break;
+
+            }
+            break;
     }
 }

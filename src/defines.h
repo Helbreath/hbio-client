@@ -14,7 +14,7 @@
 #include <sys/timeb.h>
 #include <string>
 #include <cstring>
-#include "GlobalDef.h"
+#include "global_def.h"
 #include "enums.h"
 #include <cstdint>
 #include <SFML/Graphics/Color.hpp>
@@ -33,6 +33,21 @@ constexpr auto MAX_CHARACTER_SOUNDS = 30;
 constexpr auto MAX_MONSTER_SOUNDS = 160;
 constexpr auto MAX_EFFECT_SOUNDS = 55;
 
+inline std::vector<std::string> split(std::string str)
+{
+    std::vector<std::string> tokens;
+    std::size_t start = str.find_first_not_of(' '), end = start;
+
+    while (start != std::string::npos)
+    {
+        end = str.find(' ', start);
+        tokens.push_back(str.substr(start, end-start));
+        start = str.find_first_not_of(' ', end);
+    }
+    return tokens;
+}
+
+// todo: clean these up over time (they exist to be a drop-in for wsprintf)
 template <std::size_t N, class... T>
 inline const char * format_to_local(char(&_Out)[N], const std::format_string<T...> _Fmt, T&&... _Args)
 {
@@ -47,19 +62,19 @@ inline OutputIt format_to_local(OutputIt _Out, std::size_t len, const std::forma
     return _STD vformat_to(_STD move(_Out), _Fmt.get(), _STD make_format_args(_Args...));
 }
 
-inline bool isValidUnit(int64_t id)
+constexpr bool isValidUnit(int64_t id)
 {
     if (id > 0 && id < 30000) return true;
     return false;
 }
 
-inline bool isValidPlayer(int64_t id)
+constexpr bool isValidPlayer(int64_t id)
 {
     if (id > 0 && id < 10000) return true;
     return false;
 }
 
-inline bool isValidNpc(int64_t id)
+constexpr bool isValidNpc(int64_t id)
 {
     if (id > 10000 && id < 30000) return true;
     return false;
@@ -211,7 +226,6 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 
 #define ITEMSPREAD_RANDOM			1
 #define ITEMSPREAD_FIXED			2
-#define MAX_NPCITEMDROP				95
 
 
 #define CRUSADELOG_ENDCRUSADE       1
@@ -374,6 +388,18 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 
 #define DEF_MAXITEMEVENTS				50
 
+#define DEF_MAXSPRITES			55000
+#define DEF_MAXTILES			700
+#define DEF_MAXEFFECTSPR		200
+#define DEF_MAXSOUNDEFFECTS		300
+#define DEF_MAXCHATMSGS			500
+#define DEF_MAXWHISPERMSG		5
+#define DEF_MAXCHATSCROLLMSGS	80
+#define DEF_MAXEFFECTS			300
+#define DEF_CHATTIMEOUT_A		4000
+#define DEF_CHATTIMEOUT_B		500
+#define DEF_CHATTIMEOUT_C		2000
+#define DEF_TEXTDLGMAXLINES		300
 
 #define DEF_CLIENTSOCKETBLOCKLIMIT	15
 
@@ -381,6 +407,7 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 #define DEF_MAXITEMS		50
 #define DEF_MAXBANKITEMS	120
 #define DEF_MAXGUILDSMAN	128
+#define DEF_MAXMENUITEMS		140
 
 #define	DEF_MAXMAGICTYPE	100
 #define DEF_MAXSKILLTYPE	60
@@ -391,10 +418,60 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 
 #define DEF_SPECABLTYTIMESEC	1200
 
-#define DEF_PARTYSTATUS_0		0
-#define DEF_PARTYSTATUS_PROCESSING	1
-#define DEF_PARTYSTATUS_CONFIRM		2
+#define DEF_BTNSZX				74
+#define DEF_BTNSZY				20
+#define DEF_LBTNPOSX			30
+#define DEF_RBTNPOSX			154
+#define DEF_BTNPOSY				292
 
+#define DEF_INDEX4_MSGID		0
+#define DEF_INDEX2_MSGTYPE		4
+
+#define DEF_MAXWEATHEROBJECTS	600
+#define DEF_MAXBUILDITEMS		100
+
+#define DEF_MAXGAMEMSGS			300
+#define DEF_MAXITEMNAMES		1000
+
+#define DEF_MAXGUILDNAMES		100
+
+#define DEF_MAXSELLLIST			12
+
+#define DEF_GAMEMODE_NULL					-2
+#define DEF_GAMEMODE_ONQUIT					-1
+#define DEF_GAMEMODE_ONMAINMENU				0
+#define DEF_GAMEMODE_ONCONNECTING			1
+#define DEF_GAMEMODE_ONLOADING				2
+#define DEF_GAMEMODE_ONWAITINGINITDATA		3
+#define DEF_GAMEMODE_ONMAINGAME				4
+#define DEF_GAMEMODE_ONCONNECTIONLOST		5
+#define DEF_GAMEMODE_ONMSG					6
+#define DEF_GAMEMODE_ONCREATENEWACCOUNT		7
+#define DEF_GAMEMODE_ONLOGIN				8
+#define DEF_GAMEMODE_ONQUERYFORCELOGIN		9
+#define DEF_GAMEMODE_ONSELECTCHARACTER		10
+#define DEF_GAMEMODE_ONCREATENEWCHARACTER	11
+#define DEF_GAMEMODE_ONWAITINGRESPONSE		12
+#define DEF_GAMEMODE_ONQUERYDELETECHARACTER 13
+#define DEF_GAMEMODE_ONLOGRESMSG			14
+#define DEF_GAMEMODE_ONVERSIONNOTMATCH		17
+#define DEF_GAMEMODE_ONINTRODUCTION			18// todo: needed?
+#define DEF_GAMEMODE_ONSELECTSERVER			20
+
+#define DEF_SERVERTYPE_GAME			1
+#define DEF_SERVERTYPE_LOG			2
+
+#define DEF_CURSORSTATUS_NULL		0
+#define DEF_CURSORSTATUS_PRESSED	1
+#define DEF_CURSORSTATUS_SELECTED	2
+#define DEF_CURSORSTATUS_DRAGGING	3
+
+#define DEF_SELECTEDOBJTYPE_DLGBOX	1
+#define DEF_SELECTEDOBJTYPE_ITEM	2
+
+#define DEF_DOUBLECLICKTIME			300
+#define DEF_MAXPARTYMEMBERS			8
+#define DEF_MAXCRUSADESTRUCTURES	300
 
 #define DEF_MAXMAGICEFFECTS			100
 
@@ -414,7 +491,7 @@ const std::string sideMapRes[MAXSIDES] = { "default", "resurr1", "resurr2" };
 #define DEF_ATTRIBUTE_FIRE			3
 #define DEF_ATTRIBUTE_WATER			4
 
-#include "netmessages.h"
+#include "net_messages.h"
 
 //#define TOTALCHARACTERS		120
 // todo - make sure this is what it should be
@@ -1274,7 +1351,7 @@ static inline const char _tmp_cEmptyPosX[] = { 0, 1, 1, 0, -1, -1, -1, 0, 1, 2, 
 static inline const char _tmp_cEmptyPosY[] = { 0, 0, 1, 1, 1, 0, -1, -1, -1, -1, 0, 1, 2, 2, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, -2 };
 #pragma endregion
 
-extern uint64_t unixtime();
+extern int64_t unixtime();
 extern int32_t unixseconds();
 
 #ifndef WIN32
@@ -1369,3 +1446,43 @@ struct owner_data
     int16_t dynamic_object_type;
     std::chrono::time_point<std::chrono::steady_clock> last_seen_time;
 };
+
+// #define DEF_NPC			46220
+// #define DEF_MUNDIES		30000
+// #define DEF_MHAIR		31000
+// #define DEF_MARMOR		25075
+// #define DEF_MCLOTHES	5315
+// #define DEF_MLEGS		5555
+// #define DEF_MSHOES		5795
+// #define DEF_MWEAPONS	6020
+// #define DEF_MSHIELDS	11100
+// #define DEF_MCAPES		29230
+// #define DEF_MHELMS		9300
+// 
+// #define DEF_WUNDIES		14580
+// #define DEF_WHAIR		14820
+// #define DEF_WARMOR		15060
+// #define DEF_WCLOTHES	15300
+// #define DEF_WLEGS		15540
+// #define DEF_WSHOES		15780
+// #define DEF_WWEAPONS	16020
+// #define DEF_WSHIELDS	19100
+// #define DEF_WCAPES		19230
+// #define DEF_WHELMS		20300
+
+#define DEF_XSOCKEVENT_SOCKETMISMATCH			-121
+#define DEF_XSOCKEVENT_CONNECTIONESTABLISH		-122
+#define DEF_XSOCKEVENT_RETRYINGCONNECTION		-123
+#define DEF_XSOCKEVENT_ONREAD					-124
+#define DEF_XSOCKEVENT_READCOMPLETE				-125
+#define DEF_XSOCKEVENT_UNKNOWN					-126
+#define DEF_XSOCKEVENT_SOCKETCLOSED				-127
+#define DEF_XSOCKEVENT_BLOCK					-128
+#define DEF_XSOCKEVENT_SOCKETERROR				-129
+#define DEF_XSOCKEVENT_CRITICALERROR			-130
+#define DEF_XSOCKEVENT_NOTINITIALIZED			-131
+#define DEF_XSOCKEVENT_MSGSIZETOOLARGE			-132
+#define DEF_XSOCKEVENT_CONFIRMCODENOTMATCH		-133
+#define DEF_XSOCKEVENT_QUENEFULL                -134
+#define DEF_XSOCKEVENT_UNSENTDATASENDBLOCK		-135
+#define DEF_XSOCKEVENT_UNSENTDATASENDCOMPLETE	-136

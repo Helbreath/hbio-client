@@ -7,7 +7,6 @@
 #define	UPDATE_SCREEN_ON_CONNECTING1	"Press ESC key during long time of no"
 #define	UPDATE_SCREEN_ON_CONNECTING2	"connection and return to the main menu."
 #define	UPDATE_SCREEN_ON_CONNECTING3	"  Connecting to server. Please wait..."
-#define	UPDATE_SCREEN_ON_CONNECTING4	"Fuck! the fucking thing fucked up..."
 
 
 #define	UPDATE_SCREEN_ON_LOADING_PROGRESS1	"Loading game data."
@@ -16,10 +15,39 @@
 
 #define	UPDATE_SCREEN_ON_WAIT_INIT_DATA1	"Press ESC key during long time of no"
 #define	UPDATE_SCREEN_ON_WAIT_INIT_DATA2	"connection and return to the main menu."
-#define	UPDATE_SCREEN_ON_WAIT_INIT_DATA3	"  Connecting to server. Please wait... About 7 hours"
+#define	UPDATE_SCREEN_ON_WAIT_INIT_DATA3	"  Connecting to server. Please wait..."
 
 
 #define	UPDATE_SCREEN_ON_CONNECTION_LOST	"Connection Lost!"
+
+
+//////////////////////////////////////////////////////////////////////////
+#define DEF_MSG_NOTIFY_SLATE_CREATESUCCESS	"The ancient prophecy slate is completed."
+#define DEF_MSG_NOTIFY_SLATE_CREATEFAIL		"The slates are broken with a sharp clink."
+#define DEF_MSG_NOTIFY_SLATECLEAR			"The effect of the prophecy-slate is disappeared."
+#define DEF_MSG_NOTIFY_SLATE_INVINCIBLE		"You are invincible by divine protection of Kloness, the GOD OF JUSTICE."
+#define DEF_MSG_NOTIFY_SLATE_MANA			"Your mana will be refilled by great Wizard."
+#define DEF_MSG_NOTIFY_SLATE_EXP			"You've got the wisdom. Now, the amount of experience, wich you get from enemy, is increased."
+#define DEF_MSG_NOTIFY_SLATE_ALREADYUSING	"You're already using another slate."
+#define DEF_MSG_NOTIFY_SLATE_WRONG_MAP		"You cannot use it right here."
+
+#define DEF_MSG_NOTIFY_SLATE_BERSERK		"Berserk magic casted!"
+#define DEF_MSG_NOTIFY_LOTTERY_LOST			"You draw a blank. Please try again next time.."
+#define DEF_MSG_NOTIFY_CRAFTING_NO_CONTRIB  "There is not enough Contribution Point"
+#define DEF_MSG_NOTIFY_CRAFTING_NO_PART		"There is not enough material"
+#define DEF_MSG_NOTIFY_CRAFTING_FAILED		"Crafting failed"
+#define DEF_MSG_NOTIFY_ANGEL_RECEIVED		"You have received the Tutelary Angel."
+#define DEF_MSG_NOTIFY_ANGEL_FAILED			"Tutelary Angel failed."
+#define DEF_MSG_NOTIFY_ANGEL_MAJESTIC		"You need additional Majesty Points."
+#define DEF_MSG_NOTIFY_ANGEL_LOW_LVL		"Only Majesty characters can receive Tutelary Angel"
+#define DEF_MSG_NOTIFY_NOT_RELEASED			"Item cannot be released"
+#define BDLBBOX_DOUBLE_CLICK_INVENTORY17	"Initiating item Crafting..."
+#define DLGBOX_CLICK_SKILLDLG2				"There is not enough crafting materials. Please put in more materials."
+#define DLGBOX_CLICK_SKILLDLG3				"Crafting the item in progress"
+//////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define	_BDRAW_ON_CREATE_NEW_CHARACTER1	"Enter a character name."
 #define	_BDRAW_ON_CREATE_NEW_CHARACTER2	"Select character's gender."
@@ -527,10 +555,49 @@
 #define NPC_NAME_PERRY			"Perry"
 #define NPC_NAME_DEVLIN			"Devlin"
 
+#define NPC_NAME_BARLOG			"Barlog"
+#define NPC_NAME_CENTAURUS		"Centaurus"
+#define NPC_NAME_CLAWTURTLE		"Claw-Turtle"
+#define NPC_NAME_FIREWYVERN		"Fire Wyvern"
+#define NPC_NAME_GIANTCRAYFISH	"Giant Cray-Fish"
+#define NPC_NAME_GIANTLIZARD	"Giant Lizard"
+#define NPC_NAME_GIANTPLANT		"Giant Plant"
+#define NPC_NAME_MASTERMAGEORC	"Master Mage Orc"
+#define NPC_NAME_MINOTAURS		"Minotaurs"
+#define NPC_NAME_NIZIE			"Nizie"
+#define NPC_NAME_TENTOCLE		"Tentocle"
+#define NPC_NAME_ABADDON		"Abaddon"
+
+#define NPC_NAME_GAIL			"Gail"
+
+#define NPC_NAME_SOR			"Sorceress"
+#define NPC_NAME_ATK			"Ancient Temple Knight"
+#define NPC_NAME_ELF			"Elf Master"
+#define NPC_NAME_DSK			"Dark Shadow Knight"
+#define NPC_NAME_HBT			"Heavy Battle Tank"
+#define NPC_NAME_CT				"Crossbow Turret"
+#define NPC_NAME_BAR			"Barbarian"
+#define NPC_NAME_AGC			"Ancient Giant Cannon"
+
+#define NPC_NAME_GATE			"Gate"
+
+//Change End Added NPC Names
+
 #define NPC_NAME_WATERMELON		"WaterMelon"
 #define NPC_NAME_PUMPKIN		"Pumpkin"
 #define NPC_NAME_GARLIC			"Garlic"
 #define NPC_NAME_BARLEY			"Barley"
+
+#define NPC_NAME_CARROT			"Carrot"
+#define NPC_NAME_RADISH			"Radish"
+#define NPC_NAME_CHBFLOWER		"Chinese Bell Flower"
+#define NPC_NAME_MELON			"Melon"
+#define NPC_NAME_TOMATO			"Tomato"
+#define NPC_NAME_GRAPES			"Grapes"
+#define NPC_NAME_BGRAPES		"Blue Grapes"
+#define NPC_NAME_MUSHROOM		"Mushroom"
+#define NPC_NAME_GINSENG		"Ginseng"
+
 #define NPC_NAME_CROP			"Crop"
 
 #define	NPC_NAME_ENERGYSPHERE	"Energy Sphere"
@@ -557,6 +624,7 @@
 #define	NPC_NAME_GARGOYLE	"Gargoyle"
 #define	NPC_NAME_BEHOLDER	"Beholder"
 #define	NPC_NAME_DARKELF	"Darkelf"
+
 #define	DRAW_OBJECT_NAME50	" Berserked"
 #define	DRAW_OBJECT_NAME51	" Frozen"
 #define	DRAW_OBJECT_NAME52	"Clairvoyant"
@@ -603,7 +671,8 @@
 
 
 #define	UPDATE_SCREEN_ON_VERSION_NO_MATCH1	"Client program version does not match with server!"
-#define	UPDATE_SCREEN_ON_VERSION_NO_MATCH2	"Download recent version and try again."
+#define	UPDATE_SCREEN_ON_VERSION_NO_MATCH2	"Download recent version or verify files within launcher"
+#define	UPDATE_SCREEN_ON_VERSION_NO_MATCH3	"and try again."
 
 
 #define	DRAW_VERSION1	"This is the administrator version."
@@ -682,6 +751,21 @@
 #define GET_OFFICIAL_MAP_NAME63	"Aresden Jail"
 #define GET_OFFICIAL_MAP_NAME64	"Elvine Jail"
 
+#define GET_OFFICIAL_MAP_NAME65	"Promiseland"
+#define GET_OFFICIAL_MAP_NAME66	"Ice Map"
+
+#define GET_OFFICIAL_MAP_NAME67 "Druncn City"
+#define GET_OFFICIAL_MAP_NAME68 "InferniaA"
+#define GET_OFFICIAL_MAP_NAME69 "InferniaB"
+#define GET_OFFICIAL_MAP_NAME70 "Procella"
+#define GET_OFFICIAL_MAP_NAME71 "Maze"
+#define GET_OFFICIAL_MAP_NAME72 "Aresden Command Hall"
+#define GET_OFFICIAL_MAP_NAME73 "Elvine Command Hall"
+#define GET_OFFICIAL_MAP_NAME74 "Battle Field"
+#define GET_OFFICIAL_MAP_NAME75 "HRampart"
+#define GET_OFFICIAL_MAP_NAME76 "GodH"
+#define GET_OFFICIAL_MAP_NAME77 "Abaddon"
+
 
 #define	BCHECK_LOCAL_CHAT_COMMAND1	"Character {} has been released from the message refusing list."
 #define	BCHECK_LOCAL_CHAT_COMMAND2	"You can't refuse your own messages."
@@ -689,9 +773,9 @@
 #define	BCHECK_LOCAL_CHAT_COMMAND4	"There is no space in the refusing message character list."
 #define	BCHECK_LOCAL_CHAT_COMMAND5	"The character's name you want to refuse is too long."
 #define	BCHECK_LOCAL_CHAT_COMMAND6	"Enable to listen to whispers."
-#define	BCHECK_LOCAL_CHAT_COMMAND7	"Unalbe to listen to whispers."
-#define	BCHECK_LOCAL_CHAT_COMMAND8	"Enalbe to chat in public."
-#define	BCHECK_LOCAL_CHAT_COMMAND9	"Unalbe to chat in public."
+#define	BCHECK_LOCAL_CHAT_COMMAND7	"Unable to listen to whispers."
+#define	BCHECK_LOCAL_CHAT_COMMAND8	"Enable to chat in public."
+#define	BCHECK_LOCAL_CHAT_COMMAND9	"Unable to chat in public."
 
 
 #define	BCHECK_ITEM_OPERATION_ENABLE1	"Item transaction not finished."
@@ -805,12 +889,12 @@
 #define	DRAW_DIALOGBOX_BANK5	"item to take out on the list."
 
 #define	DRAW_DIALOGBOX_CHARACTER1	"Criminal ({})"
-#define	DRAW_DIALOGBOX_CHARACTER2	"Contribution ({})"
+#define	DRAW_DIALOGBOX_CHARACTER2	"Contribution ({}) Rep ({})"
 #define	DRAW_DIALOGBOX_CHARACTER3	"Aresden {} GuildMaster"
 #define	DRAW_DIALOGBOX_CHARACTER4	"Elvine {} GuildMaster"
 #define	DRAW_DIALOGBOX_CHARACTER5	"Aresden {} Guildsman"
 #define	DRAW_DIALOGBOX_CHARACTER6	"Elvine {} Guildsman"
-#define	DRAW_DIALOGBOX_CHARACTER7	"Traveller"
+#define	DRAW_DIALOGBOX_CHARACTER7	"Traveler"
 #define	DRAW_DIALOGBOX_CHARACTER8	"Citizen of Aresden"
 #define	DRAW_DIALOGBOX_CHARACTER9	"Citizen of Elvine"
 
@@ -836,13 +920,14 @@
 
 #define	DRAW_DIALOGBOX_CITYHALL_MENU1	"Citizenship request."
 #define	DRAW_DIALOGBOX_CITYHALL_MENU4	"Take the Prize Gold."
-#define	DRAW_DIALOGBOX_CITYHALL_MENU8	"Take the HERO's cape."
+#define	DRAW_DIALOGBOX_CITYHALL_MENU8	"Get Hero equipment."
+#define	DRAW_DIALOGBOX_CITYHALL_MENU9	"Get Dark Knight/Mage equipment."
 #define	DRAW_DIALOGBOX_CITYHALL_MENU11	"Cancel the Quest."
-#define	DRAW_DIALOGBOX_CITYHALL_MENU14	"Change the part of potal war."
+#define	DRAW_DIALOGBOX_CITYHALL_MENU14	"Change your crusade job."
 #define	DRAW_DIALOGBOX_CITYHALL_MENU17	"Select an Item you want."
 
 #define	DRAW_DIALOGBOX_CITYHALL_MENU18	"If you become a citizen, the level"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU19	"restriction as a traveller is removed."
+#define	DRAW_DIALOGBOX_CITYHALL_MENU19	"restriction as a traveler is removed."
 #define	DRAW_DIALOGBOX_CITYHALL_MENU20	"You can buy and sell almost all items"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU21	"which are produced in town. Also, by"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU22	"repelling enemies of opposing city you"
@@ -863,24 +948,36 @@
 #define	DRAW_DIALOGBOX_CITYHALL_MENU34	"activities is {} Gold. Do"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU35	"you wish to receive this now?"
 
-#define	DRAW_DIALOGBOX_CITYHALL_MENU46	"We give a hero's cape to the brave"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU47	"warriors who fight against people of"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU48	"other city for the safety of our city"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU49	"Enemy kill count should be at"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU50	"least 300 to get a hero's cape."
-
-#define	DRAW_DIALOGBOX_CITYHALL_MENU51	"If you get a hero's cape, the"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU52	"enemy kill count decreases by 300"
-#define	DRAW_DIALOGBOX_CITYHALL_MENU53	"Do you want to get a HERO's cape?"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU46	"Here are the available Hero items:"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU47	"Hero's Cape (EK 300)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU48	"Hero's Helm (EK 150 - Contrib 20)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU49	"Hero's Cap (EK 100 - Contrib 20)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU50	"Hero's Armor (EK 300 - Contrib 30)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU51	"Hero's Robe (EK 200 - Contrib 20)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU52	"Hero's Hauberk (EK 100 - Contrib 10)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU53	"Hero's Leggings (EK 150 - Contrib 15)"
 
 #define	DRAW_DIALOGBOX_CITYHALL_MENU54	"Do you want to cancel"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU55	"current quest?"
+
+#define	DRAW_DIALOGBOX_CITYHALL_MENU80	"Here are the available Dark Knight/Mage items:"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU81	"Hauberk (STR12)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU82	"Full Helm (STR85)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU83	"Leggings (STR20)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU84	"Robe (STR10)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU85	"Scale Mail (STR20)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU86	"Chain Mail (STR30)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU87	"Plate Mail (STR100)"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU88	"Rapier"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU89	"Great Sword"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU90	"Flameberge"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU91	"Staff (MS25)"
 
 
 #define	DRAW_DIALOGBOX_EXCHANGE1	"My Item"
 #define	DRAW_DIALOGBOX_EXCHANGE2	"Quantity: {}"
 #define	DRAW_DIALOGBOX_EXCHANGE3	"Endurance: {}/{}"
-#define	DRAW_DIALOGBOX_EXCHANGE4	"Completion: {}%"
+#define	DRAW_DIALOGBOX_EXCHANGE4	"Completion: {}%%"
 #define	DRAW_DIALOGBOX_EXCHANGE5	"{}'s item"
 
 #define	DRAW_DIALOGBOX_EXCHANGE9	"Please wait until other player decides"
@@ -1036,7 +1133,7 @@
 #define	DRAW_DIALOGBOX_MAGIC13	"Tower in town. To learn a spell"
 #define	DRAW_DIALOGBOX_MAGIC14	"you need sufficient gold and INT."
 #define	DRAW_DIALOGBOX_MAGIC15  "  "
-#define	DRAW_DIALOGBOX_MAGIC16	"Casting Probability: {}%"
+#define	DRAW_DIALOGBOX_MAGIC16	"Casting Probability: {}%%"
 
 
 #define	DRAW_DIALOGBOX_MAGICSHOP1	"Circle One"
@@ -1235,8 +1332,8 @@
 #define	DRAW_DIALOGBOX_SKILLDLG29	" Manufacturing the items...."
 #define	DRAW_DIALOGBOX_SKILLDLG30	"Please wait until manufacture finishes."
 #define	DRAW_DIALOGBOX_SKILLDLG31	" Success in manufacture!"
-#define	DRAW_DIALOGBOX_SKILLDLG32	"The purity of product is {}%."
-#define	DRAW_DIALOGBOX_SKILLDLG33	"The completion of product is {}%."
+#define	DRAW_DIALOGBOX_SKILLDLG32	"The purity of product is {}%%."
+#define	DRAW_DIALOGBOX_SKILLDLG33	"The completion of product is {}%%."
 #define	DRAW_DIALOGBOX_SKILLDLG34	"Failed on manufacture.."
 
 #define	DRAW_DIALOGBOX_SYSMENU_DETAILLEVEL   "Detail Level"
@@ -1452,9 +1549,8 @@
 #define	NOTIFYMSG_MAGICEFFECT_OFF11	"Berserk mode released."
 #define	NOTIFYMSG_MAGICEFFECT_OFF12	"Transformation magic effect released."
 #define	NOTIFYMSG_MAGICEFFECT_OFF13	"Freeze effect released."
-
 #define	NOTIFYMSG_MAGICEFFECT_OFF14 "Absolute Magic Protection has been vanished."
-
+#define	NOTIFYMSG_MAGICEFFECT_OFF15 "At last, you gather your senses."
 
 #define	NOTIFYMSG_MAGICEFFECT_ON1	"You are completely protected from arrows!"
 #define	NOTIFYMSG_MAGICEFFECT_ON2	"You are protected from magic!"
@@ -1469,9 +1565,8 @@
 #define	NOTIFYMSG_MAGICEFFECT_ON11	"Berserk magic casted! You deal double physical damage for 40 seconds"
 #define	NOTIFYMSG_MAGICEFFECT_ON12	"Transformation magic effect, you have been transformed as a monster"
 #define	NOTIFYMSG_MAGICEFFECT_ON13	"You have been frozen! Your movement decreases to 50%."
-
 #define	NOTIFYMSG_MAGICEFFECT_ON14  "You are completely protected from magic!"
-
+#define NOTIFYMSG_MAGICEFFECT_ON15  "You are thrown into confusion, and you are flustered."
 
 #define	NOTIFYMSG_MAGICSTUDY_FAIL1	"Magic ({}) :You failed learning magic! Insufficient Gold or Int ."
 #define	NOTIFYMSG_MAGICSTUDY_FAIL2	"Magic ({}): You failed learning!"
@@ -1521,11 +1616,11 @@
 #define	NOTIFYMSG_SHOW_MAP1	"There isn't any map for this area.."
 
 
-#define	NOTIFYMSG_SKILL1	"Skill {}: increased by {}%."
-#define	NOTIFYMSG_SKILL2	"Skill {}: decreased by {}%."
+#define	NOTIFYMSG_SKILL1	"Skill {}: increased by {}%%."
+#define	NOTIFYMSG_SKILL2	"Skill {}: decreased by {}%%."
 
 
-#define	NOTIFYMSG_SKILL_TRAIN_SUCCESS1	"Skill({}): You have learned a new ability! The ability level is {}%."
+#define	NOTIFYMSG_SKILL_TRAIN_SUCCESS1	"Skill({}): You have learned a new ability! The ability level is {}%%."
 
 
 #define	NOTIFYMSG_SKILL_USINGEND1	"You failed the ability attempt."
@@ -1782,6 +1877,12 @@
 #define DEF_MSG_MAPNAME_BLACKSMITH	"BlackSmith"
 #define DEF_MSG_MAPNAME_CATH		"Church"
 
+#define DEF_MSG_MAPNAME_CMDHALL		"Command Hall"
+#define DEF_MSG_MAPNAME_FARM		"The entrance to the Farm"
+#define DEF_MSG_MAPNAME_HUNT		"The entrance to the Hunt-Zone"
+#define DEF_MSG_MAPNAME_ML			"The entrance to the Middle Land"
+
+
 #define DEF_MSG_WARNING1	" ** This is a battle area **"
 #define DEF_MSG_WARNING2	"This is a dangerous area where you"
 #define DEF_MSG_WARNING3	"cannot protected from others' attack."
@@ -1800,15 +1901,15 @@
 #define DEF_MSG_ELVPK		"Elvine Criminal"
 #define DEF_MSG_GUILDMASTER		"{} Guildmaster"
 #define DEF_MSG_GUILDMASTER1	" Guildmaster)"
+#define DEF_MSG_GUILDCOMASTER	"{} Co-Guildmaster"
+#define DEF_MSG_GUILDCOMASTER1	" Co-Guildmaster)"
 #define DEF_MSG_GUILDSMAN		"{} Guildsman"
 #define DEF_MSG_GUILDSMAN1		" Guildsman)"
-
-#define GET_OFFICIAL_MAP_NAME65	"Promiseland"
-#define GET_OFFICIAL_MAP_NAME66	"Ice Map"
 
 #define DEF_MSG_FORCEATTACK_ON	"Auto Attack Mode has been enabled."
 #define DEF_MSG_FORCEATTACK_OFF	"Auto Attack Mode has been disabled."
 
+#define DRAW_DIALOGBOX_CITYHALL_MENU46A "Would you like to receive this item?"
 #define DRAW_DIALOGBOX_CITYHALL_MENU56	"Change the play mode."
 
 #define DRAW_DIALOGBOX_CITYHALL_MENU57	"*You are a civilian now*"
@@ -1854,7 +1955,7 @@
 
 #define RESPONSE_CHARGED_TELEPORT1 "Your level is too low to go to the area."
 #define RESPONSE_CHARGED_TELEPORT2 "Civilians cannot go to the area."
-#define RESPONSE_CHARGED_TELEPORT3 "Travellers cannot go to the area."
+#define RESPONSE_CHARGED_TELEPORT3 "Travelers cannot go to the area."
 #define RESPONSE_CHARGED_TELEPORT4 "Criminals cannot go to the area."
 #define RESPONSE_CHARGED_TELEPORT5 "You may not teleport to the same town."
 #define RESPONSE_CHARGED_TELEPORT6 "You need more gold to teleport."

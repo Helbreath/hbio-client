@@ -6,7 +6,7 @@
 
 #include "Msg.h"
 
-CMsg::CMsg(char cType, const char * pMsg, uint64_t dwTime)
+CMsg::CMsg(char cType, const char * pMsg, int64_t dwTime)
 {
     m_cType = cType;
     message = pMsg;
@@ -16,7 +16,7 @@ CMsg::CMsg(char cType, const char * pMsg, uint64_t dwTime)
     m_sY = 0;
 }
 
-CMsg::CMsg(char cType, std::string_view msg, uint64_t dwTime)
+CMsg::CMsg(char cType, std::string_view msg, int64_t dwTime)
 {
     m_cType = cType;
     message = msg;
@@ -26,7 +26,7 @@ CMsg::CMsg(char cType, std::string_view msg, uint64_t dwTime)
     m_sY = 0;
 }
 
-CMsg::CMsg(char cType, std::string & msg, uint64_t dwTime)
+CMsg::CMsg(char cType, std::string & msg, int64_t dwTime)
 {
     m_cType = cType;
     message = msg;

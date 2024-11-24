@@ -13,32 +13,31 @@ class CTile
 public:
     void Clear();
 
-    CTile();
-    ~CTile();
+    CTile() = default;
+    ~CTile() = default;
 
+    int64_t m_dwOwnerTime{};
+    int64_t m_dwEffectTime{};
+    int64_t m_dwDeadOwnerTime{};
+    int64_t m_dwDynamicObjectTime{};
 
-    uint32_t m_dwOwnerTime{};
-    uint32_t m_dwEffectTime{};
-    uint32_t m_dwDeadOwnerTime{};
-    uint32_t m_dwDynamicObjectTime{};
+    int m_iChatMsg{};
+    int m_cItemColor{};
+    int m_iEffectType{};
+    int m_iDeadApprColor{};
+    int m_iEffectFrame{}, m_iEffectTotalFrame{};
+    int m_iApprColor{};
+    int m_iDeadChatMsg{};
 
-    int   m_iChatMsg{};
-    int   m_cItemColor{};
-    int   m_iEffectType{};
-    int   m_iDeadApprColor{};
-    int   m_iEffectFrame{}, m_iEffectTotalFrame{};
-    int   m_iApprColor{};
-    int   m_iDeadChatMsg{};
-
-    uint16_t  m_wDeadObjectID{};
-    uint16_t  m_wObjectID{};
+    uint16_t m_wDeadObjectID{};
+    uint16_t m_wObjectID{};
 
     short m_sOwnerType{};
     short m_sAppr1{};
     short m_sAppr2{};
     short m_sAppr3{};
     short m_sAppr4{};
-    int m_sStatus{};
+    int m_iStatus{};
 
     short m_sDeadOwnerType{};
     short m_sDeadAppr1{};
@@ -46,7 +45,7 @@ public:
     short m_sDeadAppr3{};
     short m_sDeadAppr4{};
 
-    int m_sDeadStatus{};
+    int m_iDeadStatus{};
     short m_sV1{};
     short m_sV2{};
     short m_sV3{};
@@ -55,9 +54,12 @@ public:
     short m_sItemSprite{};
     short m_sItemSpriteFrame{};
 
-    char  m_cDeadOwnerFrame{};
+    char  m_cDeadOwnerFrame = -1;
     char  m_cOwnerAction{};
     char  m_cOwnerFrame{};
+    uint16_t max_frames{};
+    int64_t frame_time{};
+    int64_t start_time{};
     char  m_cDir{};
     char  m_cDeadDir{};
 
