@@ -46,6 +46,7 @@ void CGame::DrawEffects()
     int i, dX, dY, iDvalue, tX, tY, rX, rY, rX2, rY2, rX3, rY3, rX4, rY4, rX5, rY5, iErr;
     char  cTempFrame;
     int64_t dwTime = m_dwCurTime;
+    std::lock_guard<std::mutex> lock(effect_mtx);
 
     for (i = 0; i < DEF_MAXEFFECTS; i++)
         if ((m_pEffectList[i] != 0) && (m_pEffectList[i]->m_cFrame >= 0))
@@ -964,33 +965,33 @@ void CGame::DrawEffects()
                     m_pEffectSpr[10]->put_trans_sprite(dX, dY, cTempFrame, dwTime);
                     break;
 
-                case 143: // Lightning
-                    _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - 800,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX, m_pEffectList[i]->m_rY, 1);
-
-                    _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - 800,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX + 4, m_pEffectList[i]->m_rY + 2, 2);
-
-                    _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - 800,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX - 2, m_pEffectList[i]->m_rY - 2, 2);
-                    break;
-
-                case 151: // Lightning Bolt
-                    _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX, m_pEffectList[i]->m_rY, 1);
-
-                    _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX + 2, m_pEffectList[i]->m_rY - 2, 2);
-
-                    _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
-                        m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
-                        m_pEffectList[i]->m_rX - 2, m_pEffectList[i]->m_rY - 2, 2);
-                    break;
+//                 case 143: // Lightning
+//                     _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - screenheight_v,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX, m_pEffectList[i]->m_rY, 1);
+//  
+//                     _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - screenheight_v,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX + 4, m_pEffectList[i]->m_rY + 2, 2);
+//  
+//                     _DrawThunderEffect(m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY - screenheight_v,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX - 2, m_pEffectList[i]->m_rY - 2, 2);
+//                     break;
+// 
+//                 case 151: // Lightning Bolt
+//                     _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX, m_pEffectList[i]->m_rY, 1);
+// 
+//                     _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX + 2, m_pEffectList[i]->m_rY - 2, 2);
+// 
+//                     _DrawThunderEffect(m_pEffectList[i]->m_mX - m_sViewPointX, m_pEffectList[i]->m_mY - m_sViewPointY,
+//                         m_pEffectList[i]->m_dX * 32 - m_sViewPointX, m_pEffectList[i]->m_dY * 32 - m_sViewPointY,
+//                         m_pEffectList[i]->m_rX - 2, m_pEffectList[i]->m_rY - 2, 2);
+//                     break;
             }
         }
 }
@@ -1002,6 +1003,7 @@ void CGame::DrawEffectLights()
     int i, dX, dY, iDvalue;
     int64_t dwTime = m_dwCurTime;
     char  cTempFrame;
+    std::lock_guard<std::mutex> lock(effect_mtx);
     for (i = 0; i < DEF_MAXEFFECTS; i++)
         if (m_pEffectList[i] != 0)
         {

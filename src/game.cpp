@@ -4015,6 +4015,8 @@ bool CGame::effect_frame_counter()
     char  cDir;
     long lPan;
 
+    std::lock_guard<std::mutex> lock(effect_mtx);
+
     dwTime = m_dwCurTime;
     dwTime += m_pMapData->m_dwFrameAdjustTime;
 

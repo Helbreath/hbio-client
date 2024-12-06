@@ -220,6 +220,7 @@ public:
     std::mutex socket_mut;
     std::mutex thread_mut;
     std::recursive_mutex connection_mut;
+    std::mutex effect_mtx;
 
     sf::RenderTexture visible;
     sf::RenderTexture bg;
