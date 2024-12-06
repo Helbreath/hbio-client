@@ -41,6 +41,8 @@ extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocus
 extern int iFocusStatus;
 extern int iFocusApprColor;
 
+extern int64_t focus_owner_time;
+extern int64_t focus_frame_time;
 
 void CGame::_Draw_CharacterBody(short sX, short sY, short sType)
 {
@@ -756,7 +758,17 @@ bool CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTr
 //		if ((_tmp_iStatus & 0x80) != 0) 
 //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -824,7 +836,7 @@ bool CGame::DrawObject_OnAttack(int indexX, int indexY, int sX, int sY, bool bTr
 
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -844,9 +856,12 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
     int iWeaponGlare{}, iShieldGlare{};
     int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
     int iSkirtDraw{};
+    bool is_player = false;
 
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 81) bInv = true; //Abaddon invis
+
+    is_player = memcmp(m_cPlayerName, _tmp_cName, 10) == 0;
 
     if (m_cDetailLevel == 0)
     {
@@ -876,7 +891,7 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
 
     if ((_tmp_iStatus & 0x10) != 0)
     {
-        if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
+        if (is_player) bInv = true;
         else
 #ifndef DEF_HACKCLIENT
             if (_iGetFOE(_tmp_iStatus) == 1)
@@ -1104,73 +1119,105 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
 
     dx = 0;
     dy = 0;
-    if ((_tmp_cFrame >= 1) && (_tmp_cFrame <= 3))
+//     if ((_tmp_cFrame >= 1) && (_tmp_cFrame <= 3))
+//     {
+// 
+//         switch (_tmp_cFrame)
+//         {
+//             case 1: cFrameMoveDots = 26; break;
+//             case 2: cFrameMoveDots = 16; break;
+//             case 3: cFrameMoveDots = 0;  break;
+//         }
+// 
+//         switch (_tmp_cDir)
+//         {
+//             case 1: dy = cFrameMoveDots; break;
+//             case 2: dy = cFrameMoveDots; dx = -cFrameMoveDots; break;
+//             case 3: dx = -cFrameMoveDots; break;
+//             case 4: dx = -cFrameMoveDots; dy = -cFrameMoveDots; break;
+//             case 5: dy = -cFrameMoveDots; break;
+//             case 6: dy = -cFrameMoveDots; dx = cFrameMoveDots; break;
+//             case 7: dx = cFrameMoveDots; break;
+//             case 8: dx = cFrameMoveDots; dy = cFrameMoveDots; break;
+//         }
+// 
+//         switch (_tmp_cFrame)
+//         {
+//             case 1: dy++;    break;
+//             case 2: dy += 2; break;
+//             case 3: dy++;    break;
+//         }
+//         switch (_tmp_cFrame)
+//         {
+//             case 2: bDashDraw = true; cFrameMoveDots = 26; break;
+//             case 3: bDashDraw = true; cFrameMoveDots = 16; break;
+//         }
+// 
+//         dsx = 0;
+//         dsy = 0;
+//         switch (_tmp_cDir)
+//         {
+//             case 1: dsy = cFrameMoveDots; break;
+//             case 2: dsy = cFrameMoveDots; dsx = -cFrameMoveDots; break;
+//             case 3: dsx = -cFrameMoveDots; break;
+//             case 4: dsx = -cFrameMoveDots; dsy = -cFrameMoveDots; break;
+//             case 5: dsy = -cFrameMoveDots; break;
+//             case 6: dsy = -cFrameMoveDots; dsx = cFrameMoveDots; break;
+//             case 7: dsx = cFrameMoveDots; break;
+//             case 8: dsx = cFrameMoveDots; dsy = cFrameMoveDots; break;
+//         }
+//     }
+//     else if (_tmp_cFrame > 3)
+//     {
+//         dx = 0;
+//         dy = 0;
+//     }
+//     else
+//     {
+//         switch (_tmp_cDir)
+//         {
+//             case 1: dy = 32; break;
+//             case 2: dy = 32; dx = -32; break;
+//             case 3: dx = -32; break;
+//             case 4: dx = -32; dy = -32; break;
+//             case 5: dy = -32; break;
+//             case 6: dy = -32; dx = 32; break;
+//             case 7: dx = 32; break;
+//             case 8: dx = 32; dy = 32; break;
+//         }
+//     }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Replace old positioning code with interpolation
+
+    int64_t time_elapsed = dwTime - _tmp_owner_time;
+    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+    float interpolated_frame = _tmp_cFrame + cycle_progress;
+
+    switch (_tmp_cDir)
     {
-
-        switch (_tmp_cFrame)
-        {
-            case 1: cFrameMoveDots = 26; break;
-            case 2: cFrameMoveDots = 16; break;
-            case 3: cFrameMoveDots = 0;  break;
-        }
-
-        switch (_tmp_cDir)
-        {
-            case 1: dy = cFrameMoveDots; break;
-            case 2: dy = cFrameMoveDots; dx = -cFrameMoveDots; break;
-            case 3: dx = -cFrameMoveDots; break;
-            case 4: dx = -cFrameMoveDots; dy = -cFrameMoveDots; break;
-            case 5: dy = -cFrameMoveDots; break;
-            case 6: dy = -cFrameMoveDots; dx = cFrameMoveDots; break;
-            case 7: dx = cFrameMoveDots; break;
-            case 8: dx = cFrameMoveDots; dy = cFrameMoveDots; break;
-        }
-
-        switch (_tmp_cFrame)
-        {
-            case 1: dy++;    break;
-            case 2: dy += 2; break;
-            case 3: dy++;    break;
-        }
-        switch (_tmp_cFrame)
-        {
-            case 2: bDashDraw = true; cFrameMoveDots = 26; break;
-            case 3: bDashDraw = true; cFrameMoveDots = 16; break;
-        }
-
-        dsx = 0;
-        dsy = 0;
-        switch (_tmp_cDir)
-        {
-            case 1: dsy = cFrameMoveDots; break;
-            case 2: dsy = cFrameMoveDots; dsx = -cFrameMoveDots; break;
-            case 3: dsx = -cFrameMoveDots; break;
-            case 4: dsx = -cFrameMoveDots; dsy = -cFrameMoveDots; break;
-            case 5: dsy = -cFrameMoveDots; break;
-            case 6: dsy = -cFrameMoveDots; dsx = cFrameMoveDots; break;
-            case 7: dsx = cFrameMoveDots; break;
-            case 8: dsx = cFrameMoveDots; dsy = cFrameMoveDots; break;
-        }
+        case 1: dy = int(28 - (interpolated_frame * 4)); break;
+        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
+        case 3: dx = int((interpolated_frame * 4) - 28); break;
+        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
+        case 5: dy = int((interpolated_frame * 4) - 28); break;
+        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
+        case 7: dx = int(28 - (interpolated_frame * 4)); break;
+        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
     }
-    else if (_tmp_cFrame > 3)
+
+    if (is_player)
     {
-        dx = 0;
-        dy = 0;
+        camera_frame_details.time_elapsed = time_elapsed;
+        camera_frame_details.cycle_progress = cycle_progress;
+        camera_frame_details.interpolated_frame = interpolated_frame;
+        camera_frame_details.offset_x = dx;
+        camera_frame_details.offset_y = dy;
+        camera_frame_details.direction = _tmp_cDir;
     }
-    else
-    {
-        switch (_tmp_cDir)
-        {
-            case 1: dy = 32; break;
-            case 2: dy = 32; dx = -32; break;
-            case 3: dx = -32; break;
-            case 4: dx = -32; dy = -32; break;
-            case 5: dy = -32; break;
-            case 6: dy = -32; dx = 32; break;
-            case 7: dx = 32; break;
-            case 8: dx = 32; dy = 32; break;
-        }
-    }
+
+    //////////////////////////////////////////////////////////////////////////
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
     if (_tmp_iEffectType != 0)
@@ -1516,7 +1563,17 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
             if (iShieldIndex != -1) m_pSprite[iShieldIndex]->put_trans_sprite_color(sX + dsx, sY + dsy, (_tmp_cDir - 1) * 8 + _tmp_cFrame, m_wR[10] - (m_wR[0] / 3), m_wG[10] - (m_wG[0] / 3), m_wB[10] - (m_wB[0] / 3), dwTime);
         }
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
@@ -1539,7 +1596,7 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
     _tmp_dy = dy;
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -1838,7 +1895,17 @@ bool CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTra
 //		if ((_tmp_iStatus & 0x80) != 0) 
 //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -1859,7 +1926,7 @@ bool CGame::DrawObject_OnMagic(int indexX, int indexY, int sX, int sY, bool bTra
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -2160,7 +2227,17 @@ bool CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bT
 //		if ((_tmp_iStatus & 0x80) != 0) 
 //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -2181,7 +2258,7 @@ bool CGame::DrawObject_OnGetItem(int indexX, int indexY, int sX, int sY, bool bT
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
@@ -3171,7 +3248,17 @@ bool CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTr
     //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
         }
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -3238,7 +3325,7 @@ bool CGame::DrawObject_OnDamage(int indexX, int indexY, int sX, int sY, bool bTr
     }
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -3642,7 +3729,17 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 //		if ((_tmp_iStatus & 0x80) != 0) 
 //			m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -3664,7 +3761,7 @@ bool CGame::DrawObject_OnDying(int indexX, int indexY, int sX, int sY, bool bTra
 
 
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -3968,7 +4065,17 @@ bool CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTran
             else m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX, sY, iFrame, -2 * _tmp_cFrame, -2 * _tmp_cFrame, -2 * _tmp_cFrame, dwTime);
         }
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -3999,7 +4106,7 @@ bool CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, bool bTran
     //	}
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -4020,6 +4127,9 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
     int iWeaponGlare{}, iShieldGlare{};
     int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
     int iSkirtDraw{};
+    bool is_player = false;
+
+    is_player = memcmp(m_cPlayerName, _tmp_cName, 10) == 0;
 
     //if(_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 35) bInv = true; //Energy-Ball,Wyvern
@@ -4057,7 +4167,7 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
 
     if ((_tmp_iStatus & 0x10) != 0)
     {
-        if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
+        if (is_player) bInv = true;
         else
 #ifndef DEF_HACKCLIENT
             if (_iGetFOE(_tmp_iStatus) == 1)
@@ -4298,6 +4408,16 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
         case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
         case 7: dx = int(28 - (interpolated_frame * 4)); break;
         case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
+    }
+
+    if (is_player)
+    {
+        camera_frame_details.time_elapsed = time_elapsed;
+        camera_frame_details.cycle_progress = cycle_progress;
+        camera_frame_details.interpolated_frame = interpolated_frame;
+        camera_frame_details.offset_x = dx;
+        camera_frame_details.offset_y = dy;
+        camera_frame_details.direction = _tmp_cDir;
     }
 
     switch (_tmp_sOwnerType)
@@ -4813,7 +4933,31 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
     //	if ((_tmp_iStatus & 0x80) != 0) 
     //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
+//         _text.setFont(*arya_font);
+//         _text.setOutlineThickness(0);
+//         _text.setOutlineColor(sf::Color::Black);
+//         _text.setFillColor(sf::Color::White);
+//         _text.setCharacterSize(14);
+//         _text.setPosition(sX + dx + 100, sY + dy);
+//         _text.setString(fmt::format(
+//             "index: {}, {}\n"
+//             "s: {}, {}\n"
+//             "d: {}, {}\n",
+//             indexX, indexY, sX, sY, dx, dy
+//         ));
+//         draw(_text);
+//         return true;
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
@@ -4883,7 +5027,74 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+//      _text.setFont(*arya_font);
+//      _text.setOutlineThickness(0);
+//      _text.setOutlineColor(sf::Color::Black);
+//      _text.setFillColor(sf::Color::White);
+//      _text.setCharacterSize(14);
+//      _text.setPosition(sX+dx, sY+dy + 100);
+//      _text.setString(fmt::format(
+//          "index: {}, {}\n"
+//          "s: {}, {}\n"
+//          "d: {}, {}\n",
+//          indexX, indexY, sX, sY, dx, dy
+//      ));
+//      draw(_text);
+// 
+//     char cTxt[64], cTxt2[128];
+//     memset(cTxt, 0, sizeof(cTxt));
+//     memset(cTxt2, 0, sizeof(cTxt2));
+// 
+//     GetNpcName(_tmp_sOwnerType, cTxt);
+//     if ((_tmp_iStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
+//     if ((_tmp_iStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
+// 
+//     put_string2(sX + dx, sY + dy + 40, cTxt, 255, 255, 255);
+// 
+//     if (m_bIsObserverMode == true) put_string2(sX + dx, sY + dy + 14, cTxt, 50, 50, 255);
+//     else if (m_bIsConfusion || (m_iIlusionOwnerH != 0))
+//     {
+//         memset(cTxt, 0, sizeof(cTxt));
+//         strcpy(cTxt, DRAW_OBJECT_NAME87);
+//         put_string2(sX + dx, sY + dy + 14, cTxt, 150, 150, 150); // v2.171
+//     }
+//     else
+//     {
+//         switch (_iGetFOE(_tmp_iStatus))
+//         {
+//             case -2:
+//                 put_string2(sX + dx, sY + dy + 14 + 40, DRAW_OBJECT_NAME90, 255, 0, 0);
+//                 break;
+//             case -1:
+//                 put_string2(sX + dx, sY + dy + 14 + 40, DRAW_OBJECT_NAME90, 255, 0, 0);
+//                 break;
+//             case 0:
+//                 put_string2(sX + dx, sY + dy + 14 + 40, DRAW_OBJECT_NAME88, 50, 50, 255);
+//                 break;
+//             case 1:
+//                 put_string2(sX + dx, sY + dy + 14 + 40, DRAW_OBJECT_NAME89, 30, 255, 30);
+//                 break;
+//         }
+//     }
+// 
+//     switch ((_tmp_iStatus & 0x0F00) >> 8)
+//     {
+//         case 0: break;
+//         case 1: strcpy(cTxt2, DRAW_OBJECT_NAME52); break;//"Clairvoyant"
+//         case 2: strcpy(cTxt2, DRAW_OBJECT_NAME53); break;//"Destruction of Magic Protection"
+//         case 3: strcpy(cTxt2, DRAW_OBJECT_NAME54); break;//"Anti-Physical Damage"
+//         case 4: strcpy(cTxt2, DRAW_OBJECT_NAME55); break;//"Anti-Magic Damage"
+//         case 5: strcpy(cTxt2, DRAW_OBJECT_NAME56); break;//"Poisonous"
+//         case 6: strcpy(cTxt2, DRAW_OBJECT_NAME57); break;//"Critical Poisonous" 
+//         case 7: strcpy(cTxt2, DRAW_OBJECT_NAME58); break;//"Explosive"  
+//         case 8: strcpy(cTxt2, DRAW_OBJECT_NAME59); break;//"Critical Explosive"
+//     }
+//     if (m_Misc.bCheckIMEString(cTxt2)) put_string_sprite_font3(sX + dx, sY + dy + 28 + 40, cTxt2, m_wR[13] * 4, m_wG[13] * 4, m_wB[13] * 4, false, 2);
+//     else put_string2(sX + dx, sY + dy + 28 + 40, cTxt2, 240, 240, 70);
+
+
+
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
 
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
@@ -4905,6 +5116,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     int iWeaponGlare{}, iShieldGlare{};
     int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
     int iSkirtDraw{};
+    bool is_player = memcmp(m_cPlayerName, _tmp_cName, 10) == 0;
 
     if (_tmp_sOwnerType == 67 || _tmp_sOwnerType == 68 || _tmp_sOwnerType == 69 || _tmp_sOwnerType == 81) return false;
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
@@ -4937,7 +5149,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
 
     if ((_tmp_iStatus & 0x10) != 0)
     {
-        if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
+        if (is_player) bInv = true;
         else
 #ifndef DEF_HACKCLIENT
             if (_iGetFOE(_tmp_iStatus) == 1)
@@ -5094,6 +5306,16 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
         case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
         case 7: dx = int(28 - (interpolated_frame * 4)); break;
         case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
+    }
+
+    if (is_player)
+    {
+        camera_frame_details.time_elapsed = time_elapsed;
+        camera_frame_details.cycle_progress = cycle_progress;
+        camera_frame_details.interpolated_frame = interpolated_frame;
+        camera_frame_details.offset_x = dx;
+        camera_frame_details.offset_y = dy;
+        camera_frame_details.direction = _tmp_cDir;
     }
 
     cFrame = _tmp_cFrame;
@@ -5444,7 +5666,17 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     //	if ((_tmp_iStatus & 0x80) != 0) 
     //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
@@ -5467,7 +5699,7 @@ bool CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, bool
     _tmp_dy = dy;
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -6011,7 +6243,7 @@ bool CGame::DrawObject_OnMove_ForMenu(int indexX, int indexY, int sX, int sY, bo
 
     _tmp_dx = dx;
     _tmp_dy = dy;
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
@@ -6770,7 +7002,17 @@ bool CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTran
     //	if ((_tmp_iStatus & 0x80) != 0) 
     //		m_pEffectSpr[81]->put_trans_sprite70(sX+115, sY+85, _tmp_iEffectFrame%21, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX, sY, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX, sY, _tmp_sOwnerType, _tmp_iStatus);
@@ -6837,13 +7079,13 @@ bool CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTran
 
     DisplayHPBar(_tmp_wObjectID, sX, sY, dwTime, _tmp_sOwnerType);
 
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
 
-//     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
-//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
-//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
-//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
-//         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX)) return true;
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX)) return true;
 
     return false;
 }
@@ -6856,6 +7098,7 @@ bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans
     int iWeaponGlare{}, iShieldGlare{};
     int iWeaponColor{}, iShieldColor{}, iArmorColor{}, iMantleColor{}, iArmColor{}, iPantsColor{}, iBootsColor{}, iHelmColor{};
     int iSkirtDraw{};
+    bool is_player = memcmp(m_cPlayerName, _tmp_cName, 10) == 0;
 
     if (_tmp_sOwnerType == 35 || _tmp_sOwnerType == 66) bInv = true; //Energy-Ball,Wyvern
     if (_tmp_sOwnerType == 81) bInv = true; //Change Abaddon invis
@@ -6888,7 +7131,7 @@ bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans
 
     if ((_tmp_iStatus & 0x10) != 0)
     {
-        if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0) bInv = true;
+        if (is_player) bInv = true;
         else
 #ifndef DEF_HACKCLIENT
             if (_iGetFOE(_tmp_iStatus) == 1)
@@ -7026,6 +7269,16 @@ bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans
         case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
         case 7: dx = int(28 - (interpolated_frame * 4)); break;
         case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
+    }
+
+    if (is_player)
+    {
+        camera_frame_details.time_elapsed = time_elapsed;
+        camera_frame_details.cycle_progress = cycle_progress;
+        camera_frame_details.interpolated_frame = interpolated_frame;
+        camera_frame_details.offset_x = dx;
+        camera_frame_details.offset_y = dy;
+        camera_frame_details.direction = _tmp_cDir;
     }
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
@@ -7429,7 +7682,17 @@ bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans
         if ((_tmp_iStatus & 0x20) != 0)
             m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite_color(sX + dx, sY + dy, _tmp_cFrame, 0, -5, -5, dwTime);
     }
-    else if (strlen(_tmp_cName) > 0)
+//     else if (strlen(_tmp_cName) > 0)
+//     {
+//         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
+//         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
+//     }
+
+    if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.left < msX) &&
+        (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.right > msX))
     {
         if ((_tmp_sOwnerType >= 1) && (_tmp_sOwnerType <= 6)) DrawObjectName(sX + dx, sY + dy, _tmp_cName, _tmp_iStatus);
         else DrawNpcName(sX + dx, sY + dy, _tmp_sOwnerType, _tmp_iStatus);
@@ -7453,7 +7716,7 @@ bool CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, bool bTrans
 
 
     DisplayHPBar(_tmp_wObjectID, sX + dx, sY + dy, dwTime, _tmp_sOwnerType);
-    return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
+    //return m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->check_collison(sX, sY, _tmp_cFrame, msX, msY);
     if ((m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top != -1) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.top < msY) &&
         (m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->m_rcBound.bottom > msY) &&

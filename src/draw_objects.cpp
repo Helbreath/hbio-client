@@ -43,6 +43,9 @@ extern short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocus
 extern int iFocusStatus;
 extern int iFocusApprColor;
 
+extern int64_t focus_owner_time;
+extern int64_t focus_frame_time;
+
 void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, short sModX, short sModY, short msX, short msY)
 {
     int ix{}, iy{}, indexX{}, indexY{}, dX{}, dY{}, iDvalue{};
@@ -322,6 +325,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                         sFocus_dX = _tmp_dX;
                         sFocus_dY = _tmp_dY;
                         bContact = false;
+                        focus_owner_time = _tmp_owner_time;
+                        focus_frame_time = _tmp_frame_time;
                     }
 
                     if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0)
@@ -740,94 +745,96 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
         strcpy(_tmp_cName, cFocusName);
         _tmp_dX = sFocus_dX;
         _tmp_dY = sFocus_dY;
+        _tmp_owner_time = focus_owner_time;
+        _tmp_frame_time = focus_frame_time;
 
         if ((_tmp_cAction != DEF_OBJECTDEAD) && (_tmp_cFrame < 0)) return;
-        switch (_tmp_cAction)
-        {
-            case DEF_OBJECTSTOP:
-                DrawObject_OnStop(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-            case DEF_OBJECTMOVE:
-                switch (_tmp_sOwnerType)
-                {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-
-                    case 28:
-                    case 29: // Orge.
-                    case 30: // Liche
-                    case 31: // Orge
-                    case 32:
-                    case 33:
-                    case 43:
-                    case 44:
-                    case 45:
-                    case 46:
-                    case 47:
-                    case 48:
-                    case 49:
-                    case 50:
-                    case 51:
-                    case 52:
-                    case 53:
-                    case 54:
-                    case 55:
-                    case 56:
-                    case 57:
-                    case 58:
-                    case 59:
-                    case 60:
-                    case 61:
-                    case 62:
-                    case 63:
-                    case 65:
-                    case 66:
-                        break;
-
-                    default:
-                        _tmp_cFrame = _tmp_cFrame * 2;
-                        break;
-                }
-
-                DrawObject_OnMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTDAMAGEMOVE:
-                DrawObject_OnDamageMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTRUN:
-                DrawObject_OnRun(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTATTACK:
-                DrawObject_OnAttack(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTATTACKMOVE:
-                DrawObject_OnAttackMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTMAGIC:
-                DrawObject_OnMagic(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTDAMAGE:
-                DrawObject_OnDamage(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTDYING:
-                DrawObject_OnDying(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-
-            case DEF_OBJECTDEAD:
-                DrawObject_OnDead(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
-                break;
-        }
+//         switch (_tmp_cAction)
+//         {
+//             case DEF_OBJECTSTOP:
+//                 DrawObject_OnStop(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+//             case DEF_OBJECTMOVE:
+//                 switch (_tmp_sOwnerType)
+//                 {
+//                     case 1:
+//                     case 2:
+//                     case 3:
+//                     case 4:
+//                     case 5:
+//                     case 6:
+// 
+//                     case 28:
+//                     case 29: // Orge.
+//                     case 30: // Liche
+//                     case 31: // Orge
+//                     case 32:
+//                     case 33:
+//                     case 43:
+//                     case 44:
+//                     case 45:
+//                     case 46:
+//                     case 47:
+//                     case 48:
+//                     case 49:
+//                     case 50:
+//                     case 51:
+//                     case 52:
+//                     case 53:
+//                     case 54:
+//                     case 55:
+//                     case 56:
+//                     case 57:
+//                     case 58:
+//                     case 59:
+//                     case 60:
+//                     case 61:
+//                     case 62:
+//                     case 63:
+//                     case 65:
+//                     case 66:
+//                         break;
+// 
+//                     default:
+//                         _tmp_cFrame = _tmp_cFrame * 2;
+//                         break;
+//                 }
+// 
+//                 DrawObject_OnMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTDAMAGEMOVE:
+//                 DrawObject_OnDamageMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTRUN:
+//                 DrawObject_OnRun(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTATTACK:
+//                 DrawObject_OnAttack(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTATTACKMOVE:
+//                 DrawObject_OnAttackMove(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTMAGIC:
+//                 DrawObject_OnMagic(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTDAMAGE:
+//                 DrawObject_OnDamage(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTDYING:
+//                 DrawObject_OnDying(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+// 
+//             case DEF_OBJECTDEAD:
+//                 DrawObject_OnDead(m_sMCX, m_sMCY, sFocusX, sFocusY, true, dwTime, msX, msY);
+//                 break;
+//         }
     }
     if (m_bIsGetPointingMode == true)
     {

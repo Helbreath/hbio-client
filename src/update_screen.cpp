@@ -3392,6 +3392,7 @@ void CGame::UpdateScreen_OnGame()
         || mouse_y != ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1
         )
     {
+        map_text.clear(Color(0, 0, 0, 0));
         mouse_x = ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1;
         mouse_y = ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1;
         render_target(DS_BG, true, Color(0, 0, 0, 0));
@@ -3409,6 +3410,9 @@ void CGame::UpdateScreen_OnGame()
 
         dynamic_bg.display();
         dynbg_sprite = sf::Sprite(dynamic_bg.getTexture());
+
+        map_text.display();
+        map_text_sprite = sf::Sprite(map_text.getTexture());
     }
 
     if ((m_iGatePositX >= m_sViewPointX / 32) && (m_iGatePositX <= m_sViewPointX / 32 + 20)
@@ -3436,10 +3440,12 @@ void CGame::UpdateScreen_OnGame()
     bg_sprite.setScale(zoom / 100, zoom / 100);
     bg_sprite.setPosition(-sModX, -sModY);
     dynbg_sprite.setScale(zoom / 100, zoom / 100);
+    map_text_sprite.setScale(zoom / 100, zoom / 100);
     render_target(oldTarget);
     DrawWhetherEffects();
     visible.draw(bg_sprite);
     visible.draw(dynbg_sprite);
+    visible.draw(map_text_sprite);
 
     //if (update_dialogs)
     if (iUpdateRet != 0)

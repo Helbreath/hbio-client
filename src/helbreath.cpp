@@ -1198,6 +1198,7 @@ void CGame::create_surfaces()
     dynamic_bg.create(screenwidth_v + 300, screenheight_v + 300);
     dialog.create(screenwidth_v + 300, screenheight_v + 300);
     item_box.create(screenwidth_v + 300, screenheight_v + 300);
+    map_text.create(screenwidth_v + 300, screenheight_v + 300);
     //bg.create(32768, 32768);
     //charselect.create(256, 256);
 }

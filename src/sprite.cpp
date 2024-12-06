@@ -263,6 +263,24 @@ void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, C
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
     game->draw(sprite_[sFrame]);
+
+    // update bounding box for checking collisions
+    short dX, dY, sx, sy, szx, szy, pvx, pvy;
+
+    sx = brush[sFrame].sx;
+    sy = brush[sFrame].sy;
+    szx = brush[sFrame].szx;
+    szy = brush[sFrame].szy;
+    pvx = brush[sFrame].pvx;
+    pvy = brush[sFrame].pvy;
+
+    dX = sX + pvx;
+    dY = sY + pvy;
+
+    m_rcBound.left = dX;
+    m_rcBound.top = dY;
+    m_rcBound.right = dX + szx;
+    m_rcBound.bottom = dY + szy;
 }
 
 void sprite::draw_sprite(int sX, int sY, int sFrame, int64_t dwTime, Color color)
@@ -288,6 +306,24 @@ void sprite::draw_sprite_colored(int sX, int sY, int sFrame, int64_t dwTime, Col
     sprite_[sFrame].setColor(color);
     sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
     game->draw(sprite_[sFrame]);
+
+    // update bounding box for checking collisions
+    short dX, dY, sx, sy, szx, szy, pvx, pvy;
+
+    sx = brush[sFrame].sx;
+    sy = brush[sFrame].sy;
+    szx = brush[sFrame].szx;
+    szy = brush[sFrame].szy;
+    pvx = brush[sFrame].pvx;
+    pvy = brush[sFrame].pvy;
+
+    dX = sX + pvx;
+    dY = sY + pvy;
+
+    m_rcBound.left = dX;
+    m_rcBound.top = dY;
+    m_rcBound.right = dX + szx;
+    m_rcBound.bottom = dY + szy;
 }
 
 void sprite::draw_to(int sX, int sY, int sFrame, int64_t dwTime, Color color, int draw_mode)

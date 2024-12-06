@@ -75,6 +75,10 @@ short sFocusX, sFocusY, sFocusOwnerType, sFocusAppr1, sFocusAppr2, sFocusAppr3, 
 int iFocusStatus;
 int iFocusApprColor;
 
+int64_t focus_owner_time;
+int64_t focus_frame_time;
+
+
 void CGame::ReadSettings()
 {
 
@@ -802,43 +806,77 @@ void CGame::Quit()
 
 void CGame::CalcViewPoint(int64_t dwTime)
 {
-    // Calculate the total time elapsed since the animation started
-    int64_t total_time_elapsed = dwTime - self_start_time;
+    int dx = camera_frame_details.offset_x;
+    int dy = camera_frame_details.offset_y;
+    char direction = camera_frame_details.direction;
+    float interpolated_frame = camera_frame_details.interpolated_frame;
 
-    // Calculate the total duration of the entire animation cycle
-    int64_t total_animation_duration = self_frame_time * self_max_frames;
-
-    // Calculate the fraction of the entire animation cycle that has elapsed
-    double animation_progress = static_cast<double>(total_time_elapsed) / static_cast<double>(total_animation_duration);
-    animation_progress = (animation_progress > 1.0) ? 1.0 : animation_progress;
-
-    //if (m_sViewStartX != m_sViewDstX) __debugbreak();
-    // Calculate the exact interpolated position
-    m_sViewPointX = m_sViewStartX + static_cast<short>((m_sViewDstX - m_sViewStartX) * animation_progress);
-    m_sViewPointY = m_sViewStartY + static_cast<short>((m_sViewDstY - m_sViewStartY) * animation_progress);
-
-    // Ensure the camera ends up exactly at the destination when the cycle completes
-    if (animation_progress >= 1.0f || finished_animation_cycle || (m_cCommand == DEF_OBJECTSTOP && current_map_action == DEF_OBJECTSTOP && !dashing))
+    switch (direction)
     {
-        if (camera_reset)
-        {
-            m_sViewPointX = m_sViewStartX = m_sViewDstX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
-            m_sViewPointY = m_sViewStartY = m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
-        }
-        else
-        {
-            if (finished_animation_cycle)
-            {
-                finished_animation_cycle = false;
-                m_sViewPointX = m_sViewStartX = m_sViewDstX;
-                m_sViewPointY = m_sViewStartY = m_sViewDstY;
-            }
-        }
+        case 1: dy = int(32 - (interpolated_frame * 4)); break;
+        case 2: dy = int(32 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 32); break;
+        case 3: dx = int((interpolated_frame * 4) - 32); break;
+        case 4: dx = int((interpolated_frame * 4) - 32); dy = int((interpolated_frame * 4) - 32); break;
+        case 5: dy = int((interpolated_frame * 4) - 32); break;
+        case 6: dy = int((interpolated_frame * 4) - 32); dx = int(32 - (interpolated_frame * 4)); break;
+        case 7: dx = int(32 - (interpolated_frame * 4)); break;
+        case 8: dx = int(32 - (interpolated_frame * 4)); dy = int(32 - (interpolated_frame * 4)); break;
     }
+
+    // Calculate the exact interpolated position
+    m_sViewPointX = m_sViewDstX + dx;
+    m_sViewPointY = m_sViewDstY + dy;
+
+//     if (camera_reset)
+//     {
+//         m_sViewPointX = m_sViewStartX = m_sViewDstX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+//         m_sViewPointY = m_sViewStartY = m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+//         camera_reset = false;
+//     }
 
     // Mark that the background needs updating
     update_background = true;
 }
+
+// void CGame::CalcViewPoint(int64_t dwTime)
+// {
+//     // Calculate the total time elapsed since the animation started
+//     int64_t total_time_elapsed = dwTime - self_start_time;
+// 
+//     // Calculate the total duration of the entire animation cycle
+//     int64_t total_animation_duration = self_frame_time * self_max_frames;
+// 
+//     // Calculate the fraction of the entire animation cycle that has elapsed
+//     double animation_progress = static_cast<double>(total_time_elapsed) / static_cast<double>(total_animation_duration);
+//     animation_progress = (animation_progress > 1.0) ? 1.0 : animation_progress;
+// 
+//     //if (m_sViewStartX != m_sViewDstX) __debugbreak();
+//     // Calculate the exact interpolated position
+//     m_sViewPointX = m_sViewStartX + static_cast<short>((m_sViewDstX - m_sViewStartX) * animation_progress);
+//     m_sViewPointY = m_sViewStartY + static_cast<short>((m_sViewDstY - m_sViewStartY) * animation_progress);
+// 
+//     // Ensure the camera ends up exactly at the destination when the cycle completes
+//     if (animation_progress >= 1.0f || finished_animation_cycle || (m_cCommand == DEF_OBJECTSTOP && current_map_action == DEF_OBJECTSTOP && !dashing))
+//     {
+//         if (camera_reset)
+//         {
+//             m_sViewPointX = m_sViewStartX = m_sViewDstX = (m_sPlayerX * 32) - (get_virtual_width() / 2);
+//             m_sViewPointY = m_sViewStartY = m_sViewDstY = (m_sPlayerY * 32) - ((get_virtual_height() / 2) - 16);
+//         }
+//         else
+//         {
+//             if (finished_animation_cycle)
+//             {
+//                 finished_animation_cycle = false;
+//                 m_sViewPointX = m_sViewStartX = m_sViewDstX;
+//                 m_sViewPointY = m_sViewStartY = m_sViewDstY;
+//             }
+//         }
+//     }
+// 
+//     // Mark that the background needs updating
+//     update_background = true;
+// }
 
 
 void CGame::CalcViewPointOld()
@@ -7682,6 +7720,9 @@ void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int iStatus)
     memset(cTxt, 0, sizeof(cTxt));
     memset(cTxt2, 0, sizeof(cTxt2));
 
+    uint8_t old_target = render_target();
+    render_target(DS_MAPTEXT);
+
     GetNpcName(sOwnerType, cTxt);
     if ((iStatus & 0x20) != 0) strcat(cTxt, DRAW_OBJECT_NAME50);//" Berserk" 
     if ((iStatus & 0x40) != 0) strcat(cTxt, DRAW_OBJECT_NAME51);//" Frozen"
@@ -7744,7 +7785,7 @@ void CGame::DrawNpcName(short sX, short sY, short sOwnerType, int iStatus)
         }
     }
 #endif
-
+    render_target(old_target);
 }
 
 void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
@@ -7753,6 +7794,9 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
     uint8_t sR, sG, sB;
     int i, iGuildIndex, iFOE, iAddY = 0;
     bool bPK, bCitizen, bAresden, bHunter;
+
+    uint8_t old_target = render_target();
+    render_target(DS_MAPTEXT);
 
     iFOE = _iGetFOE(iStatus);
     if (iFOE < 0)
@@ -8072,6 +8116,8 @@ void CGame::DrawObjectName(short sX, short sY, char * pName, int iStatus)
         put_under_entity_string(sX, sY + 28 + iAddY, cTxt2, Color(60, 160, 200));//Change Added -- Status
     }
 #endif
+
+    render_target(old_target);
 }
 
 bool CGame::FindGuildName(char * pName, int * ipIndex)

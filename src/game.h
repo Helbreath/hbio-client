@@ -68,6 +68,17 @@ using sf::Drawable;
 class CGame
 {
 public:
+    // camera frame details
+    struct
+    {
+        int64_t time_elapsed;
+        float cycle_progress;
+        float interpolated_frame;
+        int16_t offset_x;
+        int16_t offset_y;
+        char direction;
+    } camera_frame_details;
+
     int64_t self_owner_time{ 0 };
     int64_t self_start_time{ 0 };
     int64_t self_frame_time{ 0 };
@@ -228,11 +239,13 @@ public:
     sf::RenderTexture charselect;
     sf::RenderTexture dialog;
     sf::RenderTexture item_box;
+    sf::RenderTexture map_text;
 
     sf::Sprite bg_sprite;
     sf::Sprite dynbg_sprite;
     sf::Sprite dialog_sprite;
     sf::Sprite item_box_sprite;
+    sf::Sprite map_text_sprite;
 
     // todo: cleanup
     uint16_t modx{};
@@ -284,6 +297,11 @@ public:
             //render to dialog
             dialog.draw(drawable, states);
         }
+        else if (drawState == DS_MAPTEXT)
+        {
+            //render to map text
+            map_text.draw(drawable, states);
+        }
     }
 
     void draw_to(const Drawable & drawable, int draw_mode, const RenderStates & states = RenderStates::Default)
@@ -317,6 +335,11 @@ public:
         {
             //render to dialog
             dialog.draw(drawable, states);
+        }
+        else if (drawState == DS_MAPTEXT)
+        {
+            //render to map text
+            map_text.draw(drawable, states);
         }
     }
 
@@ -355,6 +378,11 @@ public:
         {
             if (clearbuffer)
                 dialog.clear(color);
+        }
+        else if (s == DS_MAPTEXT)
+        {
+            if (clearbuffer)
+                map_text.clear(color);
         }
     };
 
