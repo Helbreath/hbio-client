@@ -6359,6 +6359,7 @@ bool CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTran
                     iWeaponIndex = -1;
                 else
                 {
+                    // something is broken with stop animation of LightAxe 8 * (1). 8 * (3) (move animation) can be a temp fix
                     iWeaponIndex = DEF_SPRID_WEAPON_M + ((_tmp_sAppr2 & 0x0FF0) >> 4) * 64 + 8 * 1 + (_tmp_cDir - 1);
                 }
                 if ((_tmp_sAppr2 & 0x000F) == 0)
@@ -6573,10 +6574,7 @@ bool CGame::DrawObject_OnStop(int indexX, int indexY, int sX, int sY, bool bTran
 
     if (bTrans == false)
     {
-
         CheckActiveAura(sX, sY, dwTime, _tmp_sOwnerType);
-
-
 
         if (_cDrawingOrder[_tmp_cDir] == 1)
         {

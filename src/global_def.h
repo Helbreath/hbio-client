@@ -22,7 +22,7 @@
 #else
 #define SERVER_IP			"127.0.0.1"
 #endif
-#define SERVER_PORT			8443
+#define SERVER_PORT			80
 
 #define ENGLISH 0
 #define SPANISH 1
@@ -33,6 +33,7 @@
 #define DS_WIN 3
 #define DS_DYNBG 4
 #define DS_DIALOGS 5
+#define DS_MAPTEXT 6
 
 #define DEF_SNOW_POSITION_Y		430
 

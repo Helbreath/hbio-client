@@ -116,14 +116,14 @@ void CGame::perform_connect()
     ws->setOnMessageCallback(std::bind(&CGame::on_message, this, std::placeholders::_1));
 #if defined(_DEVMODE)
     if (dev_mode.wss)
-        ws->setUrl(fmt::format("wss://{}:8443", SERVER_IP));
+        ws->setUrl(fmt::format("wss://{}:{}", SERVER_IP, SERVER_PORT));
     else
-        ws->setUrl(fmt::format("ws://{}:80", SERVER_IP));
+        ws->setUrl(fmt::format("ws://{}:{}", SERVER_IP, SERVER_PORT));
 #else
-    ws->setUrl(fmt::format("wss://{}:8443", SERVER_IP));
+    ws->setUrl(fmt::format("wss://{}:{}", SERVER_IP, SERVER_PORT));
 #endif
     //ws->setUrl(fmt::format("wss://{}:8443", SERVER_IP));
-    ws->setUrl(std::format("ws://{}:80", SERVER_IP));
+    ws->setUrl(fmt::format("ws://{}:{}", SERVER_IP, SERVER_PORT));
     ws->disableAutomaticReconnection();
 
     ws->start();

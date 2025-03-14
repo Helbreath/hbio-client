@@ -219,7 +219,7 @@ public:
         int16_t distanceX = x - m_sPlayerX;
         int16_t distanceY = y - m_sPlayerY;
         if (abs_)
-            return std::make_pair(std::abs(distanceX), std::abs(distanceY));
+            return std::make_pair((int16_t)std::abs(distanceX), (int16_t)std::abs(distanceY));
         return std::make_pair(distanceX, distanceY);
     }
 
@@ -468,12 +468,12 @@ public:
     {
         put_font_string_size(&_font.at(fontname), iX, iY, text, color, size, outline_size, outline_color);
     }
-    void put_font_string_size(sf::Font * fontname, uint16_t iX, uint16_t iY, std::string text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black);
+    void put_font_string_size(sf::Font * font, uint16_t iX, uint16_t iY, std::string text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black);
     void put_font_string(std::string fontname, uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255))
     {
         put_font_string(&_font.at(fontname), iX, iY, pString, color);
     }
-    void put_font_string(sf::Font * fontname, uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255));
+    void put_font_string(sf::Font * font, uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255));
     void put_overhead_string(uint16_t x, uint16_t y, std::string text, Color color = Color(255, 255, 255), int multiplier = 1, bool transparency = false, int size = 12);
     void put_under_entity_string(uint16_t x, uint16_t y, std::string text, Color color = Color(255, 255, 255), uint8_t size = 14);
     void put_chat_string(uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255));
@@ -485,6 +485,11 @@ public:
         Color color;
         int size;
     };
+    void draw_generic_text(sf::Font * font, uint16_t iX, uint16_t iY, std::string_view text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black);
+    void draw_generic_text(std::string fontname, uint16_t iX, uint16_t iY, std::string_view text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black)
+    {
+        draw_generic_text(&_font.at(fontname), iX, iY, text, color, size, outline_size, outline_color);
+    }
     void render_item_details_box(uint16_t iX, uint16_t iY, std::vector<chat_msg> strings, Color background_color = Color(0, 0, 0, 200));
     void put_string(uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255), bool bHide = false, char cBGtype = 2);
     void put_string2(uint16_t iX, uint16_t iY, std::string pString, uint8_t r = 255, uint8_t g = 255, uint8_t b = 255)
@@ -495,19 +500,19 @@ public:
     { //TODO: remove
         put_string(iX, iY, pString, color);
     }
-    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string pString, bool highlight, uint8_t font_size = 12)
+    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string pString, bool highlight, uint8_t size = 12)
     {
-        put_aligned_string(iX1, iX2, iY, pString, Color(highlight ? 255 : 4, highlight ? 255 : 0, highlight ? 255 : 50), font_size);
+        put_aligned_string(iX1, iX2, iY, pString, Color(highlight ? 255 : 4, highlight ? 255 : 0, highlight ? 255 : 50), size);
     }
-    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string pString, bool wordWrap, Color color, uint8_t font_size = 12)
+    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string pString, bool wordWrap, Color color, uint8_t size = 12)
     {
         // todo - figure this out?
-        put_aligned_string(iX1, iX2, iY, pString, color, font_size);
+        put_aligned_string(iX1, iX2, iY, pString, color, size);
     }
-    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, Color color = Color(255, 255, 255), int font_size = 12);
-    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255, uint8_t font_size = 12)
+    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, Color color = Color(255, 255, 255), int size = 12);
+    void put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255, uint8_t size = 12)
     {
-        put_aligned_string(iX1, iX2, iY, text, Color(r, g, b, a), font_size);
+        put_aligned_string(iX1, iX2, iY, text, Color(r, g, b, a), size);
     }
     __inline sf::Font & get_font(std::string font = "default")
     {

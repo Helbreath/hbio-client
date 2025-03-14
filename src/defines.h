@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include <memory>
 #include <ctime>
 #include <sys/timeb.h>

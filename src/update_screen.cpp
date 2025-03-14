@@ -138,9 +138,7 @@ void CGame::UpdateScreen()
     int my = int(m_stMCursor.sY * diffy);
 
     if (m_bSoundFlag && m_bMusicStat && (m_pBGM.Stopped || m_pBGM.getBuffer() == nullptr) && get_game_mode() == DEF_GAMEMODE_ONMAINGAME)
-    {
         StartBGM();
-    }
 
     //Change 0x0107
     put_font_string_size(default_font, 5, 5,
@@ -224,27 +222,31 @@ void CGame::UpdateScreen()
     };
 
     _text.setPosition(5.f, 80.f);
-    _text.setString(fmt::format(
-        "x: {} - y: {}\n"
-        "VP x: {} - y: {}\n"
-        "DST x: {} - y: {}\n"
-        "start x: {} - y: {}\n"
-        "time: {} - cycle: {}\n"
-        "frame: {} - frame time: {}\n"
-        "frame start time: {} - animation start time: {}\n"
-        "command: {} - m_bCommandAvailable: {}\n"
-        "map command: {} - finished_animation_cycle: {}\n",
-        this->m_sPlayerX, this->m_sPlayerY,
-        this->m_sViewPointX, this->m_sViewPointY,
-        this->m_sViewDstX, this->m_sViewDstY,
-        this->m_sViewStartX, this->m_sViewStartY,
-        time_elapsed, cycle_progress,
-        self_frame, self_frame_time,
-        self_owner_time, self_start_time,
-        command_to_text(m_cCommand), m_bCommandAvailable,
-        command_to_text(current_map_action), finished_animation_cycle
-    ));
-    window.draw(_text);
+//     _text.setString(fmt::format(
+//         "x: {} - y: {}\n"
+//         "VP x: {} - y: {}\n"
+//         "DST x: {} - y: {}\n"
+//         "start x: {} - y: {}\n"
+//         "time: {} - cycle: {}\n"
+//         "frame: {} - frame time: {}\n"
+//         "frame start time: {} - animation start time: {}\n"
+//         "command: {} - m_bCommandAvailable: {}\n"
+//         "map command: {} - finished_animation_cycle: {}\n"
+//         "Mouse: ({}, {})\n"
+//         "Name: {}\n",
+//         this->m_sPlayerX, this->m_sPlayerY,
+//         this->m_sViewPointX, this->m_sViewPointY,
+//         this->m_sViewDstX, this->m_sViewDstY,
+//         this->m_sViewStartX, this->m_sViewStartY,
+//         time_elapsed, cycle_progress,
+//         self_frame, self_frame_time,
+//         self_owner_time, self_start_time,
+//         command_to_text(m_cCommand), m_bCommandAvailable,
+//         command_to_text(current_map_action), finished_animation_cycle,
+//         m_stMCursor.sX, m_stMCursor.sY,
+//         _tmp_cName
+//     ));
+//     window.draw(_text);
 
     render_mouse(mx, my);
 }

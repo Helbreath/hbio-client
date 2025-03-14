@@ -1241,8 +1241,8 @@ void CGame::create_window()
     format_to_local(winName, "Helbreath Xtreme {}.{}.{} Renderer: {}", DEF_UPPERVERSION, DEF_LOWERVERSION, DEF_PATCHVERSION, _renderer);
     sf::ContextSettings context;
     context.antialiasingLevel = antialiasing;
-    context.majorVersion = 4;
-    context.minorVersion = 6;
+    context.majorVersion = 2;
+    context.minorVersion = 0;
 
     if (fullscreen)
     {

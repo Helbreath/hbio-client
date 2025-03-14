@@ -110,7 +110,7 @@ CGame::CGame()
     sinks.push_back(stdout_sink);
 
     // daily rotation max 30 days
-    auto rotating = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/helbreath.log", 0, 0, false, 30);
+    auto rotating = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/helbreath.log", 0, 0, false, (uint16_t)30);
     sinks.push_back(rotating);
 
     log = std::make_shared<spdlog::async_logger>("helbreath", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
@@ -7649,7 +7649,7 @@ void CGame::CreateScreenShot()
 
     rtex.draw(sprite);
     rtex.draw(_text);
-    _text.setString(std::format("%F %T"));
+    _text.setString(fmt::format("%F %T"));
     _text.setPosition(float(get_width() - 180), 30.f);
     rtex.draw(_text);
 
@@ -7659,11 +7659,11 @@ void CGame::CreateScreenShot()
     for (int i = 0; i < 100; ++i)
     {
         if (i == 0)
-            tempstr = std::format("screenshots\\HelShot{:4}{:2}{:2}_{:2}{:2}{:2}.jpg",
+            tempstr = fmt::format("screenshots\\HelShot{:4}{:2}{:2}_{:2}{:2}{:2}.jpg",
                 (now->tm_year + 1900), (now->tm_mon + 1), now->tm_mday,
                 now->tm_hour, now->tm_min, now->tm_sec);
         else
-            tempstr = std::format("screenshots\\HelShot{:4}{:2}{:2}_{:2}{:2}{:2}_{}.jpg",
+            tempstr = fmt::format("screenshots\\HelShot{:4}{:2}{:2}_{:2}{:2}{:2}_{}.jpg",
                 (now->tm_year + 1900), (now->tm_mon + 1), now->tm_mday,
                 now->tm_hour, now->tm_min, now->tm_sec, i);
 
@@ -7673,7 +7673,7 @@ void CGame::CreateScreenShot()
             img.flipVertically();
             img.saveToFile(tempstr);
 
-            AddEventList(std::format(NOTIFYMSG_CREATE_SCREENSHOT1, tempstr.c_str()).c_str(), 10);
+            AddEventList(fmt::format(NOTIFYMSG_CREATE_SCREENSHOT1, tempstr.c_str()).c_str(), 10);
             return;
         }
     }
@@ -8628,7 +8628,11 @@ bool CGame::bCheckLocalChatCommand(const char * pMsg)
 
     std::string msg = cBuff;
 
+#if __cplusplus < 201703L
+    if (strcmp(msg.data(), "/t ") == 0)
+#else
     if (msg.starts_with("/t "))
+#endif
     {
         auto tokens = split(msg);
 
@@ -8658,13 +8662,13 @@ bool CGame::bCheckLocalChatCommand(const char * pMsg)
             case 16: test_values.t16 = std::stof(tokens[2]); break;
         }
 
-        AddEventList(std::format("Test value {} set to {}", tokens[1], tokens[2]).c_str(), 10);
+        AddEventList(fmt::format("Test value {} set to {}", tokens[1], tokens[2]).c_str(), 10);
     }
 
     if (memcmp(cBuff, "/camera", 7) == 0)
     {
         game_configs.old_camera = !game_configs.old_camera;
-        AddEventList(std::format("Camera style changed to {}", game_configs.old_camera ? "old" : "new").c_str(), 10);
+        AddEventList(fmt::format("Camera style changed to {}", game_configs.old_camera ? "old" : "new").c_str(), 10);
     }
     if (memcmp(cBuff, "/showframe", 10) == 0)
     {
@@ -9710,7 +9714,7 @@ void CGame::StartBGM()
     }
 
     m_pBGM.stop();
-    bgmbuffer.loadFromFile(std::format("data\\music\\{}.ogg", music_name));
+    bgmbuffer.loadFromFile(fmt::format("data\\music\\{}.ogg", music_name));
     m_pBGM.setBuffer(bgmbuffer);
     m_pBGM.setLoop(true);
     m_pBGM.setVolume(m_cMusicVolume);
