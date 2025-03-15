@@ -212,6 +212,8 @@ public:
     void put_msg_queue(std::shared_ptr<msg_queue_entry>, msg_queue & q);
     std::shared_ptr<msg_queue_entry> get_msg_queue();
 
+    void set_mouse_cursor(mouse_cursor cursor);
+
     msg_queue loginpipe;
     std::shared_ptr<msg_queue_entry> get_login_msg_queue();
 
@@ -1256,6 +1258,8 @@ public:
         short sPrevX, sPrevY, sDistX, sDistY;
         int64_t dwSelectClickTime;
         short sClickX, sClickY;
+        bool use_shader = false;
+        sf::Shader shader;
     } m_stMCursor;
 
     struct

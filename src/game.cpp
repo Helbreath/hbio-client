@@ -119,7 +119,7 @@ CGame::CGame()
     log->set_pattern(log_formatting);
     log->set_level(loglevel);
 
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 
     loggedin = false;
 

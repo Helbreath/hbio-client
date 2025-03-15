@@ -2722,7 +2722,7 @@ void CGame::MotionEventHandler(char * pData)
                 m_bIsGetPointingMode = false;
                 ClearCoords();
                 m_iPointCommandType = -1;  // v2.15 0 -> -1
-                m_stMCursor.sCursorFrame = 0;
+                set_mouse_cursor(mouse_cursor::PointingHand);
                 ClearSkillUsingStatus();
 #endif
             }

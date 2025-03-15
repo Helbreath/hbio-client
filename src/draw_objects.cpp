@@ -55,7 +55,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     bool bRet = false;
     short sItemSprite{}, sItemSpriteFrame{}, sObjSpr{}, sObjSprFrame{}, sDynamicObject{}, sDynamicObjectFrame{};
     static uint32_t dwMCAnimTime = G_dwGlobalTime;
-    static short sMCAnimFrame = 1;
+    static mouse_cursor sMCAnimFrame = mouse_cursor::GrabbingHandOpen;
 
     if (sDivY < 0 || sDivX < 0) return;
     m_sMCX = 0;
@@ -64,7 +64,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 
     //dwTime = G_dwGlobalTime;
     int64_t dwTime = m_dwCurTime;
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 
     uint16_t xdiff = ((get_virtual_width() / 32) / 2);
     uint16_t ydiff = ((get_virtual_height() / 32) / 2);
@@ -152,11 +152,11 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                         if ((dwTime - dwMCAnimTime) > 200)
                         {
                             dwMCAnimTime = dwTime;
-                            if (sMCAnimFrame == 1)
-                                sMCAnimFrame = 2;
-                            else sMCAnimFrame = 1;
+                            if (sMCAnimFrame == mouse_cursor::GrabbingHandOpen)
+                                sMCAnimFrame = mouse_cursor::GrabbingHandClosed;
+                            else sMCAnimFrame = mouse_cursor::GrabbingHandOpen;
                         }
-                        m_stMCursor.sCursorFrame = sMCAnimFrame;
+                        set_mouse_cursor(sMCAnimFrame);
                     }
                 }
 
@@ -728,8 +728,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     if (m_sMCX != 0)
     {
 
-        if (_iGetFOE(iFocusStatus) < 0) m_stMCursor.sCursorFrame = 3;
-        else m_stMCursor.sCursorFrame = 6;
+        if (_iGetFOE(iFocusStatus) < 0) set_mouse_cursor(mouse_cursor::Sword);
+        else set_mouse_cursor(mouse_cursor::PointingHandBlueOutline);
 
         _tmp_wObjectID = wFocusObjectID;
         _tmp_sOwnerType = sFocusOwnerType;
@@ -845,16 +845,16 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                 if (m_sMCX != 0)
                 {
                     if (_iGetFOE(iFocusStatus) < 0)
-                        m_stMCursor.sCursorFrame = 5;
-                    else m_stMCursor.sCursorFrame = 4;
+                        set_mouse_cursor(mouse_cursor::MagicTargetRed);
+                    else set_mouse_cursor(mouse_cursor::MagicTargetBlue);
                 }
-                else m_stMCursor.sCursorFrame = 4;
+                else set_mouse_cursor(mouse_cursor::MagicTargetBlue);
             }
-            else m_stMCursor.sCursorFrame = 8;
+            else set_mouse_cursor(mouse_cursor::Hourglass);
         }
         else if ((m_iPointCommandType >= 0) && (m_iPointCommandType < 50))
         {
-            m_stMCursor.sCursorFrame = 10;
+            set_mouse_cursor(mouse_cursor::MediumTarget);
         }
     }
 }

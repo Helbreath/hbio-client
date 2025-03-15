@@ -4251,8 +4251,7 @@ void CGame::DlbBoxDoubleClick_Character(short msX, short msY)
 
 void CGame::DlbBoxDoubleClick_GuideMap(short msX, short msY)
 {
-    short si = m_stMCursor.sCursorFrame;
-    if (si != 0) return;
+    if (m_stMCursor.sCursorFrame != static_cast<int>(mouse_cursor::PointingHand)) return;
 
     if (m_cMapIndex < 0) return;
     short sX, sY, shX, shY, szX, szY;

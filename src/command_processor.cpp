@@ -365,7 +365,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 #endif
                     if ((sObjectType == 15) || (sObjectType == 20) || (sObjectType == 24)) return;
 
-                    m_stMCursor.sCursorFrame = 3;
+                    set_mouse_cursor(mouse_cursor::Sword);
 
                     absX = abs(m_sPlayerX - m_sMCX);
                     absY = abs(m_sPlayerY - m_sMCY);
@@ -1556,7 +1556,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                     m_bIsGetPointingMode = false;
                     ClearCoords();
                     m_iPointCommandType = -1;
-                    m_stMCursor.sCursorFrame = 0;
+                    set_mouse_cursor(mouse_cursor::PointingHand);
                     ClearSkillUsingStatus();
 
                     m_cCommand = DEF_OBJECTSTOP;

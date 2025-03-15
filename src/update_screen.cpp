@@ -264,7 +264,7 @@ void CGame::UpdateScreen_OnMainMenu()
 
     if (m_cGameModeCount == 0)
     {
-        m_stMCursor.sCursorFrame = 0;
+        set_mouse_cursor(mouse_cursor::PointingHand);
         if (m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING] != 0)
         {
             delete m_pSprite[DEF_SPRID_INTERFACE_ND_LOADING];
@@ -1260,7 +1260,7 @@ void CGame::UpdateScreen_OnConnecting()
     else put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_CONNECTING3);
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 8;
+    set_mouse_cursor(mouse_cursor::Hourglass);
 }
 
 void CGame::UpdateScreen_OnWaitInitData()
@@ -1300,7 +1300,7 @@ void CGame::UpdateScreen_OnWaitInitData()
 
     DrawVersion();
 
-    m_stMCursor.sCursorFrame = 8;
+    set_mouse_cursor(mouse_cursor::Hourglass);
 }
 
 void CGame::UpdateScreen_OnConnectionLost()
@@ -1324,7 +1324,7 @@ void CGame::UpdateScreen_OnConnectionLost()
     put_string(172 + 50, 180 + 30, UPDATE_SCREEN_ON_CONNECTION_LOST, Color(0, 0, 0));
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 
     if ((m_dwCurTime - m_dwTime) > 5000)
     {
@@ -1472,7 +1472,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
     if (m_cMenuDir > 8) m_cMenuDir = 1;
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
     iMIbuttonNum = pMI->iGetStatus(msX, msY, LB, &cMIresult);
     if (cMIresult == DEF_MIRESULT_CLICK)
     {
@@ -2095,7 +2095,7 @@ void CGame::UpdateScreen_OnQuit()
         //SendMessage(m_hWnd, WM_DESTROY, 0, 0);
         return;
     }
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 
     iMIbuttonNum = pMI->iGetStatus(msX, msY, LB, &cMIresult);
     if ((cMIresult == DEF_MIRESULT_CLICK) && (iMIbuttonNum == 1))
@@ -2215,7 +2215,7 @@ void CGame::UpdateScreen_OnQueryForceLogin()
     }
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 }
 
 void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short msY, bool bIgnoreFocus)
@@ -2525,7 +2525,7 @@ void CGame::UpdateScreen_OnWaitingResponse()
     else put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 8;
+    set_mouse_cursor(mouse_cursor::Hourglass);
 }
 
 void CGame::UpdateScreen_OnQueryDeleteCharacter()
@@ -2638,7 +2638,7 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
     }
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 }
 
 void CGame::UpdateScreen_OnLogResMsg()
@@ -2971,7 +2971,7 @@ void CGame::UpdateScreen_OnLogResMsg()
 
     DrawVersion();
 
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 }
 
 void CGame::UpdateScreen_OnVersionNotMatch()
@@ -3017,7 +3017,7 @@ void CGame::UpdateScreen_OnVersionNotMatch()
     put_aligned_string(modx + 168, modx + 474, 250, "https://helbreathx.net");
 
     DrawVersion();
-    m_stMCursor.sCursorFrame = 0;
+    set_mouse_cursor(mouse_cursor::PointingHand);
 
     iMIbuttonNum = pMI->iGetStatus(msX, msY, LB, &cMIresult);
     if ((cMIresult == DEF_MIRESULT_CLICK) && (iMIbuttonNum == 1))
@@ -4207,7 +4207,6 @@ void CGame::UpdateScreen_OnSelectCharacter()
     if (m_cMenuDir > 8) m_cMenuDir = 1;
 
     DrawVersion();
-    m_pSprite[DEF_SPRID_MOUSECURSOR]->put_sprite_fast(msX, msY, 0, dwTime);
 
     iMIbuttonNum = pMI->iGetStatus(msX, msY, cLB, &cMIresult);
     if (cMIresult == DEF_MIRESULT_CLICK)
@@ -4334,4 +4333,6 @@ void CGame::UpdateScreen_OnSelectCharacter()
 
     if (m_cGameModeCount < 6) draw_shadow_box(modx, mody, get_virtual_width() - 1, get_virtual_height() - 1);
     if (m_cGameModeCount < 2) draw_shadow_box(modx, mody, get_virtual_width() - 1, get_virtual_height() - 1);
+
+    set_mouse_cursor(mouse_cursor::PointingHand);
 }

@@ -6,6 +6,22 @@
 
 #pragma once
 
+enum class mouse_cursor
+{
+    PointingHand = 0,
+    GrabbingHandOpen = 1,
+    GrabbingHandClosed = 2,
+    Sword = 3,
+    MagicTargetBlue = 4,
+    MagicTargetRed = 5,
+    PointingHandBlueOutline = 6,
+    PointingHandRedOutline = 7,
+    Hourglass = 8,
+    BigTarget = 9,
+    MediumTarget = 10,
+    SmallTarget = 11,
+};
+
 enum DaysOfWeek
 {
     SUNDAY,

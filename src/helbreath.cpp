@@ -1410,6 +1410,11 @@ void CGame::change_display_mode()
     create_renderer();
 }
 
+void CGame::set_mouse_cursor(mouse_cursor cursor)
+{
+    m_stMCursor.sCursorFrame = static_cast<int>(cursor);
+}
+
 void CGame::render_mouse(uint16_t mx, uint16_t my)
 {
     if (m_bIsObserverMode == true)
@@ -1429,12 +1434,16 @@ void CGame::render_mouse(uint16_t mx, uint16_t my)
         float time = clock.getElapsedTime().asSeconds();
         sprite * spr = m_pSprite[DEF_SPRID_MOUSECURSOR];
         if (spr->m_bIsSurfaceEmpty) spr->open_sprite_();
-        //spr->sprite_[m_stMCursor.sCursorFrame].setColor(Color(255, 255, 255));
         spr->sprite_[m_stMCursor.sCursorFrame].setPosition(float(mx + spr->brush[m_stMCursor.sCursorFrame].pvx), float(my + spr->brush[m_stMCursor.sCursorFrame].pvy));
-        shader.setUniform("texture", sf::Shader::CurrentTexture);
-        shader.setUniform("time", time);
-        window.draw(spr->sprite_[m_stMCursor.sCursorFrame], &shader);
-        //m_pSprite[DEF_SPRID_MOUSECURSOR]->draw_to(mx, my, m_stMCursor.sCursorFrame, m_dwCurTime, Color(255, 255, 255), DS_WIN);
+
+        if (m_stMCursor.use_shader)
+        {
+            shader.setUniform("texture", sf::Shader::CurrentTexture);
+            shader.setUniform("time", time);
+            window.draw(spr->sprite_[m_stMCursor.sCursorFrame], &shader);
+        }
+        else
+            window.draw(spr->sprite_[m_stMCursor.sCursorFrame]);
     }
 }
 
