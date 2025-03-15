@@ -524,7 +524,7 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
             short sPerc = 0;
             if (iCurExp > 200000) sPerc = short(((iCurExp >> 4) * 10000) / (iNextExp >> 4));
             else sPerc = (short)((iCurExp * 10000) / iNextExp);
-            format_to_local(G_cTxt, DEF_MSG_EXP"{}/{}({}.%02d%%)", iNextExp - iCurExp, iNextExp, sPerc / 100, sPerc % 100);
+            format_to_local(G_cTxt, DEF_MSG_EXP"{}/{}({}.{:2}%)", iNextExp - iCurExp, iNextExp, sPerc / 100, sPerc % 100);
         }
         else
         {
@@ -2124,90 +2124,6 @@ void CGame::DrawDialogBox_Character(short msX, short msY)
     else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 180, sY + 340, 10, false, m_bDialogTrans);
 }
 
-#ifdef _DEBUG
-void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
-{
-    short sX{}, sY{}, szX{};
-    int64_t dwTime = m_dwCurTime;
-    char cTxt[120]{};
-
-    sX = m_stDialogBoxInfo[12].sX;
-    sY = m_stDialogBoxInfo[12].sY;
-    szX = m_stDialogBoxInfo[12].sSizeX;
-
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX, sY, 0);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_TEXT, sX, sY, 2);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, sX - 1, sY + 100, 4);
-
-    put_aligned_string(sX, sX + szX, sY + 50, DRAW_DIALOGBOX_LEVELUP_SETTING1);
-    put_aligned_string(sX, sX + szX, sY + 65, DRAW_DIALOGBOX_LEVELUP_SETTING2);
-
-    format_to_local(cTxt, "X:{}  Y:{}, sx:{}, sy:{}", msX, msY, sX, sY);
-    put_string(sX + 20, sY + 80, cTxt, Color(0, 0, 0));
-
-
-    //put_string(sX + 40,  sY + 85, cTxt, Color(0,0,0));
-    put_string(sX + 20, sY + 103, "* ³²Àº Æ÷ÀÎÆ®", Color(0, 0, 0));
-    format_to_local(cTxt, "{}", m_iLU_Point);
-    put_string(sX + 105, sY + 103, cTxt, Color(0, 0, 0));
-
-    put_string(sX + 20, sY + 127, DRAW_DIALOGBOX_LEVELUP_SETTING4, Color(5, 5, 5));//"Strength"
-    format_to_local(cTxt, "{}", m_cLU_Str);
-    put_string(sX + 158, sY + 127, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iStr);
-    put_string(sX + 105, sY + 127, cTxt, Color(25, 35, 25));
-
-    put_string(sX + 20, sY + 147, DRAW_DIALOGBOX_LEVELUP_SETTING5, Color(5, 5, 5));//"Vitality"
-    format_to_local(cTxt, "{}", m_cLU_Vit);
-    put_string(sX + 158, sY + 147, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iVit);
-    put_string(sX + 105, sY + 147, cTxt, Color(25, 35, 25));
-
-    put_string(sX + 20, sY + 165, DRAW_DIALOGBOX_LEVELUP_SETTING6, Color(5, 5, 5));//"Dexterity"
-    format_to_local(cTxt, "{}", m_cLU_Dex);
-    put_string(sX + 158, sY + 165, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iDex);
-    put_string(sX + 105, sY + 165, cTxt, Color(25, 35, 25));
-
-    put_string(sX + 20, sY + 185, DRAW_DIALOGBOX_LEVELUP_SETTING7, Color(5, 5, 5));//"Intelligence"
-    format_to_local(cTxt, "{}", m_cLU_Int);
-    put_string(sX + 158, sY + 185, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iInt);
-    put_string(sX + 105, sY + 185, cTxt, Color(25, 35, 25));
-
-    put_string(sX + 20, sY + 203, DRAW_DIALOGBOX_LEVELUP_SETTING8, Color(5, 5, 5));//"Magic"
-    format_to_local(cTxt, "{}", m_cLU_Mag);
-    put_string(sX + 158, sY + 203, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iMag);
-    put_string(sX + 105, sY + 203, cTxt, Color(25, 35, 25));
-
-    put_string(sX + 20, sY + 223, DRAW_DIALOGBOX_LEVELUP_SETTING9, Color(5, 5, 5));//"Charisma"
-    format_to_local(cTxt, "{}", m_cLU_Char);
-    put_string(sX + 158, sY + 223, cTxt, Color(25, 35, 25));
-    format_to_local(cTxt, "{}", m_iCharisma);
-    put_string(sX + 105, sY + 223, cTxt, Color(25, 35, 25));
-
-    if (_iCheckLUS() == 0)
-    {
-        if ((msX >= sX + DEF_RBTNPOSX) && (msX <= sX + DEF_RBTNPOSX + DEF_BTNSZX) && (msY > sY + DEF_BTNPOSY) && (msY < sY + DEF_BTNPOSY + DEF_BTNSZY))
-            DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + DEF_RBTNPOSX, sY + DEF_BTNPOSY, 1);
-        else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + DEF_RBTNPOSX, sY + DEF_BTNPOSY, 0);
-    }
-
-    switch (_iCheckLUS())
-    {
-        case 0:	break;
-        case 1: put_aligned_string(sX, sX + szX, sY + 295, DRAW_DIALOGBOX_LEVELUP_SETTING14, 65, 0, 0);
-            break;
-        case 2: put_aligned_string(sX, sX + szX, sY + 295, DRAW_DIALOGBOX_LEVELUP_SETTING15, 65, 0, 0);
-            put_aligned_string(sX, sX + szX, sY + 310, DRAW_DIALOGBOX_LEVELUP_SETTING16, 65, 0, 0);
-            put_aligned_string(sX, sX + szX, sY + 325, DRAW_DIALOGBOX_LEVELUP_SETTING17, 65, 0, 0);
-            break;
-    }
-}
-
-#else
-
 void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
 {
     short sX{}, sY{}, szX{};
@@ -2222,128 +2138,128 @@ void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_TEXT, sX, sY, 2);
     DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, sX + 16, sY + 100, 4);
 
-    put_aligned_string(sX, sX + szX, sY + 50, DRAW_DIALOGBOX_LEVELUP_SETTING1);
-    put_aligned_string(sX, sX + szX, sY + 65, DRAW_DIALOGBOX_LEVELUP_SETTING2);
+    put_aligned_string(sX, sX + szX, sY + 50, DRAW_DIALOGBOX_LEVELUP_SETTING1, Color::Black);
+    put_aligned_string(sX, sX + szX, sY + 65, DRAW_DIALOGBOX_LEVELUP_SETTING2, Color::Black);
 
     // Points Left - Display in green if > 0
     format_to_local(cTxt, DRAW_DIALOGBOX_LEVELUP_SETTING3, m_iLU_Point);
-    put_string(sX + 10, sY + 103, cTxt, Color(0, 0, 0));
+    put_string(sX + 15, sY + 103, cTxt, Color::Black);
     //put_string(sX + 20,  sY + 85, DRAW_DIALOGBOX_LEVELUP_SETTING3, Color(0,0,0));
     //format_to_local(cTxt, "{}", m_iLU_Point);
     //put_string(sX + 73,  sY + 102, cTxt, Color(0,0,0));
 
     // Strength
-    put_string(sX + 24, sY + 125, DRAW_DIALOGBOX_LEVELUP_SETTING4, Color(5, 5, 5));
+    put_string(sX + 24, sY + 125, DRAW_DIALOGBOX_LEVELUP_SETTING4, Color::Black);
     format_to_local(cTxt, "{}", m_iStr);
-    put_string(sX + 109, sY + 125, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 125, cTxt, Color::Black);
     iStats = m_iStr + m_cLU_Str;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iStr)
     {
-        put_string(sX + 162, sY + 125, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 125, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 125, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 125, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 127) && (msY <= sY + 133) && (m_iStr < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 127) && (msY <= sY + 139) && (m_iStr < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 127, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 127) && (msY <= sY + 133) && (m_cLU_Str > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 127) && (msY <= sY + 139) && (m_cLU_Str > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 127, 6, dwTime);
 
     // Vitality
-    put_string(sX + 24, sY + 144, DRAW_DIALOGBOX_LEVELUP_SETTING5, Color(5, 5, 5));
+    put_string(sX + 24, sY + 144, DRAW_DIALOGBOX_LEVELUP_SETTING5, Color::Black);
     format_to_local(cTxt, "{}", m_iVit);
-    put_string(sX + 109, sY + 144, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 144, cTxt, Color::Black);
     iStats = m_iVit + m_cLU_Vit;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iVit)
     {
-        put_string(sX + 162, sY + 144, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 144, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 144, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 144, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 146) && (msY <= sY + 152) && (m_iVit < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 146) && (msY <= sY + 158) && (m_iVit < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 146, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 146) && (msY <= sY + 152) && (m_cLU_Vit > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 146) && (msY <= sY + 158) && (m_cLU_Vit > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 146, 6, dwTime);
 
     // Dexterity
-    put_string(sX + 24, sY + 163, DRAW_DIALOGBOX_LEVELUP_SETTING6, Color(5, 5, 5));
+    put_string(sX + 24, sY + 163, DRAW_DIALOGBOX_LEVELUP_SETTING6, Color::Black);
     format_to_local(cTxt, "{}", m_iDex);
-    put_string(sX + 109, sY + 163, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 163, cTxt, Color::Black);
     iStats = m_iDex + m_cLU_Dex;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iDex)
     {
-        put_string(sX + 162, sY + 163, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 163, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 163, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 163, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 165) && (msY <= sY + 171) && (m_iDex < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 165) && (msY <= sY + 177) && (m_iDex < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 165, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 165) && (msY <= sY + 171) && (m_cLU_Dex > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 165) && (msY <= sY + 177) && (m_cLU_Dex > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 165, 6, dwTime);
 
     // Intelligence
-    put_string(sX + 24, sY + 182, DRAW_DIALOGBOX_LEVELUP_SETTING7, Color(5, 5, 5));
+    put_string(sX + 24, sY + 182, DRAW_DIALOGBOX_LEVELUP_SETTING7, Color::Black);
     format_to_local(cTxt, "{}", m_iInt);
-    put_string(sX + 109, sY + 182, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 182, cTxt, Color::Black);
     iStats = m_iInt + m_cLU_Int;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iInt)
     {
-        put_string(sX + 162, sY + 182, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 182, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 182, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 182, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 184) && (msY <= sY + 190) && (m_iInt < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 184) && (msY <= sY + 196) && (m_iInt < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 184, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 184) && (msY <= sY + 190) && (m_cLU_Int > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 184) && (msY <= sY + 196) && (m_cLU_Int > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 184, 6, dwTime);
 
     // Magic
-    put_string(sX + 24, sY + 201, DRAW_DIALOGBOX_LEVELUP_SETTING8, Color(5, 5, 5));
+    put_string(sX + 24, sY + 201, DRAW_DIALOGBOX_LEVELUP_SETTING8, Color::Black);
     format_to_local(cTxt, "{}", m_iMag);
-    put_string(sX + 109, sY + 201, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 201, cTxt, Color::Black);
     iStats = m_iMag + m_cLU_Mag;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iMag)
     {
-        put_string(sX + 162, sY + 201, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 201, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 201, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 201, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 203) && (msY <= sY + 209) && (m_iMag < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 203) && (msY <= sY + 205) && (m_iMag < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 203, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 203) && (msY <= sY + 209) && (m_cLU_Mag > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 203) && (msY <= sY + 205) && (m_cLU_Mag > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 203, 6, dwTime);
 
     // Charisma
-    put_string(sX + 24, sY + 220, DRAW_DIALOGBOX_LEVELUP_SETTING9, Color(5, 5, 5));
+    put_string(sX + 24, sY + 220, DRAW_DIALOGBOX_LEVELUP_SETTING9, Color::Black);
     format_to_local(cTxt, "{}", m_iCharisma);
-    put_string(sX + 109, sY + 220, cTxt, Color(25, 35, 25));
+    put_string(sX + 109, sY + 220, cTxt, Color::Black);
     iStats = m_iCharisma + m_cLU_Char;
     format_to_local(cTxt, "{}", iStats);
     if (iStats != m_iCharisma)
     {
-        put_string(sX + 162, sY + 220, cTxt, Color(255, 0, 0));
+        put_string(sX + 162, sY + 220, cTxt, Color::Green);
     }
     else
     {
-        put_string(sX + 162, sY + 220, cTxt, Color(25, 35, 25));
+        put_string(sX + 162, sY + 220, cTxt, Color::Black);
     }
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 222) && (msY <= sY + 228) && (m_iCharisma < m_iStatLimit))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 222) && (msY <= sY + 224) && (m_iCharisma < m_iStatLimit))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 195, sY + 222, 5, dwTime);
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 222) && (msY <= sY + 228) && (m_cLU_Char > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 222) && (msY <= sY + 224) && (m_cLU_Char > 0))
         m_pSprite[DEF_SPRID_INTERFACE_ND_GAME4]->put_sprite_fast(sX + 210, sY + 222, 6, dwTime);
 
     if ((msX >= sX + DEF_RBTNPOSX) && (msX <= sX + DEF_RBTNPOSX + DEF_BTNSZX) && (msY > sY + DEF_BTNPOSY) && (msY < sY + DEF_BTNPOSY + DEF_BTNSZY))
@@ -2361,7 +2277,6 @@ void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
         }
     }
 }
-#endif
 
 /*
 void CGame::DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB)
@@ -3674,7 +3589,7 @@ void CGame::DrawDialogBox_Magic(short msX, short msY, short msZ)
                     put_string(sX + 31, sY + 73 + iYloc, cTxt, Color(41, 16, 41));
                 }
                 else put_string_sprite_font(sX + 30, sY + 70 + iYloc, cTxt, 5, 5, 5);
-                format_to_local(cMana, "%3d", iManaCost);
+                format_to_local(cMana, "{}", iManaCost);
                 put_string_sprite_font(sX + 206, sY + 70 + iYloc, cMana, 5, 5, 5);
             }
             else
@@ -3686,7 +3601,7 @@ void CGame::DrawDialogBox_Magic(short msX, short msY, short msZ)
                         put_string(sX + 31, sY + 73 + iYloc, cTxt, Color(255, 255, 255));
                     }
                     else put_string_sprite_font(sX + 30, sY + 70 + iYloc, cTxt, 250, 250, 250);
-                    format_to_local(cMana, "%3d", iManaCost);
+                    format_to_local(cMana, "{}", iManaCost);
                     put_string_sprite_font(sX + 206, sY + 70 + iYloc, cMana, 250, 250, 250);
                 }
                 else
@@ -3697,7 +3612,7 @@ void CGame::DrawDialogBox_Magic(short msX, short msY, short msZ)
                         put_string(sX + 31, sY + 73 + iYloc, cTxt, Color(8, 0, 66));
                     }
                     else put_string_sprite_font(sX + 30, sY + 70 + iYloc, cTxt, 1, 1, 8);
-                    format_to_local(cMana, "%3d", iManaCost);
+                    format_to_local(cMana, "{}", iManaCost);
                     put_string_sprite_font(sX + 206, sY + 70 + iYloc, cMana, 1, 1, 8);
                 }
 
@@ -3842,9 +3757,9 @@ void CGame::DrawDialogBox_MagicShop(short msX, short msY, short msZ)
                     put_string(sX + 25, sY + 73 + iYloc, cTxt, Color(41, 16, 41));
                 }
                 else put_string_sprite_font(sX + 24, sY + 70 + iYloc, cTxt, 5, 5, 5);
-                format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue2);
+                format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue2);
                 put_string_sprite_font(sX + 200, sY + 70 + iYloc, cMana, 5, 5, 5);
-                format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue3);
+                format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue3);
                 put_string_sprite_font(sX + 241, sY + 70 + iYloc, cMana, 5, 5, 5);
             }
             else
@@ -3856,9 +3771,9 @@ void CGame::DrawDialogBox_MagicShop(short msX, short msY, short msZ)
                         put_string(sX + 25, sY + 73 + iYloc, cTxt, Color(255, 255, 255));
                     }
                     else put_string_sprite_font(sX - 20 + 44, sY + 70 + iYloc, cTxt, 250, 250, 250);
-                    format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue2);
+                    format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue2);
                     put_string_sprite_font(sX - 20 + 220, sY + 70 + iYloc, cMana, 250, 250, 250);
-                    format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue3);
+                    format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue3);
                     put_string_sprite_font(sX - 20 + 261, sY + 70 + iYloc, cMana, 250, 250, 250);
                 }
                 else
@@ -3869,9 +3784,9 @@ void CGame::DrawDialogBox_MagicShop(short msX, short msY, short msZ)
                         put_string(sX + 25, sY + 73 + iYloc, cTxt, Color(8, 0, 66));
                     }
                     else put_string_sprite_font(sX - 20 + 44, sY + 70 + iYloc, cTxt, 1, 1, 8);
-                    format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue2);
+                    format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue2);
                     put_string_sprite_font(sX - 20 + 220, sY + 70 + iYloc, cMana, 1, 1, 8);
-                    format_to_local(cMana, "%3d", m_pMagicCfgList[iCPivot + i]->m_sValue3);
+                    format_to_local(cMana, "{}", m_pMagicCfgList[iCPivot + i]->m_sValue3);
                     put_string_sprite_font(sX - 20 + 261, sY + 70 + iYloc, cMana, 1, 1, 8);
                 }
             iYloc += 18;
@@ -5360,7 +5275,7 @@ void CGame::DrawDialogBox_Skill(short msX, short msY, short msZ, char cLB)
                     m_Misc.ReplaceString(cTemp, '-', ' ');
 
                     memset(cTemp2, 0, sizeof(cTemp2));
-                    format_to_local(cTemp2, "%3d%%", m_pSkillCfgList[i + m_stDialogBoxInfo[15].sView]->m_iLevel);
+                    format_to_local(cTemp2, "{}%", m_pSkillCfgList[i + m_stDialogBoxInfo[15].sView]->m_iLevel);
 
                     if ((msX >= sX + 25) && (msX <= sX + 166) && (msY >= sY + 45 + i * 15) && (msY <= sY + 59 + i * 15))
                     {

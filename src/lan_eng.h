@@ -899,9 +899,9 @@
 #define	DRAW_DIALOGBOX_CHARACTER9	"Citizen of Elvine"
 
 
-#define	DRAW_DIALOGBOX_LEVELUP_SETTING1	"When level up, your specific stats"
-#define	DRAW_DIALOGBOX_LEVELUP_SETTING2	"will be increased by setting."
-#define	DRAW_DIALOGBOX_LEVELUP_SETTING3	"* Points left: {}"
+#define	DRAW_DIALOGBOX_LEVELUP_SETTING1	"When you level up, your specific"
+#define	DRAW_DIALOGBOX_LEVELUP_SETTING2	"stats will be increased."
+#define	DRAW_DIALOGBOX_LEVELUP_SETTING3	"* Points: {}"
 #define	DRAW_DIALOGBOX_LEVELUP_SETTING4	"Strength"
 #define	DRAW_DIALOGBOX_LEVELUP_SETTING5	"Vitality"
 #define	DRAW_DIALOGBOX_LEVELUP_SETTING6	"Dexterity"

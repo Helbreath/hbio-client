@@ -2252,7 +2252,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
 
     sX = m_stDialogBoxInfo[12].sX;
     sY = m_stDialogBoxInfo[12].sY;
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 127) && (msY <= sY + 133) && (m_iStr <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 127) && (msY <= sY + 139) && (m_iStr <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2274,7 +2274,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 146) && (msY <= sY + 152) && (m_iVit <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 146) && (msY <= sY + 158) && (m_iVit <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2296,7 +2296,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 165) && (msY <= sY + 171) && (m_iDex <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 165) && (msY <= sY + 177) && (m_iDex <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2318,7 +2318,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 184) && (msY <= sY + 190) && (m_iInt <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 184) && (msY <= sY + 196) && (m_iInt <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2340,7 +2340,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 203) && (msY <= sY + 209) && (m_iMag <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 203) && (msY <= sY + 205) && (m_iMag <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2362,7 +2362,7 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 222) && (msY <= sY + 228) && (m_iCharisma <= m_iStatLimit) && (m_iLU_Point > 0))
+    if ((msX >= sX + 195) && (msX <= sX + 205) && (msY >= sY + 222) && (msY <= sY + 224) && (m_iCharisma <= m_iStatLimit) && (m_iLU_Point > 0))
     {
         if (m_bCtrlPressed == true)
         {
@@ -2384,14 +2384,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 127) && (msY <= sY + 133) && (m_cLU_Str > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 127) && (msY <= sY + 139) && (m_cLU_Str > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Str >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Str -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Str >= 5)
+                {
+                    m_cLU_Str -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Str;
+                    m_cLU_Str = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }
@@ -2406,14 +2414,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 146) && (msY <= sY + 152) && (m_cLU_Vit > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 146) && (msY <= sY + 158) && (m_cLU_Vit > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Vit >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Vit -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Vit >= 5)
+                {
+                    m_cLU_Vit -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Vit;
+                    m_cLU_Vit = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }
@@ -2428,14 +2444,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 165) && (msY <= sY + 171) && (m_cLU_Dex > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 165) && (msY <= sY + 177) && (m_cLU_Dex > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Dex >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Dex -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Dex >= 5)
+                {
+                    m_cLU_Dex -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Dex;
+                    m_cLU_Dex = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }
@@ -2450,14 +2474,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 184) && (msY <= sY + 190) && (m_cLU_Int > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 184) && (msY <= sY + 196) && (m_cLU_Int > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Int >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Int -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Int >= 5)
+                {
+                    m_cLU_Int -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Int;
+                    m_cLU_Int = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }
@@ -2472,14 +2504,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 203) && (msY <= sY + 209) && (m_cLU_Mag > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 203) && (msY <= sY + 205) && (m_cLU_Mag > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Mag >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Mag -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Mag >= 5)
+                {
+                    m_cLU_Mag -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Mag;
+                    m_cLU_Mag = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }
@@ -2494,14 +2534,22 @@ void CGame::DlgBoxClick_LevelUpSettings(short msX, short msY)
         }
     }
 
-    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 222) && (msY <= sY + 228) && (m_cLU_Char > 0))
+    if ((msX >= sX + 210) && (msX <= sX + 220) && (msY >= sY + 222) && (msY <= sY + 224) && (m_cLU_Char > 0))
     {
         if (m_bCtrlPressed == true)
         {
-            if ((m_cLU_Char >= 5) && (m_bIsDialogEnabled[42] == false))
+            if (m_bIsDialogEnabled[42] == false)
             {
-                m_cLU_Char -= 5;
-                m_iLU_Point += 5;
+                if (m_cLU_Char >= 5)
+                {
+                    m_cLU_Char -= 5;
+                    m_iLU_Point += 5;
+                }
+                else
+                {
+                    m_iLU_Point += m_cLU_Char;
+                    m_cLU_Char = 0;
+                }
             }
             PlaySound('E', 14, 5);
         }

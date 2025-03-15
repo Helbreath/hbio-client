@@ -1215,27 +1215,27 @@ void CGame::UpdateScreen_OnConnecting()
             break;
 
         case '3':
-            UpdateScreen_OnSelectCharacter(0, 0, 0, 0);
+            UpdateScreen_OnSelectCharacter(modx, mody, 0, 0);
             break;
 
         case '4':
             // Change Password
-            UpdateScreen_OnSelectCharacter(0, 0, 0, 0, true);
+            UpdateScreen_OnSelectCharacter(modx, mody, 0, 0, true);
             break;
     }
     m_bIsHideLocalCursor = false;
 
     draw_shadow_box(0, 0, get_virtual_width() - 1, get_virtual_height() - 1);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
-    format_to_local(G_cTxt, "Connecting to Server... %3dSec", (dwTime - m_dwTime) / 1000);
-    put_string_sprite_font(172 + 35, 190, G_cTxt, 7, 0, 0);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
+    format_to_local(G_cTxt, "Connecting to Server... {}Sec", (dwTime - m_dwTime) / 1000);
+    put_string_sprite_font(modx + 172 + 35, mody + 190, G_cTxt, 7, 0, 0);
 
     if ((dwTime - m_dwTime) > 7000)
     {
-        put_aligned_string(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING1);
-        put_aligned_string(180, 463, 195 + 45, UPDATE_SCREEN_ON_CONNECTING2);
+        put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_CONNECTING1);
+        put_aligned_string(modx + 180, modx + 463, mody + 195 + 45, UPDATE_SCREEN_ON_CONNECTING2);
     }
-    else put_aligned_string(180, 463, 195 + 30, UPDATE_SCREEN_ON_CONNECTING3);
+    else put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_CONNECTING3);
 
     DrawVersion();
     m_stMCursor.sCursorFrame = 8;
@@ -1265,16 +1265,16 @@ void CGame::UpdateScreen_OnWaitInitData()
         return;
     }
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 125, 2);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 125, 2);
 
     format_to_local(G_cTxt, "Waiting for response... {}sec", (dwTime - m_dwTime) / 1000);
-    put_string_sprite_font(172 + 44, 190, G_cTxt, 7, 0, 0);
+    put_string_sprite_font(modx + 172 + 44, mody + 190, G_cTxt, 7, 0, 0);
     if ((dwTime - m_dwTime) > 7000)
     {
-        put_aligned_string(174, 467, 190 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA1);
-        put_aligned_string(174, 467, 190 + 45, UPDATE_SCREEN_ON_WAIT_INIT_DATA2);
+        put_aligned_string(modx + 174, modx + 467, mody + 190 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA1);
+        put_aligned_string(modx + 174, modx + 467, mody + 190 + 45, UPDATE_SCREEN_ON_WAIT_INIT_DATA2);
     }
-    else put_aligned_string(174, 467, 195 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA3);
+    else put_aligned_string(modx + 174, modx + 467, mody + 195 + 30, UPDATE_SCREEN_ON_WAIT_INIT_DATA3);
 
     DrawVersion();
 
@@ -2105,8 +2105,8 @@ void CGame::UpdateScreen_OnQueryForceLogin()
     if (m_cGameModeCount == 0)
     {
         pMI = new CMouseInterface;
-        pMI->AddRect(200, 244, 200 + DEF_BTNSZX, 244 + DEF_BTNSZY);
-        pMI->AddRect(370, 244, 370 + DEF_BTNSZX, 244 + DEF_BTNSZY);
+        pMI->AddRect(modx + 200, mody + 244, modx + 200 + DEF_BTNSZX, mody + 244 + DEF_BTNSZY);
+        pMI->AddRect(modx + 370, mody + 244, modx + 370 + DEF_BTNSZX, mody + 244 + DEF_BTNSZY);
         m_bEnterPressed = false;
         m_bEscPressed = false;
         m_cArrowPressed = 0;
@@ -2137,19 +2137,19 @@ void CGame::UpdateScreen_OnQueryForceLogin()
         draw_shadow_box(0, 0, get_virtual_width() - 1, get_virtual_height() - 1);
     }
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 130, 2);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, modx + 162, mody + 130, 2);
 
-    put_string_sprite_font(172 + 86, 160, "Character in Use", 7, 0, 0);
-    put_aligned_string(178, 453, 195, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN1);
-    put_aligned_string(178, 453, 215, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN2);
+    put_string_sprite_font(modx + 172 + 86, mody + 160, "Character in Use", 7, 0, 0);
+    put_aligned_string(modx + 178, modx + 453, mody + 195, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN1);
+    put_aligned_string(modx + 178, modx + 453, mody + 215, UPDATE_SCREEN_ON_QUERY_FORCE_LOGIN2);
 
-    if ((msX >= 200) && (msX <= 200 + DEF_BTNSZX) && (msY >= 244) && (msY <= 244 + DEF_BTNSZY))
-        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 200, 244, 19);
-    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 200, 244, 18);
+    if ((modx + msX >= 200) && (modx + msX <= 200 + DEF_BTNSZX) && (mody + msY >= 244) && (mody + msY <= 244 + DEF_BTNSZY))
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 200, mody + 244, 19);
+    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 200, mody + 244, 18);
 
-    if ((msX >= 370) && (msX <= 370 + DEF_BTNSZX) && (msY >= 244) && (msY <= 244 + DEF_BTNSZY))
-        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 370, 244, 3);
-    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 370, 244, 2);
+    if ((modx + msX >= 370) && (modx + msX <= 370 + DEF_BTNSZX) && (mody + msY >= 244) && (mody + msY <= 244 + DEF_BTNSZY))
+        DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 370, mody + 244, 3);
+    else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 370, mody + 244, 2);
 
     if ((dwTime - dwCTime) > 100)
     {
@@ -2252,13 +2252,13 @@ void CGame::UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short 
                     m_pEffectSpr[0]->put_trans_sprite(sX + 157 + i * 109, sY + 138, 1, dwTime);
                     DrawObject_OnMove_ForMenu(0, 0, sX + 157 + i * 109, sY + 138, false, dwTime, 0, 0);
 
-                    put_string(sX + 112 + i * 109, sY + 179 - 9, m_pCharList[i]->m_cName, Color::White, false, 1);//25,35,25);
+                    put_font_string_size(arya_font, sX + 112 + i * 109, sY + 179 - 3, m_pCharList[i]->m_cName, Color::White, 14, 1, Color(0, 0, 0, 128));//25,35,25);
                     int	_sLevel = m_pCharList[i]->m_sLevel;
                     format_to_local(G_cTxt, "{}", _sLevel);
-                    put_string(sX + 138 + i * 109, sY + 196 - 10, G_cTxt, Color::White, false, 1); //25,35,25);
+                    put_font_string_size(arya_font, sX + 138 + i * 109, sY + 196 - 4, G_cTxt, Color::White, 14, 1, Color(0, 0, 0, 128)); //25,35,25);
 
                     format_to_local(G_cTxt, "{}", m_pCharList[i]->m_iExp);
-                    put_string(sX + 138 + i * 109, sY + 211 - 10, G_cTxt, Color::White, false, 1); //25,35,25);
+                    put_font_string_size(arya_font, sX + 138 + i * 109, sY + 211 - 4, G_cTxt, Color::White, 14, 1, Color(0, 0, 0, 128)); //25,35,25);
                 }
                 else
                 {
@@ -2498,9 +2498,7 @@ void CGame::UpdateScreen_OnWaitingResponse()
     if ((dwTime - m_dwTime) > 7000)
     {
         put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE1);
-
         put_aligned_string(modx + 180, modx + 463, mody + 195 + 45, UPDATE_SCREEN_ON_WATING_RESPONSE2);
-
     }
     else put_aligned_string(modx + 180, modx + 463, mody + 195 + 30, UPDATE_SCREEN_ON_WATING_RESPONSE3);
 
