@@ -104,26 +104,32 @@ int main(int argc, char * argv[])
     json cfg;
     config_file >> cfg;
 
-    if (!cfg["username"].is_null())
-    {
-        game->account_name = cfg["username"].get<std::string>();
-    }
-    if (!cfg["password"].is_null())
-    {
-        game->password = cfg["password"].get<std::string>();
-    }
+    auto read_property = [](json & cfg, const std::string & key, auto default_) -> auto
+        {
+            if (!cfg[key].is_null())
+                return cfg[key].get<decltype(default_)>();
+            return default_;
+        };
+
+    game->account_name = read_property(cfg, "username", std::string(""));
+    game->password = read_property(cfg, "password", std::string(""));
+
     if (!game->account_name.empty() && !game->password.empty())
     {
         game->autologin = true;
     }
-    if (!cfg["xresolution"].is_null() && !cfg["yresolution"].is_null())
-    {
-        game->set_resolution(cfg["xresolution"].get<uint16_t>(), cfg["yresolution"].get<uint16_t>());
-    }
-    if (!cfg["vxresolution"].is_null() && !cfg["vyresolution"].is_null())
-    {
-        game->set_virtual_resolution(cfg["vxresolution"].get<uint16_t>(), cfg["vyresolution"].get<uint16_t>());
-    }
+
+    game->set_resolution(read_property(cfg, "xresolution", 800), read_property(cfg, "yresolution", 600));
+    game->set_virtual_resolution(read_property(cfg, "vxresolution", 800), read_property(cfg, "vyresolution", 600));
+    game->dev_mode.wss = read_property(cfg, "wss", true);
+    game->login_address = read_property(cfg, "login_address", std::string(""));
+    game->login_port = read_property(cfg, "login_port", 80);
+    game->core_usage = read_property(cfg, "core_usage", 0);
+
+    game->core_count = std::thread::hardware_concurrency();
+
+    if (game->core_usage == 0 || game->core_usage > game->core_count) game->core_usage = game->core_count;
+
 #endif
 
     if (!game->create_renderer())

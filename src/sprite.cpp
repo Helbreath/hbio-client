@@ -13,7 +13,6 @@ extern char G_cSpriteAlphaDegree;
 extern bool isrunning;
 
 extern CGame * game;
-extern uint16_t _tmp_wObjectID;
 
 #ifndef WIN32
 typedef struct tagBITMAPINFOHEADER
@@ -46,7 +45,7 @@ typedef struct tagBITMAPINFO
 } BITMAPINFO, * LPBITMAPINFO, * PBITMAPINFO;
 #endif
 
-sprite::sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect)
+sprite::sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect, int sprite_id)
 {
     brush = 0;
     m_bIsSurfaceEmpty = true;
@@ -60,6 +59,7 @@ sprite::sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthF
     m_cPakFileName = cPakFileName;
     m_bAlphaEffect = bAlphaEffect;
     wPageid = sNthFile;
+    //make_sprite_surface_(sprite_id);
 }
 
 sprite::~sprite()
@@ -70,7 +70,7 @@ sprite::~sprite()
         delete[] sprite_;
 }
 
-bool sprite::make_sprite_surface_()
+bool sprite::make_sprite_surface_(int sprite_id)
 {
     if (/*(m_stBrush == 0) || */ (!m_bIsSurfaceEmpty) || !isrunning)
     {
@@ -118,7 +118,7 @@ bool sprite::make_sprite_surface_()
     szfile.read((char *)m_lpDib, filesize);
 
     //check for invalid frames
-    if (filesize > 100'000'000)
+    if (filesize > 100'000'000'000)
         __debugbreak();
 
     int a = (int)szfile.gcount();
@@ -198,7 +198,7 @@ bool sprite::make_sprite_surface_()
     return true;
 }
 
-sprite * sprite::create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect)
+sprite * sprite::create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect, int sprite_id)
 {
     std::ifstream szfile(fmt::format("sprites\\{}.pak", cPakFileName), std::ios::in | std::ios::binary);
 
@@ -208,7 +208,7 @@ sprite * sprite::create_sprite(std::string cPakFileName, short sNthFile, bool bA
         //MessageBoxW(0, ("Error loading pak: " + str).c_str(), "ERROR", MB_OK);
     }
 
-    return new sprite(szfile, cPakFileName, sNthFile, bAlphaEffect);
+    return new sprite(szfile, cPakFileName, sNthFile, bAlphaEffect, sprite_id);
 }
 
 void sprite::draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color)
@@ -224,8 +224,8 @@ void sprite::draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color
     float pvx = brush[sFrame].pvx;
     float pvy = brush[sFrame].pvy;
 
-    quads[sFrame][0].position = sf::Vector2f(sX + pvx - (szx/3)*2, sY + pvy + (szy/3)*2);
-    quads[sFrame][1].position = sf::Vector2f(sX + pvx + (szx/3), sY + pvy + (szy/3)*2);
+    quads[sFrame][0].position = sf::Vector2f(sX + (pvx / 3) * 2 - (szx/3)*2, sY + pvy + (szy/3)*2);
+    quads[sFrame][1].position = sf::Vector2f(sX + (pvx / 3) + (szx/3), sY + pvy + (szy/3)*2);
     quads[sFrame][2].position = sf::Vector2f(sX + pvx + szx    , sY + pvy + szy);
     quads[sFrame][3].position = sf::Vector2f(sX + pvx          , sY + pvy + szy);
 

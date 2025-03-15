@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <queue>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <spdlog/spdlog.h>
@@ -119,16 +120,34 @@ public:
     spdlog::level::level_enum loglevel = spdlog::level::level_enum::info;
     std::string log_formatting;
 
-#if defined(_DEVMODE)
     struct
     {
         bool wss = false;
     } dev_mode;
-#endif
+
+    std::string login_address;
+    uint16_t login_port;
 
     fps fps_counter;
     int send_message(char * cData, std::size_t dwSize, char cKey = 0);
     std::unique_ptr<std::thread> mapdata_object_counter;
+
+    int core_count = 1;
+    int core_usage = 1;
+
+    struct load_data
+    {
+        uint32_t id;
+        uint32_t sprite_type;
+        std::string name;
+        uint32_t num;
+        bool alpha;
+        std::string label;
+    };
+
+    std::vector<std::queue<load_data>> data_list;
+    std::vector<std::thread> loading_threads;
+
 
     // shows coordinates and distance to player with tile grid
     bool show_tile_details = false;
@@ -232,6 +251,7 @@ public:
     std::mutex thread_mut;
     std::recursive_mutex connection_mut;
     std::mutex effect_mtx;
+    std::mutex loading_mtx;
 
     sf::RenderTexture visible;
     sf::RenderTexture bg;
@@ -1091,6 +1111,7 @@ public:
     void UpdateScreen_OnSelectCharacter(short sX, short sY, short msX, short msY, bool bIgnoreFocus = false);
     void UpdateScreen_OnLoading_Progress();
     void UpdateScreen_OnVersionNotMatch();
+    void update_screen_threaded_load(std::queue<load_data> & data);
     void NpcTalkHandler(char * pData);
     int  _iGetWeaponSkillType();
     void SetCameraShakingEffect(short sDist, int iMul = 0);

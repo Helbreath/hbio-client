@@ -11,6 +11,11 @@ class CTileSpr
 public:
     CTileSpr();
     ~CTileSpr() = default;
+    struct
+    {
+        short tile_sprite;
+        short tile_sprite_frame;
+    } layers[10];
     short m_sTileSprite;
     short m_sTileSpriteFrame;
     short m_sObjectSprite;

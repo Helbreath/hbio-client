@@ -33,13 +33,13 @@ using stBrush = struct stBrushtag
 class sprite
 {
 public:
-    bool make_sprite_surface_();
+    bool make_sprite_surface_(int sprite_id = 0);
     sf::Texture _localimage;
     sf::Image _image;
 
-    sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true);
+    sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true, int sprite_id = 0);
     ~sprite();
-    static sprite * create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect = true);
+    static sprite * create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect = true, int sprite_id = 0);
     void draw_sub_sprite(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255));
     void draw_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255));
     void draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255));

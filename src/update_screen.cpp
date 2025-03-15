@@ -388,74 +388,77 @@ void CGame::UpdateScreen_OnMainMenu()
     //	if (m_cGameModeCount < 2) draw_shadow_box(0, 0, get_virtual_width() - 1, get_virtual_height() - 1);
 }
 
-struct load_data
-{
-    uint32_t id;
-    uint32_t sprite_type;
-    std::string name;
-    uint32_t num;
-    bool alpha;
-    std::string label;
-};
-
 #define SPRITETYPE_SPRITE 1
 #define SPRITETYPE_TILE 2
 #define SPRITETYPE_EFFECT 3
 
-std::queue<load_data> data_list;
 std::size_t data_max = 0;
 
 void CGame::create_load_list()
 {
     uint32_t i = 0;
+    int vec_id = 0;
 
-    auto make_sprite = [&](std::string FileName, uint32_t iStart, uint16_t sCount, bool bAlphaEffect, std::string label)
+    for (int i = 0; i < core_usage; i++)
+    {
+        data_list.emplace_back();
+    }
+
+    auto insert_data = [&](load_data data)
         {
-            for (uint32_t i = 0; i < sCount; i++)
-                data_list.push({ i + iStart, SPRITETYPE_SPRITE, FileName, i, bAlphaEffect, label });
+            std::unique_lock<std::mutex> lock(loading_mtx);
+            data_list[vec_id++].push(data);
+            if (vec_id >= core_usage)
+                vec_id = 0;
         };
 
-    auto make_tile_sprite = [&](std::string FileName, uint32_t iStart, uint16_t sCount, bool bAlphaEffect, std::string label)
+    auto make_sprite = [&](std::string filename, uint32_t start, uint16_t count, bool alpha_effect, std::string label)
         {
-            for (uint32_t i = 0; i < sCount; i++)
-                data_list.push({ i + iStart, SPRITETYPE_TILE, FileName, i, bAlphaEffect, label });
+            for (uint32_t i = 0; i < count; i++)
+                insert_data({ i + start, SPRITETYPE_SPRITE, filename, i, alpha_effect, label });
         };
 
-    auto make_effect_sprite = [&](std::string FileName, uint32_t iStart, uint16_t sCount, bool bAlphaEffect, std::string label)
+    auto make_tile_sprite = [&](std::string filename, uint32_t start, uint16_t count, bool alpha_effect, std::string label)
         {
-            for (uint32_t i = 0; i < sCount; i++)
-                data_list.push({ i + iStart, SPRITETYPE_EFFECT, FileName, i, bAlphaEffect, label });
+            for (uint32_t i = 0; i < count; i++)
+                insert_data({ i + start, SPRITETYPE_TILE, filename, i, alpha_effect, label });
+        };
+
+    auto make_effect_sprite = [&](std::string filename, uint32_t start, uint16_t count, bool alpha_effect, std::string label)
+        {
+            for (uint32_t i = 0; i < count; i++)
+                insert_data({ i + start, SPRITETYPE_EFFECT, filename, i, alpha_effect, label });
         };
 
     make_sprite("bars", 54000, 1, false, "Loading interface");
 
-    data_list.push({ DEF_SPRID_INTERFACE_NEWMAPS1, SPRITETYPE_SPRITE, "Newmaps", 0, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_NEWMAPS2, SPRITETYPE_SPRITE, "Newmaps", 1, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_NEWMAPS3, SPRITETYPE_SPRITE, "Newmaps", 2, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_NEWMAPS4, SPRITETYPE_SPRITE, "Newmaps", 3, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_NEWMAPS5, SPRITETYPE_SPRITE, "Newmaps", 4, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_NEWMAPS1, SPRITETYPE_SPRITE, "Newmaps", 0, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_NEWMAPS2, SPRITETYPE_SPRITE, "Newmaps", 1, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_NEWMAPS3, SPRITETYPE_SPRITE, "Newmaps", 2, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_NEWMAPS4, SPRITETYPE_SPRITE, "Newmaps", 3, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_NEWMAPS5, SPRITETYPE_SPRITE, "Newmaps", 4, false, "Loading interface" });
 
-    data_list.push({ DEF_SPRID_INTERFACE_ND_LOGIN, SPRITETYPE_SPRITE, "LoginDialog", 0, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_NEWACCOUNT, SPRITETYPE_SPRITE, "LoginDialog", 1, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_AGREEMENT, SPRITETYPE_SPRITE, "LoginDialog", 2, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_LOGIN, SPRITETYPE_SPRITE, "LoginDialog", 0, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_NEWACCOUNT, SPRITETYPE_SPRITE, "LoginDialog", 1, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_AGREEMENT, SPRITETYPE_SPRITE, "LoginDialog", 2, false, "Loading interface" });
 
-    data_list.push({ DEF_SPRID_INTERFACE_ND_MAINMENU, SPRITETYPE_SPRITE, "New-Dialog", 1, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_QUIT, SPRITETYPE_SPRITE, "New-Dialog", 2, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_MAINMENU, SPRITETYPE_SPRITE, "New-Dialog", 1, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_QUIT, SPRITETYPE_SPRITE, "New-Dialog", 2, false, "Loading interface" });
 
-    data_list.push({ DEF_SPRID_INTERFACE_ND_GAME1, SPRITETYPE_SPRITE, "GameDialog", 0, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_GAME2, SPRITETYPE_SPRITE, "GameDialog", 1, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_GAME3, SPRITETYPE_SPRITE, "GameDialog", 2, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_GAME4, SPRITETYPE_SPRITE, "GameDialog", 3, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_CRUSADE, SPRITETYPE_SPRITE, "GameDialog", 4, false, "Loading interface" });
-    //data_list.push({ DEF_SPRID_INTERFACE_GUIDEMAP, SPRITETYPE_SPRITE, "GameDialog", 5, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_ICONPANNEL, SPRITETYPE_SPRITE, "GameDialog", 6, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_INVENTORY, SPRITETYPE_SPRITE, "GameDialog", 7, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_SELECTCHAR, SPRITETYPE_SPRITE, "GameDialog", 8, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_NEWCHAR, SPRITETYPE_SPRITE, "GameDialog", 9, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_NEWEXCHANGE, SPRITETYPE_SPRITE, "GameDialog", 10, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_GAME1, SPRITETYPE_SPRITE, "GameDialog", 0, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_GAME2, SPRITETYPE_SPRITE, "GameDialog", 1, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_GAME3, SPRITETYPE_SPRITE, "GameDialog", 2, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_GAME4, SPRITETYPE_SPRITE, "GameDialog", 3, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_CRUSADE, SPRITETYPE_SPRITE, "GameDialog", 4, false, "Loading interface" });
+    //insert_data({ DEF_SPRID_INTERFACE_GUIDEMAP, SPRITETYPE_SPRITE, "GameDialog", 5, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_ICONPANNEL, SPRITETYPE_SPRITE, "GameDialog", 6, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_INVENTORY, SPRITETYPE_SPRITE, "GameDialog", 7, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_SELECTCHAR, SPRITETYPE_SPRITE, "GameDialog", 8, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_NEWCHAR, SPRITETYPE_SPRITE, "GameDialog", 9, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_NEWEXCHANGE, SPRITETYPE_SPRITE, "GameDialog", 10, false, "Loading interface" });
 
-    data_list.push({ DEF_SPRID_INTERFACE_ND_TEXT, SPRITETYPE_SPRITE, "DialogText", 0, false, "Loading interface" });
-    data_list.push({ DEF_SPRID_INTERFACE_ND_BUTTON, SPRITETYPE_SPRITE, "DialogText", 1, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_TEXT, SPRITETYPE_SPRITE, "DialogText", 0, false, "Loading interface" });
+    insert_data({ DEF_SPRID_INTERFACE_ND_BUTTON, SPRITETYPE_SPRITE, "DialogText", 1, false, "Loading interface" });
 
 
     make_sprite("Telescope", DEF_SPRID_INTERFACE_GUIDEMAP, 32, false, "Loading interface");
@@ -463,8 +466,8 @@ void CGame::create_load_list()
     make_sprite("monster", DEF_SPRID_INTERFACE_MONSTER, 1, false, "Loading interface");
 
     make_tile_sprite("maptiles1", 0, 32, true, "Loading map data");
-    data_list.push({ 51, SPRITETYPE_TILE, "structures1", 1, true, "Loading map data" });
-    data_list.push({ 55, SPRITETYPE_TILE, "structures1", 5, true, "Loading map data" });
+    insert_data({ 51, SPRITETYPE_TILE, "structures1", 1, true, "Loading map data" });
+    insert_data({ 55, SPRITETYPE_TILE, "structures1", 5, true, "Loading map data" });
     make_tile_sprite("Sinside1", 70, 27, false, "Loading map data");
     make_tile_sprite("Trees1", 100, 46, true, "Loading map data");
     make_tile_sprite("TreeShadows", 150, 46, true, "Loading map data");
@@ -506,50 +509,50 @@ void CGame::create_load_list()
     make_tile_sprite("Tile541-545", 541, 5, true, "Loading map data");  // GodH
 
     make_sprite("item-pack", DEF_SPRID_ITEMPACK_PIVOTPOINT + 1, 17, false, "Loading items");
-    data_list.push({ DEF_SPRID_ITEMPACK_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-pack", 17, false, "Loading items" });
-    data_list.push({ DEF_SPRID_ITEMPACK_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-pack", 18, false, "Loading items" });
+    insert_data({ DEF_SPRID_ITEMPACK_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-pack", 17, false, "Loading items" });
+    insert_data({ DEF_SPRID_ITEMPACK_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-pack", 18, false, "Loading items" });
     make_sprite("item-ground", DEF_SPRID_ITEMGROUND_PIVOTPOINT + 1, 17, false, "Loading items");
-    data_list.push({ DEF_SPRID_ITEMGROUND_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-ground", 17, false, "Loading items" });
-    data_list.push({ DEF_SPRID_ITEMGROUND_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-ground", 18, false, "Loading items" });
+    insert_data({ DEF_SPRID_ITEMGROUND_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-ground", 17, false, "Loading items" });
+    insert_data({ DEF_SPRID_ITEMGROUND_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-ground", 18, false, "Loading items" });
     make_sprite("item-dynamic", DEF_SPRID_ITEMDYNAMIC_PIVOTPOINT, 3, false, "Loading items");
 
     // MALE
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 0, SPRITETYPE_SPRITE, "item-equipM", 0, false, "Loading items" });   // body
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 1, SPRITETYPE_SPRITE, "item-equipM", 1, false, "Loading items" });   // 1-swords
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 2, SPRITETYPE_SPRITE, "item-equipM", 2, false, "Loading items" });   // 2-bows
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 3, SPRITETYPE_SPRITE, "item-equipM", 3, false, "Loading items" });   // 3-shields
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 4, SPRITETYPE_SPRITE, "item-equipM", 4, false, "Loading items" });   // 4-tunics
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 5, SPRITETYPE_SPRITE, "item-equipM", 5, false, "Loading items" });   // 5-shoes
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 7, SPRITETYPE_SPRITE, "item-equipM", 6, false, "Loading items" });   // 6-berk
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 8, SPRITETYPE_SPRITE, "item-equipM", 7, false, "Loading items" });   // 7-hoses
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 9, SPRITETYPE_SPRITE, "item-equipM", 8, false, "Loading items" });   // 8-bodyarmor
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 15, SPRITETYPE_SPRITE, "item-equipM", 11, false, "Loading items" }); // Axe hammer
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 17, SPRITETYPE_SPRITE, "item-equipM", 12, false, "Loading items" }); // Wands
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18, SPRITETYPE_SPRITE, "item-equipM", 9, false, "Loading items" });  // hair
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19, SPRITETYPE_SPRITE, "item-equipM", 10, false, "Loading items" }); // undies
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-equipM", 13, false, "Loading items" }); // capes
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-equipM", 14, false, "Loading items" }); // helm
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 0, SPRITETYPE_SPRITE, "item-equipM", 0, false, "Loading items" });   // body
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 1, SPRITETYPE_SPRITE, "item-equipM", 1, false, "Loading items" });   // 1-swords
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 2, SPRITETYPE_SPRITE, "item-equipM", 2, false, "Loading items" });   // 2-bows
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 3, SPRITETYPE_SPRITE, "item-equipM", 3, false, "Loading items" });   // 3-shields
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 4, SPRITETYPE_SPRITE, "item-equipM", 4, false, "Loading items" });   // 4-tunics
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 5, SPRITETYPE_SPRITE, "item-equipM", 5, false, "Loading items" });   // 5-shoes
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 7, SPRITETYPE_SPRITE, "item-equipM", 6, false, "Loading items" });   // 6-berk
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 8, SPRITETYPE_SPRITE, "item-equipM", 7, false, "Loading items" });   // 7-hoses
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 9, SPRITETYPE_SPRITE, "item-equipM", 8, false, "Loading items" });   // 8-bodyarmor
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 15, SPRITETYPE_SPRITE, "item-equipM", 11, false, "Loading items" }); // Axe hammer
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 17, SPRITETYPE_SPRITE, "item-equipM", 12, false, "Loading items" }); // Wands
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 18, SPRITETYPE_SPRITE, "item-equipM", 9, false, "Loading items" });  // hair
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 19, SPRITETYPE_SPRITE, "item-equipM", 10, false, "Loading items" }); // undies
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 20, SPRITETYPE_SPRITE, "item-equipM", 13, false, "Loading items" }); // capes
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 21, SPRITETYPE_SPRITE, "item-equipM", 14, false, "Loading items" }); // helm
 
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 16, SPRITETYPE_SPRITE, "item-pack", 15, false, "Loading items" }); // Necks, Angels, Pendants
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 16, SPRITETYPE_SPRITE, "item-pack", 15, false, "Loading items" }); // Necks, Angels, Pendants
 
     // FEMALE
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 40, SPRITETYPE_SPRITE, "item-equipW", 0, false, "Loading items" });  // body
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 41, SPRITETYPE_SPRITE, "item-equipW", 1, false, "Loading items" });  // 1-swords
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 42, SPRITETYPE_SPRITE, "item-equipW", 2, false, "Loading items" });  // 2-bows
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 43, SPRITETYPE_SPRITE, "item-equipW", 3, false, "Loading items" });  // 3-shields
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 45, SPRITETYPE_SPRITE, "item-equipW", 4, false, "Loading items" });  // 4-tunics
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 50, SPRITETYPE_SPRITE, "item-equipW", 5, false, "Loading items" });  // 5-shoes
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 51, SPRITETYPE_SPRITE, "item-equipW", 6, false, "Loading items" });  // 6-berk
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 52, SPRITETYPE_SPRITE, "item-equipW", 7, false, "Loading items" });  // 7-hoses
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 53, SPRITETYPE_SPRITE, "item-equipW", 8, false, "Loading items" });  // 8-bodyarmor
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 55, SPRITETYPE_SPRITE, "item-equipW", 11, false, "Loading items" }); // Axe hammer
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 57, SPRITETYPE_SPRITE, "item-equipW", 12, false, "Loading items" }); // Wands
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 58, SPRITETYPE_SPRITE, "item-equipW", 9, false, "Loading items" });  // hair
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 59, SPRITETYPE_SPRITE, "item-equipW", 10, false, "Loading items" }); // undies
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 60, SPRITETYPE_SPRITE, "item-equipW", 13, false, "Loading items" }); // capes
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 61, SPRITETYPE_SPRITE, "item-equipW", 14, false, "Loading items" }); // helm
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 40, SPRITETYPE_SPRITE, "item-equipW", 0, false, "Loading items" });  // body
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 41, SPRITETYPE_SPRITE, "item-equipW", 1, false, "Loading items" });  // 1-swords
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 42, SPRITETYPE_SPRITE, "item-equipW", 2, false, "Loading items" });  // 2-bows
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 43, SPRITETYPE_SPRITE, "item-equipW", 3, false, "Loading items" });  // 3-shields
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 45, SPRITETYPE_SPRITE, "item-equipW", 4, false, "Loading items" });  // 4-tunics
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 50, SPRITETYPE_SPRITE, "item-equipW", 5, false, "Loading items" });  // 5-shoes
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 51, SPRITETYPE_SPRITE, "item-equipW", 6, false, "Loading items" });  // 6-berk
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 52, SPRITETYPE_SPRITE, "item-equipW", 7, false, "Loading items" });  // 7-hoses
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 53, SPRITETYPE_SPRITE, "item-equipW", 8, false, "Loading items" });  // 8-bodyarmor
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 55, SPRITETYPE_SPRITE, "item-equipW", 11, false, "Loading items" }); // Axe hammer
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 57, SPRITETYPE_SPRITE, "item-equipW", 12, false, "Loading items" }); // Wands
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 58, SPRITETYPE_SPRITE, "item-equipW", 9, false, "Loading items" });  // hair
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 59, SPRITETYPE_SPRITE, "item-equipW", 10, false, "Loading items" }); // undies
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 60, SPRITETYPE_SPRITE, "item-equipW", 13, false, "Loading items" }); // capes
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 61, SPRITETYPE_SPRITE, "item-equipW", 14, false, "Loading items" }); // helm
 
-    data_list.push({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 56, SPRITETYPE_SPRITE, "item-pack", 15, false, "Loading items" }); // Necks, Angels, Pendants
+    insert_data({ DEF_SPRID_ITEMEQUIP_PIVOTPOINT + 56, SPRITETYPE_SPRITE, "item-pack", 15, false, "Loading items" }); // Necks, Angels, Pendants
 
     make_sprite("Bm", 500 + 15 * 8 * 0, 96, true, "Loading characters"); // Black Man (Type: 1)
     make_sprite("Wm", 500 + 15 * 8 * 1, 96, true, "Loading characters"); // White Man (Type: 2)
@@ -591,7 +594,7 @@ void CGame::create_load_list()
     make_sprite("Dummy", DEF_SPRID_NPC + 7 * 8 * 24, 40, true, "Loading npcs");       // Dummy (Type: 34)
 
     for (i = 0; i < 40; i++)
-        data_list.push({ DEF_SPRID_NPC + i + 7 * 8 * 25, SPRITETYPE_SPRITE, "Effect5", 0, false, "Loading npcs" }); // Energy-Ball (Type: 35) 
+        insert_data({ DEF_SPRID_NPC + i + 7 * 8 * 25, SPRITETYPE_SPRITE, "Effect5", 0, false, "Loading npcs" }); // Energy-Ball (Type: 35) 
 
     make_sprite("GT-Arrow", DEF_SPRID_NPC + 7 * 8 * 26, 40, true, "Loading npcs");        // Arrow-GuardTower (Type: 36)
     make_sprite("GT-Cannon", DEF_SPRID_NPC + 7 * 8 * 27, 40, true, "Loading npcs");       // Cannon-GuardTower (Type: 37)
@@ -653,38 +656,38 @@ void CGame::create_load_list()
     make_sprite("Gate", DEF_SPRID_NPC + 7 * 8 * 81, 24, true, "Loading npcs"); // Heldenian Gate (Type: 91)
 
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 0, SPRITETYPE_SPRITE, "Mpt", i + 12 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 0, SPRITETYPE_SPRITE, "Mpt", i + 12 * 0, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 1, SPRITETYPE_SPRITE, "Mpt", i + 12 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 1, SPRITETYPE_SPRITE, "Mpt", i + 12 * 1, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 2, SPRITETYPE_SPRITE, "Mpt", i + 12 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 2, SPRITETYPE_SPRITE, "Mpt", i + 12 * 2, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 3, SPRITETYPE_SPRITE, "Mpt", i + 12 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 3, SPRITETYPE_SPRITE, "Mpt", i + 12 * 3, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 4, SPRITETYPE_SPRITE, "Mpt", i + 12 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 4, SPRITETYPE_SPRITE, "Mpt", i + 12 * 4, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 5, SPRITETYPE_SPRITE, "Mpt", i + 12 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 5, SPRITETYPE_SPRITE, "Mpt", i + 12 * 5, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 6, SPRITETYPE_SPRITE, "Mpt", i + 12 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 6, SPRITETYPE_SPRITE, "Mpt", i + 12 * 6, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_M + i + 15 * 7, SPRITETYPE_SPRITE, "Mpt", i + 12 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_M + i + 15 * 7, SPRITETYPE_SPRITE, "Mpt", i + 12 * 7, false, "Loading items" });
 
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 0, SPRITETYPE_SPRITE, "Mhr", i + 12 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 0, SPRITETYPE_SPRITE, "Mhr", i + 12 * 0, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 1, SPRITETYPE_SPRITE, "Mhr", i + 12 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 1, SPRITETYPE_SPRITE, "Mhr", i + 12 * 1, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 2, SPRITETYPE_SPRITE, "Mhr", i + 12 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 2, SPRITETYPE_SPRITE, "Mhr", i + 12 * 2, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 3, SPRITETYPE_SPRITE, "Mhr", i + 12 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 3, SPRITETYPE_SPRITE, "Mhr", i + 12 * 3, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 4, SPRITETYPE_SPRITE, "Mhr", i + 12 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 4, SPRITETYPE_SPRITE, "Mhr", i + 12 * 4, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 5, SPRITETYPE_SPRITE, "Mhr", i + 12 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 5, SPRITETYPE_SPRITE, "Mhr", i + 12 * 5, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 6, SPRITETYPE_SPRITE, "Mhr", i + 12 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 6, SPRITETYPE_SPRITE, "Mhr", i + 12 * 6, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_M + i + 15 * 7, SPRITETYPE_SPRITE, "Mhr", i + 12 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_M + i + 15 * 7, SPRITETYPE_SPRITE, "Mhr", i + 12 * 7, false, "Loading items" });
 
     make_sprite("MLArmor", DEF_SPRID_ARMOR_M + 15 * 1, 12, true, "Loading items");
     make_sprite("MCMail", DEF_SPRID_ARMOR_M + 15 * 2, 12, true, "Loading items");
@@ -713,29 +716,29 @@ void CGame::create_load_list()
     make_sprite("MLBoots", DEF_SPRID_BOOT_M + 15 * 2, 12, true, "Loading items");
 
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 1, SPRITETYPE_SPRITE, "Msw", i + 56 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 1, SPRITETYPE_SPRITE, "Msw", i + 56 * 0, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 2, SPRITETYPE_SPRITE, "Msw", i + 56 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 2, SPRITETYPE_SPRITE, "Msw", i + 56 * 1, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 3, SPRITETYPE_SPRITE, "Msw", i + 56 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 3, SPRITETYPE_SPRITE, "Msw", i + 56 * 2, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 4, SPRITETYPE_SPRITE, "Msw", i + 56 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 4, SPRITETYPE_SPRITE, "Msw", i + 56 * 3, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 5, SPRITETYPE_SPRITE, "Msw", i + 56 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 5, SPRITETYPE_SPRITE, "Msw", i + 56 * 4, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 6, SPRITETYPE_SPRITE, "Msw", i + 56 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 6, SPRITETYPE_SPRITE, "Msw", i + 56 * 5, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 7, SPRITETYPE_SPRITE, "Msw", i + 56 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 7, SPRITETYPE_SPRITE, "Msw", i + 56 * 6, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 8, SPRITETYPE_SPRITE, "Msw", i + 56 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 8, SPRITETYPE_SPRITE, "Msw", i + 56 * 7, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 9, SPRITETYPE_SPRITE, "Msw", i + 56 * 8, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 9, SPRITETYPE_SPRITE, "Msw", i + 56 * 8, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 10, SPRITETYPE_SPRITE, "Msw", i + 56 * 9, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 10, SPRITETYPE_SPRITE, "Msw", i + 56 * 9, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 11, SPRITETYPE_SPRITE, "Msw", i + 56 * 10, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 11, SPRITETYPE_SPRITE, "Msw", i + 56 * 10, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 12, SPRITETYPE_SPRITE, "Msw", i + 56 * 11, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 12, SPRITETYPE_SPRITE, "Msw", i + 56 * 11, false, "Loading items" });
 
     make_sprite("Mswx", DEF_SPRID_WEAPON_M + 64 * 5, 56, true, "Loading items");
     make_sprite("Msw2", DEF_SPRID_WEAPON_M + 64 * 13, 56, true, "Loading items");
@@ -773,26 +776,26 @@ void CGame::create_load_list()
     make_sprite("MFireBow", DEF_SPRID_WEAPON_M + 64 * 44, 56, true, "Loading items");
 
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_M + i + 64 * 42, SPRITETYPE_SPRITE, "Mbo", i + 56 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_M + i + 64 * 42, SPRITETYPE_SPRITE, "Mbo", i + 56 * 1, false, "Loading items" });
 
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 1, SPRITETYPE_SPRITE, "Msh", i + 7 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 1, SPRITETYPE_SPRITE, "Msh", i + 7 * 0, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 2, SPRITETYPE_SPRITE, "Msh", i + 7 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 2, SPRITETYPE_SPRITE, "Msh", i + 7 * 1, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 3, SPRITETYPE_SPRITE, "Msh", i + 7 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 3, SPRITETYPE_SPRITE, "Msh", i + 7 * 2, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 4, SPRITETYPE_SPRITE, "Msh", i + 7 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 4, SPRITETYPE_SPRITE, "Msh", i + 7 * 3, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 5, SPRITETYPE_SPRITE, "Msh", i + 7 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 5, SPRITETYPE_SPRITE, "Msh", i + 7 * 4, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 6, SPRITETYPE_SPRITE, "Msh", i + 7 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 6, SPRITETYPE_SPRITE, "Msh", i + 7 * 5, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 7, SPRITETYPE_SPRITE, "Msh", i + 7 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 7, SPRITETYPE_SPRITE, "Msh", i + 7 * 6, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 8, SPRITETYPE_SPRITE, "Msh", i + 7 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 8, SPRITETYPE_SPRITE, "Msh", i + 7 * 7, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_M + i + 8 * 9, SPRITETYPE_SPRITE, "Msh", i + 7 * 8, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_M + i + 8 * 9, SPRITETYPE_SPRITE, "Msh", i + 7 * 8, false, "Loading items" });
 
     make_sprite("Mmantle01", DEF_SPRID_CAPE_M + 15 * 1, 12, true, "Loading items");
     make_sprite("Mmantle02", DEF_SPRID_CAPE_M + 15 * 2, 12, true, "Loading items");
@@ -816,38 +819,38 @@ void CGame::create_load_list()
     make_sprite("MHCap2", DEF_SPRID_HEAD_M + 15 * 12, 12, true, "Loading items");
 
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 0, SPRITETYPE_SPRITE, "Wpt", i + 12 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 0, SPRITETYPE_SPRITE, "Wpt", i + 12 * 0, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 1, SPRITETYPE_SPRITE, "Wpt", i + 12 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 1, SPRITETYPE_SPRITE, "Wpt", i + 12 * 1, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 2, SPRITETYPE_SPRITE, "Wpt", i + 12 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 2, SPRITETYPE_SPRITE, "Wpt", i + 12 * 2, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 3, SPRITETYPE_SPRITE, "Wpt", i + 12 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 3, SPRITETYPE_SPRITE, "Wpt", i + 12 * 3, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 4, SPRITETYPE_SPRITE, "Wpt", i + 12 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 4, SPRITETYPE_SPRITE, "Wpt", i + 12 * 4, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 5, SPRITETYPE_SPRITE, "Wpt", i + 12 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 5, SPRITETYPE_SPRITE, "Wpt", i + 12 * 5, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 6, SPRITETYPE_SPRITE, "Wpt", i + 12 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 6, SPRITETYPE_SPRITE, "Wpt", i + 12 * 6, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_UNDERWEAR_W + i + 15 * 7, SPRITETYPE_SPRITE, "Wpt", i + 12 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_UNDERWEAR_W + i + 15 * 7, SPRITETYPE_SPRITE, "Wpt", i + 12 * 7, false, "Loading items" });
 
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 0, SPRITETYPE_SPRITE, "Whr", i + 12 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 0, SPRITETYPE_SPRITE, "Whr", i + 12 * 0, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 1, SPRITETYPE_SPRITE, "Whr", i + 12 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 1, SPRITETYPE_SPRITE, "Whr", i + 12 * 1, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 2, SPRITETYPE_SPRITE, "Whr", i + 12 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 2, SPRITETYPE_SPRITE, "Whr", i + 12 * 2, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 3, SPRITETYPE_SPRITE, "Whr", i + 12 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 3, SPRITETYPE_SPRITE, "Whr", i + 12 * 3, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 4, SPRITETYPE_SPRITE, "Whr", i + 12 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 4, SPRITETYPE_SPRITE, "Whr", i + 12 * 4, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 5, SPRITETYPE_SPRITE, "Whr", i + 12 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 5, SPRITETYPE_SPRITE, "Whr", i + 12 * 5, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 6, SPRITETYPE_SPRITE, "Whr", i + 12 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 6, SPRITETYPE_SPRITE, "Whr", i + 12 * 6, false, "Loading items" });
     for (i = 0; i < 12; i++)
-        data_list.push({ DEF_SPRID_HAIR_W + i + 15 * 7, SPRITETYPE_SPRITE, "Whr", i + 12 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_HAIR_W + i + 15 * 7, SPRITETYPE_SPRITE, "Whr", i + 12 * 7, false, "Loading items" });
 
     make_sprite("WBodice1", DEF_SPRID_ARMOR_W + 15 * 1, 12, true, "Loading items");
     make_sprite("WBodice2", DEF_SPRID_ARMOR_W + 15 * 2, 12, true, "Loading items");
@@ -881,29 +884,29 @@ void CGame::create_load_list()
     make_sprite("WLBoots", DEF_SPRID_BOOT_W + 15 * 2, 12, true, "Loading items");
 
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 1, SPRITETYPE_SPRITE, "Wsw", i + 56 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 1, SPRITETYPE_SPRITE, "Wsw", i + 56 * 0, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 2, SPRITETYPE_SPRITE, "Wsw", i + 56 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 2, SPRITETYPE_SPRITE, "Wsw", i + 56 * 1, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 3, SPRITETYPE_SPRITE, "Wsw", i + 56 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 3, SPRITETYPE_SPRITE, "Wsw", i + 56 * 2, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 4, SPRITETYPE_SPRITE, "Wsw", i + 56 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 4, SPRITETYPE_SPRITE, "Wsw", i + 56 * 3, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 5, SPRITETYPE_SPRITE, "Wsw", i + 56 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 5, SPRITETYPE_SPRITE, "Wsw", i + 56 * 4, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 6, SPRITETYPE_SPRITE, "Wsw", i + 56 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 6, SPRITETYPE_SPRITE, "Wsw", i + 56 * 5, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 7, SPRITETYPE_SPRITE, "Wsw", i + 56 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 7, SPRITETYPE_SPRITE, "Wsw", i + 56 * 6, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 8, SPRITETYPE_SPRITE, "Wsw", i + 56 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 8, SPRITETYPE_SPRITE, "Wsw", i + 56 * 7, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 9, SPRITETYPE_SPRITE, "Wsw", i + 56 * 8, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 9, SPRITETYPE_SPRITE, "Wsw", i + 56 * 8, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 10, SPRITETYPE_SPRITE, "Wsw", i + 56 * 9, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 10, SPRITETYPE_SPRITE, "Wsw", i + 56 * 9, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 11, SPRITETYPE_SPRITE, "Wsw", i + 56 * 10, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 11, SPRITETYPE_SPRITE, "Wsw", i + 56 * 10, false, "Loading items" });
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 12, SPRITETYPE_SPRITE, "Wsw", i + 56 * 11, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 12, SPRITETYPE_SPRITE, "Wsw", i + 56 * 11, false, "Loading items" });
 
     make_sprite("Wswx", DEF_SPRID_WEAPON_W + 64 * 5, 56, true, "Loading items");
     make_sprite("Wsw2", DEF_SPRID_WEAPON_W + 64 * 13, 56, true, "Loading items");
@@ -961,33 +964,33 @@ void CGame::create_load_list()
     //make_sprite("Wbo", DEF_SPRID_WEAPON_W + 64 * 41, 56, true, "Loading items");        // Bow
 
     for (i = 0; i < 56; i++)
-        data_list.push({ DEF_SPRID_WEAPON_W + i + 64 * 42, SPRITETYPE_SPRITE, "Wbo", i + 56 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_WEAPON_W + i + 64 * 42, SPRITETYPE_SPRITE, "Wbo", i + 56 * 1, false, "Loading items" });
 
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 1, SPRITETYPE_SPRITE, "Wsh", i + 7 * 0, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 1, SPRITETYPE_SPRITE, "Wsh", i + 7 * 0, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 2, SPRITETYPE_SPRITE, "Wsh", i + 7 * 1, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 2, SPRITETYPE_SPRITE, "Wsh", i + 7 * 1, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 3, SPRITETYPE_SPRITE, "Wsh", i + 7 * 2, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 3, SPRITETYPE_SPRITE, "Wsh", i + 7 * 2, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 4, SPRITETYPE_SPRITE, "Wsh", i + 7 * 3, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 4, SPRITETYPE_SPRITE, "Wsh", i + 7 * 3, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 5, SPRITETYPE_SPRITE, "Wsh", i + 7 * 4, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 5, SPRITETYPE_SPRITE, "Wsh", i + 7 * 4, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 6, SPRITETYPE_SPRITE, "Wsh", i + 7 * 5, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 6, SPRITETYPE_SPRITE, "Wsh", i + 7 * 5, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 7, SPRITETYPE_SPRITE, "Wsh", i + 7 * 6, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 7, SPRITETYPE_SPRITE, "Wsh", i + 7 * 6, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 8, SPRITETYPE_SPRITE, "Wsh", i + 7 * 7, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 8, SPRITETYPE_SPRITE, "Wsh", i + 7 * 7, false, "Loading items" });
     for (i = 0; i < 7; i++)
-        data_list.push({ DEF_SPRID_SHIELD_W + i + 8 * 9, SPRITETYPE_SPRITE, "Wsh", i + 7 * 8, false, "Loading items" });
+        insert_data({ DEF_SPRID_SHIELD_W + i + 8 * 9, SPRITETYPE_SPRITE, "Wsh", i + 7 * 8, false, "Loading items" });
 
     make_effect_sprite("effect", 0, 10, false, "Loading effects");
     make_effect_sprite("effect2", 10, 3, false, "Loading effects");
     make_effect_sprite("effect3", 13, 6, false, "Loading effects");
     make_effect_sprite("effect4", 19, 5, false, "Loading effects");
     for (i = 0; i <= 6; i++)
-        data_list.push({ i + 24, SPRITETYPE_EFFECT, "effect5", i + 1, false, "Loading effects" });
+        insert_data({ i + 24, SPRITETYPE_EFFECT, "effect5", i + 1, false, "Loading effects" });
     make_effect_sprite("CruEffect1", 31, 9, false, "Loading effects");
     make_effect_sprite("effect6", 40, 5, false, "Loading effects");
     make_effect_sprite("effect7", 45, 12, false, "Loading effects");
@@ -1003,7 +1006,7 @@ void CGame::create_load_list()
     make_effect_sprite("yseffect4", 133, 7, false, "Loading effects"); // Abaddon's map thunder.
     //make_effect_sprite("effects", 168, 1, false, "Loading effects");   // minimap ping
 
-        //progressLabel = "Loading sounds";
+    //progressLabel = "Loading sounds";
     std::string path = {};
     for (i = 1; i <= 8; i++)
     {
@@ -1060,52 +1063,71 @@ void CGame::create_load_list()
         m_pESound[i].setBuffer(ESoundBuffer[i]);
     }
 
-    data_max = data_list.size();
+
+    // start threads
+    for (int i = 0; i < core_usage; i++)
+    {
+        data_max += data_list[i].size();
+        loading_threads.emplace_back(&CGame::update_screen_threaded_load, this, std::ref(data_list[i]));
+    }
 }
 
 void CGame::UpdateScreen_OnLoading(bool bActive)
 {
     draw_version = true;
-    if (data_list.empty())
+
+    bool loaded = true;
+    int count = 0;
+
+    for (int i = 0; i < core_usage; i++)
+    {
+        if (!data_list[i].empty())
+        {
+            count += data_list[i].size();
+            loaded = false;
+        }
+    }
+
+    if (loaded)
     {
         ChangeGameMode(DEF_GAMEMODE_ONCONNECTING);
+        data_list.clear();
         return;
     }
 
     UpdateScreen_OnLoading_Progress();
 
-
-    std::string progress_label;
-
-    int perform = 300; // (game->fps.getFPS() + 20) / 20;
-
-    while (--perform)
-    {
-        if (!data_list.empty())
-        {
-            load_data item = data_list.front();
-            data_list.pop();
-            progress_label = item.label;
-            if (item.sprite_type == SPRITETYPE_SPRITE)
-            {
-                m_pSprite[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
-            }
-            else if (item.sprite_type == SPRITETYPE_TILE)
-            {
-                m_pTileSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
-            }
-            else if (item.sprite_type == SPRITETYPE_EFFECT)
-            {
-                m_pEffectSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha);
-            }
-        }
-    }
-
-    double percent = ((double(data_max) - data_list.size()) / double(data_max)) * 118;
+    double percent = ((double(data_max) - count) / double(data_max)) * 118;
 
     m_cLoading = (int8_t)percent;
+}
 
-    return;
+void CGame::update_screen_threaded_load(std::queue<load_data> & data)
+{
+    //std::string progress_label;
+
+    while (true)
+    {
+        std::unique_lock<std::mutex> lock(loading_mtx);
+        if (data.empty())
+            return;
+
+        load_data item = data.front();
+        data.pop();
+        //progress_label = item.label;
+        if (item.sprite_type == SPRITETYPE_SPRITE)
+        {
+            m_pSprite[item.id] = sprite::create_sprite(item.name, item.num, item.alpha, item.id);
+        }
+        else if (item.sprite_type == SPRITETYPE_TILE)
+        {
+            m_pTileSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha, item.id);
+        }
+        else if (item.sprite_type == SPRITETYPE_EFFECT)
+        {
+            m_pEffectSpr[item.id] = sprite::create_sprite(item.name, item.num, item.alpha, item.id);
+        }
+    }
 }
 
 void CGame::UpdateScreen_OnLoading_Progress()
