@@ -1354,48 +1354,48 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
     if (m_cGameModeCount == 0)
     {
         pMI = new CMouseInterface;
-        pMI->AddRect(65 + 4, 65 + 45, 275 + 4, 82 + 45);
+        pMI->AddRect(modx + 65 + 4, mody + 65 + 45, modx + 275 + 4, mody + 82 + 45);
 
-        pMI->AddRect(232 + 4, 111 + 45, 274 + 4 - 21, 124 + 45);
-        pMI->AddRect(255 + 4, 111 + 45, 289 + 4 - 13, 124 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 111 + 45, modx + 274 + 4 - 21, mody + 124 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 111 + 45, modx + 289 + 4 - 13, mody + 124 + 45);
 
-        pMI->AddRect(232 + 4, 126 + 45, 274 + 4 - 21, 139 + 45);
-        pMI->AddRect(255 + 4, 126 + 45, 289 + 4 - 13, 139 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 126 + 45, modx + 274 + 4 - 21, mody + 139 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 126 + 45, modx + 289 + 4 - 13, mody + 139 + 45);
 
-        pMI->AddRect(232 + 4, 141 + 45, 274 + 4 - 21, 154 + 45);
-        pMI->AddRect(255 + 4, 141 + 45, 289 + 4 - 13, 154 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 141 + 45, modx + 274 + 4 - 21, mody + 154 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 141 + 45, modx + 289 + 4 - 13, mody + 154 + 45);
 
-        pMI->AddRect(232 + 4, 156 + 45, 274 + 4 - 21, 169 + 45);
-        pMI->AddRect(255 + 4, 156 + 45, 289 + 4 - 13, 169 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 156 + 45, modx + 274 + 4 - 21, mody + 169 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 156 + 45, modx + 289 + 4 - 13, mody + 169 + 45);
 
-        pMI->AddRect(232 + 4, 171 + 45, 274 + 4 - 21, 184 + 45);
-        pMI->AddRect(255 + 4, 171 + 45, 289 + 4 - 13, 184 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 171 + 45, modx + 274 + 4 - 21, mody + 184 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 171 + 45, modx + 289 + 4 - 13, mody + 184 + 45);
 
 
-        pMI->AddRect(232 + 4, 231 + 45, 253 + 4, 244 + 45);
-        pMI->AddRect(255 + 4, 231 + 45, 276 + 4, 244 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 231 + 45, modx + 253 + 4, mody + 244 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 231 + 45, modx + 276 + 4, mody + 244 + 45);
 
-        pMI->AddRect(232 + 4, 246 + 45, 253 + 4, 259 + 45);
-        pMI->AddRect(255 + 4, 246 + 45, 276 + 4, 259 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 246 + 45, modx + 253 + 4, mody + 259 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 246 + 45, modx + 276 + 4, mody + 259 + 45);
 
-        pMI->AddRect(232 + 4, 261 + 45, 253 + 4, 274 + 45);
-        pMI->AddRect(255 + 4, 261 + 45, 276 + 4, 274 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 261 + 45, modx + 253 + 4, mody + 274 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 261 + 45, modx + 276 + 4, mody + 274 + 45);
 
-        pMI->AddRect(232 + 4, 276 + 45, 253 + 4, 289 + 45);
-        pMI->AddRect(255 + 4, 276 + 45, 276 + 4, 289 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 276 + 45, modx + 253 + 4, mody + 289 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 276 + 45, modx + 276 + 4, mody + 289 + 45);
 
-        pMI->AddRect(232 + 4, 291 + 45, 253 + 4, 304 + 45);
-        pMI->AddRect(255 + 4, 291 + 45, 276 + 4, 304 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 291 + 45, modx + 253 + 4, mody + 304 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 291 + 45, modx + 276 + 4, mody + 304 + 45);
 
-        pMI->AddRect(232 + 4, 306 + 45, 253 + 4, 319 + 45);
-        pMI->AddRect(255 + 4, 306 + 45, 276 + 4, 319 + 45);
+        pMI->AddRect(modx + 232 + 4, mody + 306 + 45, modx + 253 + 4, mody + 319 + 45);
+        pMI->AddRect(modx + 255 + 4, mody + 306 + 45, modx + 276 + 4, mody + 319 + 45);
 
-        pMI->AddRect(384, 445, 384 + 72, 445 + 15);
-        pMI->AddRect(500, 445, 500 + 72, 445 + 15);
+        pMI->AddRect(modx + 384, mody + 445, modx + 384 + 72, mody + 445 + 15);
+        pMI->AddRect(modx + 500, mody + 445, modx + 500 + 72, mody + 445 + 15);
 
-        pMI->AddRect(60, 445, 60 + 72, 445 + 15);
-        pMI->AddRect(145, 445, 145 + 72, 445 + 15);
-        pMI->AddRect(230, 445, 230 + 72, 445 + 15);
+        pMI->AddRect(modx + 60, mody + 445, modx + 60 + 72, mody + 445 + 15);
+        pMI->AddRect(modx + 145, mody + 445, modx + 145 + 72, mody + 445 + 15);
+        pMI->AddRect(modx + 230, mody + 445, modx + 230 + 72, mody + 445 + 15);
 
         iPoint = m_ccStr + m_ccVit + m_ccDex + m_ccInt + m_ccMag + m_ccChr;
         iPoint = 70 - iPoint;
@@ -1408,7 +1408,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
 
         dwMTime = m_dwCurTime;
 
-        StartInputString(193 + 4, 65 + 45, 11, cName);
+        StartInputString(modx + 193 + 4, mody + 65 + 45, 11, cName);
         ClearInputString();
     }
 
@@ -1438,7 +1438,7 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         switch (m_cCurFocus)
         {
             case 1:
-                StartInputString(193 + 4, 65 + 45, 11, cName);
+                StartInputString(modx + 193 + 4, mody + 65 + 45, 11, cName);
                 break;
         }
         cPrevFocus = m_cCurFocus;
@@ -1711,109 +1711,110 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         }
     }
 
-    if ((msX >= 65 + 4 - 127) && (msX <= 275 + 4) && (msY >= 65 + 45) && (msY <= 82 + 45))
+    // todo - fix vertical mouse over positions for lines (few pixels need adding)
+    if ((msX >= modx + 65 + 4 - 127) && (msX <= modx + 275 + 4) && (msY >= mody + 65 + 45) && (msY <= mody + 82 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER1);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER1);
     }
-    else if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 111 + 45) && (msY <= 124 + 45))
+    else if ((msX >= modx + 261 + 4 - 212) && (msX <= modx + 289 + 4) && (msY >= mody + 111 + 45) && (msY <= mody + 124 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER2);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER2);
     }
-    else if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 126 + 45) && (msY <= 139 + 45))
+    else if ((msX >= modx + 261 + 4 - 212) && (msX <= modx + 289 + 4) && (msY >= mody + 126 + 45) && (msY <= mody + 139 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER3);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER3);
     }
-    else if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 141 + 45) && (msY <= 154 + 45))
+    else if ((msX >= modx + 261 + 4 - 212) && (msX <= modx + 289 + 4) && (msY >= mody + 141 + 45) && (msY <= mody + 154 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER4);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER4);
     }
-    else if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 156 + 45) && (msY <= 169 + 45))
+    else if ((msX >= modx + 261 + 4 - 212) && (msX <= modx + 289 + 4) && (msY >= mody + 156 + 45) && (msY <= mody + 169 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER5);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER5);
     }
-    else if ((msX >= 261 + 4 - 212) && (msX <= 289 + 4) && (msY >= 171 + 45) && (msY <= 184 + 45))
+    else if ((msX >= modx + 261 + 4 - 212) && (msX <= modx + 289 + 4) && (msY >= mody + 171 + 45) && (msY <= mody + 184 + 45))
     {
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER6);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER6);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 231 + 45) && (msY <= 244 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 231 + 45) && (msY <= mody + 244 + 45))
     {
         // Str
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER7);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER8);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER9);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER10);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER11);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER7);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER8);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER9);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER10);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER11);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 246 + 45) && (msY <= 259 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 246 + 45) && (msY <= mody + 259 + 45))
     {
         // Vit
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER12);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER13);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER14);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER15);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER16);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER12);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER13);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER14);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER15);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER16);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 261 + 45) && (msY <= 274 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 261 + 45) && (msY <= mody + 274 + 45))
     {
         // Dex
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER17);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER18);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER19);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER20);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER17);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER18);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER19);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER20);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 276 + 45) && (msY <= 289 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 276 + 45) && (msY <= mody + 289 + 45))
     {
         // Int
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER21);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER22);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER23);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER24);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER21);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER22);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER23);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER24);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 291 + 45) && (msY <= 304 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 291 + 45) && (msY <= mody + 304 + 45))
     {
         // Mag
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER25);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER26);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER27);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER28);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER25);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER26);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER27);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER28);
     }
-    else if ((msX >= 240 + 4 - 175) && (msX <= 268 + 4) && (msY >= 306 + 45) && (msY <= 319 + 45))
+    else if ((msX >= modx + 240 + 4 - 175) && (msX <= modx + 268 + 4) && (msY >= mody + 306 + 45) && (msY <= mody + 319 + 45))
     {
         // Charisma
         i = 0;
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER29);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER30);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER31);
-        put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER32);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER29);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER30);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER31);
+        put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER32);
     }
-    else if ((msX >= 384) && (msX <= 384 + 72) && (msY >= 445) && (msY <= 445 + 15))
+    else if ((msX >= modx + 384) && (msX <= modx + 384 + 72) && (msY >= mody + 445) && (msY <= mody + 445 + 15))
     {
         m_cCurFocus = 2;
         if (strlen(cName) <= 0)
         {
             i = 0;
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER33);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER34);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER35);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER33);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER34);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER35);
         }
         else if (iPoint > 0)
         {
             i = 0;
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER36);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER37);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER38);
         }
         else if (m_Misc.bCheckValidName(cName) == false)
         {
             i = 0;
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER39);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER40);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER41);
         }
 //         else if (_bCheckBadWords(cName) == true)
 //         {
@@ -1824,35 +1825,35 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
         else
         {
             i = 0;
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
-            put_aligned_string(370, 580, 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER44);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER45);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER46);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER47);
+            put_aligned_string(modx + 370, modx + 580, mody + 345 + 16 * i++, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER48);
         }
     }
-    else if ((msX >= 500) && (msX <= 500 + 72) && (msY >= 445) && (msY <= 445 + 15))
+    else if ((msX >= modx + 500) && (msX <= modx + 500 + 72) && (msY >= mody + 445) && (msY <= mody + 445 + 15))
     {
         m_cCurFocus = 3;
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER49);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER49);
     }
 
-    if ((msX >= 60) && (msX <= 60 + 72) && (msY >= 445) && (msY <= 445 + 15))
+    if ((msX >= modx + 60) && (msX <= modx + 60 + 72) && (msY >= mody + 445) && (msY <= mody + 445 + 15))
     {
         m_cCurFocus = 4;
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER50);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER50);
     }
 
-    if ((msX >= 145) && (msX <= 145 + 72) && (msY >= 445) && (msY <= 445 + 15))
+    if ((msX >= modx + 145) && (msX <= modx + 145 + 72) && (msY >= mody + 445) && (msY <= mody + 445 + 15))
     {
         m_cCurFocus = 5;
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER51);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER51);
     }
 
-    if ((msX >= 230) && (msX <= 230 + 72) && (msY >= 445) && (msY <= 445 + 15))
+    if ((msX >= modx + 230) && (msX <= modx + 230 + 72) && (msY >= mody + 445) && (msY <= mody + 445 + 15))
     {
         m_cCurFocus = 6;
-        put_aligned_string(370, 580, 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER52);
+        put_aligned_string(modx + 370, modx + 580, mody + 345, UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER52);
     }
 
     //	if (m_cGameModeCount < 6) draw_shadow_box(0, 0, get_virtual_width() - 1, get_virtual_height() - 1);

@@ -74,60 +74,60 @@ bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
     int64_t dwTime = m_dwCurTime;
     int i = 0;
 
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWCHAR, 0, 0, 0, true);
-    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, 0, 0, 69, true);
-    put_aligned_string(64, 282, 90, _BDRAW_ON_CREATE_NEW_CHARACTER1, 5, 5, 5);
-    put_aligned_string(57, 191, 110, DEF_MSG_CHARACTERNAME, 5, 5, 5);//"Character Name"
-    if (m_cCurFocus != 1) put_string(197, 112, pName, Color(25, 35, 25));
-    put_aligned_string(64, 282, 140, _BDRAW_ON_CREATE_NEW_CHARACTER2, 5, 5, 5);
-    put_string(100, 160, DEF_MSG_GENDER, Color(5, 5, 5));//"Gender"
-    put_string(100, 175, DEF_MSG_SKINCOLOR, Color(5, 5, 5));//"Skin Color"
-    put_string(100, 190, DEF_MSG_HAIRSTYLE, Color(5, 5, 5));//"Hair Style"
-    put_string(100, 205, DEF_MSG_HAIRCOLOR, Color(5, 5, 5));//"Hair Color"
-    put_string(100, 220, DEF_MSG_UNDERWEARCOLOR, Color(5, 5, 5));//"Underwear Color"
-    put_aligned_string(64, 282, 245, _BDRAW_ON_CREATE_NEW_CHARACTER3, 5, 5, 5);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_NEWCHAR, modx + 0, mody + 0, 0, true);
+    DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, modx + 0, mody + 0, 69, true);
+    put_aligned_string(modx + 64, 282, mody + 90, _BDRAW_ON_CREATE_NEW_CHARACTER1, 5, 5, 5);
+    put_aligned_string(modx + 57, 191, mody + 110, DEF_MSG_CHARACTERNAME, 5, 5, 5);//"Character Name"
+    if (m_cCurFocus != 1) put_string(modx + 197, mody + 112, pName, Color(25, 35, 25));
+    put_aligned_string(modx + 64, modx + 282, mody + 140, _BDRAW_ON_CREATE_NEW_CHARACTER2, 5, 5, 5);
+    put_string(modx + 100, mody + 160, DEF_MSG_GENDER, Color(5, 5, 5));//"Gender"
+    put_string(modx + 100, mody + 175, DEF_MSG_SKINCOLOR, Color(5, 5, 5));//"Skin Color"
+    put_string(modx + 100, mody + 190, DEF_MSG_HAIRSTYLE, Color(5, 5, 5));//"Hair Style"
+    put_string(modx + 100, mody + 205, DEF_MSG_HAIRCOLOR, Color(5, 5, 5));//"Hair Color"
+    put_string(modx + 100, mody + 220, DEF_MSG_UNDERWEARCOLOR, Color(5, 5, 5));//"Underwear Color"
+    put_aligned_string(modx + 64, modx + 282, mody + 245, _BDRAW_ON_CREATE_NEW_CHARACTER3, 5, 5, 5);
     format_to_local(G_cTxt, _BDRAW_ON_CREATE_NEW_CHARACTER4, iPoint);
-    put_aligned_string(64, 282, 260, G_cTxt, 15, 10, 10);
-    put_string(100, 275, DEF_MSG_STRENGTH, Color(5, 5, 5));//"Strength"
-    put_string(100, 292, DEF_MSG_VITALITY, Color(5, 5, 5));//"Vitality"
-    put_string(100, 309, DEF_MSG_DEXTERITY, Color(5, 5, 5));//"Dexterity"
-    put_string(100, 326, DEF_MSG_INTELLIGENCE, Color(5, 5, 5));//"Intelligence"
-    put_string(100, 343, DEF_MSG_MAGIC, Color(5, 5, 5));//"Magic"
-    put_string(100, 360, DEF_MSG_CHARISMA, Color(5, 5, 5));//"Charisma"
+    put_aligned_string(modx + 64, modx + 282, mody + 260, G_cTxt, 15, 10, 10);
+    put_string(modx + 100, mody + 275, DEF_MSG_STRENGTH, Color(5, 5, 5));//"Strength"
+    put_string(modx + 100, mody + 292, DEF_MSG_VITALITY, Color(5, 5, 5));//"Vitality"
+    put_string(modx + 100, mody + 309, DEF_MSG_DEXTERITY, Color(5, 5, 5));//"Dexterity"
+    put_string(modx + 100, mody + 326, DEF_MSG_INTELLIGENCE, Color(5, 5, 5));//"Intelligence"
+    put_string(modx + 100, mody + 343, DEF_MSG_MAGIC, Color(5, 5, 5));//"Magic"
+    put_string(modx + 100, mody + 360, DEF_MSG_CHARISMA, Color(5, 5, 5));//"Charisma"
 
     format_to_local(G_cTxt, "{}", m_ccStr);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
     format_to_local(G_cTxt, "{}", m_ccVit);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
     format_to_local(G_cTxt, "{}", m_ccDex);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
     format_to_local(G_cTxt, "{}", m_ccInt);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
     format_to_local(G_cTxt, "{}", m_ccMag);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
     format_to_local(G_cTxt, "{}", m_ccChr);
-    put_string(204, 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
-    put_aligned_string(64, 295, 380, _BDRAW_ON_CREATE_NEW_CHARACTER5, 5, 5, 5);
+    put_string(modx + 204, mody + 277 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_aligned_string(modx + 64, modx + 295, mody + 380, _BDRAW_ON_CREATE_NEW_CHARACTER5, 5, 5, 5);
 
     if (strlen(pName) <= 0) bFlag = false;
     if (iPoint > 0) bFlag = false;
     if (m_Misc.bCheckValidName(pName) == false) bFlag = false;
     //if (_bCheckBadWords(pName) == true) bFlag = false;
 
-    if ((bFlag == true) && (m_cCurFocus == 2)) m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 25, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(384, 445, 24, dwTime);
+    if ((bFlag == true) && (m_cCurFocus == 2)) m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 384, mody + 445, 25, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 384, mody + 445, 24, dwTime);
     if (m_cCurFocus == 3)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 17, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(500, 445, 16, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 500, mody + 445, 17, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 500, mody + 445, 16, dwTime);
     if (m_cCurFocus == 4)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 68, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(60, 445, 67, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 60, mody + 445, 68, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 60, mody + 445, 67, dwTime);
     if (m_cCurFocus == 5)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 66, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(145, 445, 65, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 145, mody + 445, 66, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 145, mody + 445, 65, dwTime);
     if (m_cCurFocus == 6)
-        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 64, dwTime);
-    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(230, 445, 63, dwTime);
+        m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 230, mody + 445, 64, dwTime);
+    else m_pSprite[DEF_SPRID_INTERFACE_ND_BUTTON]->put_sprite_fast(modx + 230, mody + 445, 63, dwTime);
 
     ShowReceivedString();
 
@@ -150,23 +150,23 @@ bool CGame::_bDraw_OnCreateNewCharacter(char * pName, short msX, short msY, int 
     _tmp_cAction = DEF_OBJECTMOVE;
     _tmp_cFrame = m_cMenuFrame;
 
-    _Draw_CharacterBody(507, 267, _tmp_sOwnerType);
+    _Draw_CharacterBody(modx + 507, mody + 267, _tmp_sOwnerType);
 
-    DrawObject_OnMove_ForMenu(0, 0, 500, 174, false, dwTime, msX, msY);
+    DrawObject_OnMove_ForMenu(0, 0, modx + 500, mody + 174, false, dwTime, msX, msY);
 
     i = 0;
 
-    put_string(445, 192, DEF_MSG_HITPOINT, Color(5, 5, 5));
+    put_string(modx + 445, mody + 192, DEF_MSG_HITPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccVit * 3 + 2 + m_ccStr / 2);
-    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 550, mody + 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
-    put_string(445, 208, DEF_MSG_MANAPOINT, Color(5, 5, 5));
+    put_string(modx + 445, mody + 208, DEF_MSG_MANAPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccMag * 2 + 2 + m_ccInt / 2);
-    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 550, mody + 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
-    put_string(445, 224, DEF_MSG_STAMINAPOINT, Color(5, 5, 5));
+    put_string(modx + 445, mody + 224, DEF_MSG_STAMINAPOINT, Color(5, 5, 5));
     format_to_local(G_cTxt, "{}", m_ccStr * 2 + 2);
-    put_string(550, 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
+    put_string(modx + 550, mody + 192 + 16 * i++, G_cTxt, Color(25, 35, 25));
 
     return bFlag;
 }
