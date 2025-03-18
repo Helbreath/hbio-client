@@ -7964,20 +7964,20 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, bool bIsPreDC)
 
     if (str.length() < 21)
     {
-        memcpy(cMsgA, str.c_str(), 20);
+        memcpy(cMsgA, str.c_str(), str.length());
         iLines = 1;
     }
     else if (str.length() < 41)
     {
         memcpy(cMsgA, str.c_str(), 20);
-        memcpy(cMsgB, str.c_str() + 20, 20);
+        memcpy(cMsgB, str.c_str() + 20, str.length() - 20);
         iLines = 2;
     }
     else
     {
         memcpy(cMsgA, str.c_str(), 20);
         memcpy(cMsgB, str.c_str() + 20, 20);
-        memcpy(cMsgC, str.c_str() + 40, 20);
+        memcpy(cMsgC, str.c_str() + 40, str.length() - 40);
         iLines = 3;
     }
 
