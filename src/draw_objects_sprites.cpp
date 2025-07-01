@@ -915,6 +915,47 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
         case 12: _tmp_cFrame = 7; break;
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    // Replace old positioning code with interpolation
+
+    dx = 0;
+    dy = 0;
+
+    int64_t time_elapsed = dwTime - _tmp_owner_time;
+    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
+    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
+    float interpolated_frame = _tmp_cFrame + cycle_progress;
+    int rounded_interpolated_frame = (int)_tmp_cFrame + cycle_progress;
+
+    switch (_tmp_cDir)
+    {
+        case 1: dy = (32 - (rounded_interpolated_frame * 4)); break;
+        case 2: dy = (32 - (rounded_interpolated_frame * 4)); dx = ((rounded_interpolated_frame * 4) - 32); break;
+        case 3: dx = ((rounded_interpolated_frame * 4) - 32); break;
+        case 4: dx = ((rounded_interpolated_frame * 4) - 32); dy = ((rounded_interpolated_frame * 4) - 32); break;
+        case 5: dy = ((rounded_interpolated_frame * 4) - 32); break;
+        case 6: dy = ((rounded_interpolated_frame * 4) - 32); dx = (32 - (rounded_interpolated_frame * 4)); break;
+        case 7: dx = (32 - (rounded_interpolated_frame * 4)); break;
+        case 8: dx = (32 - (rounded_interpolated_frame * 4)); dy = (32 - (rounded_interpolated_frame * 4)); break;
+    }
+
+    if (is_player)
+    {
+        camera_frame_details.time_elapsed = time_elapsed;
+        camera_frame_details.cycle_progress = cycle_progress;
+        camera_frame_details.frame = _tmp_cFrame;
+        if (camera_frame_details.frame != 4)
+        {
+            camera_frame_details.interpolated_frame = interpolated_frame;
+            camera_frame_details.rounded_interpolated_frame = rounded_interpolated_frame;
+            camera_frame_details.offset_x = dx;
+            camera_frame_details.offset_y = dy;
+        }
+        camera_frame_details.direction = _tmp_cDir;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
     switch (_tmp_sOwnerType)
     {
         case 1:
@@ -1117,8 +1158,6 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
             break;
     }
 
-    dx = 0;
-    dy = 0;
 //     if ((_tmp_cFrame >= 1) && (_tmp_cFrame <= 3))
 //     {
 // 
@@ -1186,38 +1225,6 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
 //             case 8: dx = 32; dy = 32; break;
 //         }
 //     }
-
-    //////////////////////////////////////////////////////////////////////////
-    // Replace old positioning code with interpolation
-
-    int64_t time_elapsed = dwTime - _tmp_owner_time;
-    float cycle_progress = (float)time_elapsed / (float)_tmp_frame_time;
-    cycle_progress = cycle_progress > 1.0f ? 1.0f : cycle_progress;
-    float interpolated_frame = _tmp_cFrame + cycle_progress;
-
-    switch (_tmp_cDir)
-    {
-        case 1: dy = int(28 - (interpolated_frame * 4)); break;
-        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
-        case 3: dx = int((interpolated_frame * 4) - 28); break;
-        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
-        case 5: dy = int((interpolated_frame * 4) - 28); break;
-        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
-        case 7: dx = int(28 - (interpolated_frame * 4)); break;
-        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
-    }
-
-    if (is_player)
-    {
-        camera_frame_details.time_elapsed = time_elapsed;
-        camera_frame_details.cycle_progress = cycle_progress;
-        camera_frame_details.interpolated_frame = interpolated_frame;
-        camera_frame_details.offset_x = dx;
-        camera_frame_details.offset_y = dy;
-        camera_frame_details.direction = _tmp_cDir;
-    }
-
-    //////////////////////////////////////////////////////////////////////////
 
     if (m_bIsCrusadeMode) DrawObjectFOE(sX + dx, sY + dy, _tmp_cFrame);
     if (_tmp_iEffectType != 0)
@@ -1287,7 +1294,7 @@ bool CGame::DrawObject_OnAttackMove(int indexX, int indexY, int sX, int sY, bool
             }
 
             if (bInv == true)
-                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime);
+                m_pSprite[iBodyIndex + (_tmp_cDir - 1)]->put_trans_sprite(sX + dx, sY + dy, _tmp_cFrame, dwTime, 127);
             else
             {
                 if ((_tmp_iStatus & 0x40) != 0)
@@ -4400,14 +4407,14 @@ bool CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, bool bTran
 
     switch (_tmp_cDir)
     {
-        case 1: dy = int(28 - (interpolated_frame * 4)); break;
-        case 2: dy = int(28 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 28); break;
-        case 3: dx = int((interpolated_frame * 4) - 28); break;
-        case 4: dx = int((interpolated_frame * 4) - 28); dy = int((interpolated_frame * 4) - 28); break;
-        case 5: dy = int((interpolated_frame * 4) - 28); break;
-        case 6: dy = int((interpolated_frame * 4) - 28); dx = int(28 - (interpolated_frame * 4)); break;
-        case 7: dx = int(28 - (interpolated_frame * 4)); break;
-        case 8: dx = int(28 - (interpolated_frame * 4)); dy = int(28 - (interpolated_frame * 4)); break;
+        case 1: dy = int(32 - (interpolated_frame * 4)); break;
+        case 2: dy = int(32 - (interpolated_frame * 4)); dx = int((interpolated_frame * 4) - 32); break;
+        case 3: dx = int((interpolated_frame * 4) - 32); break;
+        case 4: dx = int((interpolated_frame * 4) - 32); dy = int((interpolated_frame * 4) - 32); break;
+        case 5: dy = int((interpolated_frame * 4) - 32); break;
+        case 6: dy = int((interpolated_frame * 4) - 32); dx = int(32 - (interpolated_frame * 4)); break;
+        case 7: dx = int(32 - (interpolated_frame * 4)); break;
+        case 8: dx = int(32 - (interpolated_frame * 4)); dy = int(32 - (interpolated_frame * 4)); break;
     }
 
     if (is_player)

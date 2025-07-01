@@ -230,6 +230,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     if (this->m_sPlayerObjectID == m_pMapData->m_pData[dX][dY].m_wObjectID)
                     {
                         self_owner_time = m_pMapData->m_pData[dX][dY].m_dwOwnerTime;
+                        self_action = _tmp_cAction;
                         self_start_time = m_pMapData->m_pData[dX][dY].start_time;
                         self_frame_time = m_pMapData->m_pData[dX][dY].frame_time;
                         self_max_frames = m_pMapData->m_pData[dX][dY].max_frames;
