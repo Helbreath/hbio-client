@@ -257,10 +257,18 @@ void CGame::on_input_event(sf::Event event)
                     }
                     break;
                 case Keyboard::Add:
-                    if (m_bInputStatus == false) m_bZoomMap = true;
+                    //testx++;
+                    if (m_altPressed) debug_x2++;
+                    else debug_x1++;
+                    //if (m_bInputStatus == false) m_bZoomMap = true;
+                    //m_stMCursor.sCursorFrame++;
                     break;
                 case Keyboard::Subtract:
-                    if (m_bInputStatus == false) m_bZoomMap = false;
+                    //testx--;
+                    if (m_altPressed) debug_x2--;
+                    else debug_x1--;
+                    //if (m_bInputStatus == false) m_bZoomMap = false;
+                    //m_stMCursor.sCursorFrame--;
                     break;
                 case Keyboard::F2:
                     UseShortCut(1);

@@ -59,9 +59,9 @@ public:
     void put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime);
     void put_sprite_fast_no_color_key(int sX, int sY, int sFrame, int64_t dwTime);
 
-    void put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 30);
+    void put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255);
     void put_trans_sprite2(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 0);
+    void put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255);
     void put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime);
     void put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime);
     void put_trans_sprite70(int sX, int sY, int sFrame, int64_t dwTime);

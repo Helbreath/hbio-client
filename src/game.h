@@ -75,16 +75,26 @@ public:
         int64_t time_elapsed;
         float cycle_progress;
         float interpolated_frame;
+        int rounded_interpolated_frame;
+        int16_t frame;
         int16_t offset_x;
         int16_t offset_y;
         char direction;
     } camera_frame_details;
+
+    int64_t debug_x1{ 0 };
+    int64_t debug_y1{ 0 };
+    int64_t debug_x2{ 0 };
+    int64_t debug_y2{ 0 };
+
 
     int64_t self_owner_time{ 0 };
     int64_t self_start_time{ 0 };
     int64_t self_frame_time{ 0 };
     uint16_t self_frame{ 0 };
     uint16_t self_max_frames{ 0 };
+    int64_t self_time_direction{ 0 };
+    int64_t self_action{ 0 };
 
     bool camera_reset = false;
     bool dashing = false;
