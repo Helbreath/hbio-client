@@ -407,7 +407,7 @@ bool CGame::GameRecvMsgHandler(char * pData, uint32_t dwMsgSize)
             return true;
 
         case MSGID_PLAYERITEMLISTCONTENTS:
-            InitItemList(pData);
+            InitItemList(sr);
             return true;
 
         case MSGID_NOTIFY:
@@ -2453,6 +2453,9 @@ void CGame::MotionEventHandler(char * pData)
     wp = (uint16_t *)cp;
     wObjectID = *wp;
     cp += 2;
+
+    //if (wObjectID != this->m_sPlayerObjectID)
+    //    return;
 
     iLoc = 0;
 

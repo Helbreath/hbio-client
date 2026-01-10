@@ -19,6 +19,7 @@
 #include "global_def.h"
 
 using sf::Color;
+using sf::RenderStates;
 
 using stBrush = struct stBrushtag
 {
@@ -40,47 +41,47 @@ public:
     sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true, int sprite_id = 0);
     ~sprite();
     static sprite * create_sprite(std::string cPakFileName, short sNthFile, bool bAlphaEffect = true, int sprite_id = 0);
-    void draw_sub_sprite(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void draw_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255));
-    void draw_sprite(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, int64_t dwTime = 0, Color color = Color(255, 255, 255));
-    void draw_sprite_colored(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255));
-    void draw_to(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255), int draw_mode = DS_VISIBLE);
-    void draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime, Color color = Color(255, 255, 255));
-    void draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(20, 20, 20, 200));
+    void draw_sub_sprite(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_sprite(int sX, int sY, int sFrame, int64_t dwTime = 0, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, int64_t dwTime = 0, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_sprite_colored(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_to(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(255, 255, 255), int draw_mode = DS_VISIBLE, const RenderStates & states = RenderStates::Default);
+    void draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime, Color color = Color(255, 255, 255), const RenderStates & states = RenderStates::Default);
+    void draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color = Color(20, 20, 20, 200), RenderStates states = RenderStates::Default);
 
-    void put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime);
+    void put_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
-    void put_sprite_fast(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime);
-    void put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime);
-    void put_sprite_fast_front_buffer(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime);
-    void put_sprite_fast_no_color_key(int sX, int sY, int sFrame, int64_t dwTime);
+    void put_sprite_fast(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_shift_sprite_fast(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_shift_trans_sprite2(int sX, int sY, int shX, int shY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_sprite_fast_front_buffer(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_sprite_fast_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_sprite_fast_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
-    void put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255);
-    void put_trans_sprite2(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255);
-    void put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime);
-    void put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime);
-    void put_trans_sprite70(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite50(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite25(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, int64_t dwTime);
+    void put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite2(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 255, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite_rgb_no_color_key(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite_color(int sX, int sY, int sFrame, int sRed, int sGreen, int sBlue, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite70(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite50(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite25(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite70_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
-    void put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime);
-    void put_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime);
+    void put_trans_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_sprite_color(int sX, int sY, int sFrame, uint32_t color, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
-    void put_shadow_sprite_clip(int sX, int sY, int sFrame, int64_t dwTime);
-    void put_shadow_sprite(int sX, int sY, int sFrame, int64_t dwTime);
+    void put_shadow_sprite_clip(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_shadow_sprite(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
-    void put_reverse_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 0);
+    void put_reverse_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth = 0, const RenderStates & states = RenderStates::Default);
 
-    void put_fade_sprite(short sX, short sY, short sFrame, int64_t dwTime);
-    void put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, int64_t dwTime);
+    void put_fade_sprite(short sX, short sY, short sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
+    void put_fade_sprite_destination(uint16_t * pDstAddr, short sPitch, short sX, short sY, short sFrame, int64_t dwTime, const RenderStates & states = RenderStates::Default);
 
     bool check_collison(int sX, int sY, short sFrame, int msX, int msY);
     void get_sprite_rect(int sX, int sY, int sFrame);

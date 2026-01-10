@@ -260,6 +260,7 @@ void CGame::on_input_event(sf::Event event)
                     //testx++;
                     if (m_altPressed) debug_x2++;
                     else debug_x1++;
+                    window.setFramerateLimit(++frame_limit);
                     //if (m_bInputStatus == false) m_bZoomMap = true;
                     //m_stMCursor.sCursorFrame++;
                     break;
@@ -267,6 +268,7 @@ void CGame::on_input_event(sf::Event event)
                     //testx--;
                     if (m_altPressed) debug_x2--;
                     else debug_x1--;
+                    window.setFramerateLimit(--frame_limit);
                     //if (m_bInputStatus == false) m_bZoomMap = false;
                     //m_stMCursor.sCursorFrame--;
                     break;
@@ -1272,7 +1274,9 @@ void CGame::create_window()
 
     window.setVerticalSyncEnabled(vsync);
 
-    frame_limit = 0;
+    frame_limit = 20;
+
+    window.setFramerateLimit(frame_limit);
 }
 
 bool CGame::create_renderer()

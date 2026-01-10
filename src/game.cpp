@@ -636,8 +636,8 @@ bool CGame::bInit()
     m_cMenuDirCnt = 0;
     m_cMenuFrame = 0;
 
-    m_cSoundVolume = 100;
-    m_cMusicVolume = 100;
+    m_cSoundVolume = 10;
+    m_cMusicVolume = 10;
 
     m_wWR[0] = 0; m_wWG[0] = 0; m_wWB[0] = 0; // Black
     m_wWR[1] = 70; m_wWG[1] = 70; m_wWB[1] = 80; // Light-blue
@@ -1059,13 +1059,7 @@ bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1
             memcpy(cp, m_cPlayerName, 10);
             cp += 10;
 
-            memcpy(cp, m_cAccountName, 10);
-            cp += 10;
-
-            memcpy(cp, m_cAccountPassword, 10);
-            cp += 10;
-
-            memcpy(cp, m_cWorldServerName, 30);
+            memcpy(cp, world_name.c_str(), world_name.length());
             cp += 30;
 
             *cp = m_cGender;
@@ -1101,7 +1095,7 @@ bool CGame::bSendCommand(uint32_t dwMsgID, uint16_t wCommand, char cDir, int iV1
             *cp = m_ccChr;
             cp++;
 
-            iRet = send_message(cMsg, 77, cKey);
+            iRet = send_message(cMsg, 57, cKey);
             break;
 
         case MSGID_REQUEST_ENTERGAME:

@@ -246,7 +246,9 @@ void CGame::DrawEffects()
                     cTempFrame = m_pEffectList[i]->m_cFrame;
                     if (cTempFrame < 0) break;
 
-                    m_pEffectSpr[18]->put_trans_sprite70_no_color_key(dX, dY, cTempFrame, dwTime);
+                    //m_pEffectSpr[18]->put_trans_sprite70_no_color_key(dX, dY, cTempFrame, dwTime);
+
+                    m_pEffectSpr[18]->put_trans_sprite_no_color_key(dX, dY, cTempFrame, dwTime);
                     break;
 
                 case 30:

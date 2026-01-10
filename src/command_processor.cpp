@@ -1487,7 +1487,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
                 bGORet = m_pMapData->bGetOwner(m_sCommX, m_sCommY, pDstName, &sDstOwnerType, &iDstOwnerStatus, &m_wCommObjectID);
 
                 if ((m_sPlayerX == m_sCommX) && (m_sPlayerY == m_sCommY))
-                    m_cCommand = DEF_OBJECTSTOP;
+                    m_cCommand = DEF_OBJECTSTOP;// this ensures the player comes to a stop at the end of their activity
                 else if ((abs(m_sPlayerX - m_sCommX) <= 1) && (abs(m_sPlayerY - m_sCommY) <= 1) &&
                     (bGORet == true) && (sDstOwnerType != 0))
                     m_cCommand = DEF_OBJECTSTOP;

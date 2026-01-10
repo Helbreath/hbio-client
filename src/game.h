@@ -137,6 +137,7 @@ public:
 
     std::string login_address;
     uint16_t login_port;
+    std::string world_name;
 
     fps fps_counter;
     int send_message(char * cData, std::size_t dwSize, char cKey = 0);
@@ -264,6 +265,7 @@ public:
     std::recursive_mutex connection_mut;
     std::mutex effect_mtx;
     std::mutex loading_mtx;
+    std::mutex map_sprite_mtx;
 
     sf::RenderTexture visible;
     sf::RenderTexture bg;
@@ -1195,7 +1197,7 @@ public:
     int iGetTopDialogBoxIndex();
     void DisableDialogBox(int iBoxID);
     void EnableDialogBox(int iBoxID, int cType, int sV1, int sV2, char * pString = 0);
-    void InitItemList(char * pData);
+    void InitItemList(stream_read & sr);
     int _iCheckDlgBoxFocus(short msX, short msY, char cButtonSide);
     void GetPlayerTurn();
 

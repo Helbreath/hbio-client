@@ -4298,7 +4298,7 @@ void CGame::DlbBoxDoubleClick_GuideMap(short msX, short msY)
 
 void CGame::DlbBoxDoubleClick_Inventory(short msX, short msY)
 {
-    register int i;
+    int i;
     char  cItemID, cTxt[120];
     short sX, sY, x1, x2, y1, y2;
     char cStr1[64], cStr2[64], cStr3[64];

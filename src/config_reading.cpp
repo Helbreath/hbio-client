@@ -939,19 +939,13 @@ bool CGame::bInitSkillCfgList()
     return true;
 }
 
-void CGame::InitItemList(char * pData)
+void CGame::InitItemList(stream_read & sr)
 {
     char    cTotalItems;
     int     i;
-    short * sp;
-    uint32_t * dwp;
-    uint16_t * wp;
-    char * cp;
-
 
     for (i = 0; i < DEF_MAXITEMS; i++)
         m_cItemOrder[i] = -1;
-
 
     for (i = 0; i < DEF_MAXITEMEQUIPPOS; i++)
         m_sItemEquipmentStatus[i] = -1;
@@ -959,10 +953,11 @@ void CGame::InitItemList(char * pData)
     for (i = 0; i < DEF_MAXITEMS; i++)
         m_bIsItemDisabled[i] = false;
 
-    cp = (char *)(pData + DEF_INDEX2_MSGTYPE + 2);
+    sr.reset_pos();
+    sr.read_int32();
+    sr.read_int16();
 
-    cTotalItems = *cp;
-    cp++;
+    cTotalItems = sr.read_byte();
 
     for (i = 0; i < DEF_MAXITEMS; i++)
         if (m_pItemList[i] != nullptr)
@@ -981,62 +976,41 @@ void CGame::InitItemList(char * pData)
     for (i = 0; i < cTotalItems; i++)
     {
         m_pItemList[i] = new CItem;
-        memcpy(m_pItemList[i]->m_cName, cp, 20);
-        cp += 20;
+        memcpy(m_pItemList[i]->m_cName, sr.read_string(20).c_str(), 20);
 
-        dwp = (uint32_t *)cp;
-        m_pItemList[i]->m_dwCount = *dwp;
+        m_pItemList[i]->m_dwCount = sr.read_uint32();
         m_pItemList[i]->m_sX = 40;
         m_pItemList[i]->m_sY = 30;
-        cp += 4;
 
-        m_pItemList[i]->m_cItemType = *cp;
-        cp++;
+        m_pItemList[i]->m_cItemType = sr.read_byte();
 
-        m_pItemList[i]->m_cEquipPos = *cp;
-        cp++;
+        m_pItemList[i]->m_cEquipPos = sr.read_byte();
 
-        if (*cp == 0) m_bIsItemEquipped[i] = false;
+        if (sr.read_byte() == 0) m_bIsItemEquipped[i] = false;
         else m_bIsItemEquipped[i] = true;
-        cp++;
 
         if (m_bIsItemEquipped[i] == true)
         {
 
             m_sItemEquipmentStatus[m_pItemList[i]->m_cEquipPos] = i;
         }
-        sp = (short *)cp;
-        m_pItemList[i]->m_sLevelLimit = *sp;
-        cp += 2;
+        m_pItemList[i]->m_sLevelLimit = sr.read_int16();
 
-        m_pItemList[i]->m_cGenderLimit = *cp;
-        cp++;
+        m_pItemList[i]->m_cGenderLimit = sr.read_byte();
 
-        wp = (uint16_t *)cp;
-        m_pItemList[i]->m_wCurLifeSpan = *wp;
-        cp += 2;
+        m_pItemList[i]->m_wCurLifeSpan = sr.read_uint16();
 
-        wp = (uint16_t *)cp;
-        m_pItemList[i]->m_wWeight = *wp;
-        cp += 2;
+        m_pItemList[i]->m_wWeight = sr.read_uint16();
 
-        sp = (short *)cp;
-        m_pItemList[i]->m_sSprite = *sp;
-        cp += 2;
+        m_pItemList[i]->m_sSprite = sr.read_int16();
 
-        sp = (short *)cp;
-        m_pItemList[i]->m_sSpriteFrame = *sp;
-        cp += 2;
+        m_pItemList[i]->m_sSpriteFrame = sr.read_int16();
 
-        m_pItemList[i]->m_cItemColor = *cp;
-        cp++;
+        m_pItemList[i]->m_cItemColor = sr.read_byte();
 
-        m_pItemList[i]->m_sItemSpecEffectValue2 = (short)*cp;
-        cp++;
+        m_pItemList[i]->m_sItemSpecEffectValue2 = sr.read_byte();
 
-        dwp = (uint32_t *)cp;
-        m_pItemList[i]->m_dwAttribute = *dwp;
-        cp += 4;
+        m_pItemList[i]->m_dwAttribute = sr.read_uint32();
         /*
         m_pItemList[i]->m_bIsCustomMade = (bool)*cp;
         cp++;
@@ -1045,9 +1019,7 @@ void CGame::InitItemList(char * pData)
         m_cItemOrder[i] = i;
     }
 
-    cTotalItems = *cp;
-    cp++;
-
+    cTotalItems = sr.read_byte();
 
     for (i = 0; i < DEF_MAXBANKITEMS; i++)
         if (m_pBankList[i] != nullptr)
@@ -1059,54 +1031,34 @@ void CGame::InitItemList(char * pData)
     for (i = 0; i < cTotalItems; i++)
     {
         m_pBankList[i] = new CItem;
-        memcpy(m_pBankList[i]->m_cName, cp, 20);
-        cp += 20;
+        memcpy(m_pBankList[i]->m_cName, sr.read_string(20).c_str(), 20);
 
-        dwp = (uint32_t *)cp;
-        m_pBankList[i]->m_dwCount = *dwp;
-        cp += 4;
+        m_pBankList[i]->m_dwCount = sr.read_uint32();
 
         m_pBankList[i]->m_sX = 40;
         m_pBankList[i]->m_sY = 30;
 
-        m_pBankList[i]->m_cItemType = *cp;
-        cp++;
+        m_pBankList[i]->m_cItemType = sr.read_byte();
 
-        m_pBankList[i]->m_cEquipPos = *cp;
-        cp++;
+        m_pBankList[i]->m_cEquipPos = sr.read_byte();
 
-        sp = (short *)cp;
-        m_pBankList[i]->m_sLevelLimit = *sp;
-        cp += 2;
+        m_pBankList[i]->m_sLevelLimit = sr.read_int16();
 
-        m_pBankList[i]->m_cGenderLimit = *cp;
-        cp++;
+        m_pBankList[i]->m_cGenderLimit = sr.read_byte();
 
-        wp = (uint16_t *)cp;
-        m_pBankList[i]->m_wCurLifeSpan = *wp;
-        cp += 2;
+        m_pBankList[i]->m_wCurLifeSpan = sr.read_uint16();
 
-        wp = (uint16_t *)cp;
-        m_pBankList[i]->m_wWeight = *wp;
-        cp += 2;
+        m_pBankList[i]->m_wWeight = sr.read_uint16();
 
-        sp = (short *)cp;
-        m_pBankList[i]->m_sSprite = *sp;
-        cp += 2;
+        m_pBankList[i]->m_sSprite = sr.read_int16();
 
-        sp = (short *)cp;
-        m_pBankList[i]->m_sSpriteFrame = *sp;
-        cp += 2;
+        m_pBankList[i]->m_sSpriteFrame = sr.read_int16();
 
-        m_pBankList[i]->m_cItemColor = *cp;
-        cp++;
+        m_pBankList[i]->m_cItemColor = sr.read_byte();
 
-        m_pBankList[i]->m_sItemSpecEffectValue2 = (short)*cp;
-        cp++;
+        m_pBankList[i]->m_sItemSpecEffectValue2 = (short)sr.read_byte();
 
-        dwp = (uint32_t *)cp;
-        m_pBankList[i]->m_dwAttribute = *dwp;
-        cp += 4;
+        m_pBankList[i]->m_dwAttribute = sr.read_uint32();
         /*
         m_pBankList[i]->m_bIsCustomMade = (bool)*cp;
         cp++;
@@ -1116,15 +1068,13 @@ void CGame::InitItemList(char * pData)
 
     for (i = 0; i < DEF_MAXMAGICTYPE; i++)
     {
-        m_cMagicMastery[i] = *cp;
-        cp++;
+        m_cMagicMastery[i] = sr.read_byte();
     }
 
     for (i = 0; i < DEF_MAXSKILLTYPE; i++)
     {
-        m_cSkillMastery[i] = (unsigned char)*cp;
+        m_cSkillMastery[i] = (unsigned char)sr.read_byte();
         if (m_pSkillCfgList[i] != nullptr)
-            m_pSkillCfgList[i]->m_iLevel = (int)*cp;
-        cp++;
+            m_pSkillCfgList[i]->m_iLevel = (int)m_cSkillMastery[i];
     }
 }

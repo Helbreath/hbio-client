@@ -1135,6 +1135,13 @@ bool __fastcall CMapData::bSetOwner(uint16_t wObjectID, int sX, int sY, int sTyp
     int64_t dwTime{};
     int iEffectType{}, iEffectFrame{}, iEffectTotalFrame{};
 
+    std::lock_guard<std::mutex> lgame(m_pGame->map_sprite_mtx);
+
+    if (sAction == DEF_OBJECTSTOP)
+    {
+        int asdf = 0;
+    }
+
     memset(cTmpName, 0, sizeof(cTmpName));
     strcpy(cTmpName, pName);
     dwTime = m_dwFrameTime;

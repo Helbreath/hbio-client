@@ -57,6 +57,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
     static uint32_t dwMCAnimTime = G_dwGlobalTime;
     static mouse_cursor sMCAnimFrame = mouse_cursor::GrabbingHandOpen;
 
+    //std::lock_guard<std::mutex> lock(map_sprite_mtx);
+
     if (sDivY < 0 || sDivX < 0) return;
     m_sMCX = 0;
     m_sMCY = 0;
@@ -209,6 +211,8 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
                     _tmp_dY = dY = indexY;
                     _tmp_wObjectID = m_pMapData->m_pData[dX][dY].m_wObjectID;
                     _tmp_sOwnerType = m_pMapData->m_pData[dX][dY].m_sOwnerType;
+                    if (m_pMapData->m_pData[dX][dY].m_cOwnerAction == 0)
+                        int a = 123;
                     _tmp_cAction = m_pMapData->m_pData[dX][dY].m_cOwnerAction;
                     _tmp_iStatus = m_pMapData->m_pData[dX][dY].m_iStatus;
                     _tmp_cDir = m_pMapData->m_pData[dX][dY].m_cDir;

@@ -123,6 +123,7 @@ int main(int argc, char * argv[])
     game->set_virtual_resolution(read_property(cfg, "vxresolution", 800), read_property(cfg, "vyresolution", 600));
     game->dev_mode.wss = read_property(cfg, "wss", true);
     game->login_address = read_property(cfg, "login_address", std::string(""));
+    game->world_name = read_property(cfg, "world_name", std::string(""));
     game->login_port = read_property(cfg, "login_port", 80);
     game->core_usage = read_property(cfg, "core_usage", 0);
 
