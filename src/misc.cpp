@@ -283,7 +283,7 @@ int CMisc::iGetTextLengthLoc(sf::Text & text, char * pStr, int iLength)
 
     std::string s{ pStr };
 
-    text.setPosition(0.f, 0.f);
+    text.setPosition({0.f, 0.f});
 
     int last_space = 0;
     int lines = 0;

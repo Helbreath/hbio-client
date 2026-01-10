@@ -153,7 +153,6 @@ int main(int argc, char * argv[])
     game->m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU] = sprite::create_sprite("New-Dialog", 1, false);
     game->m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT] = sprite::create_sprite("New-Dialog", 2, false);
 
-    sf::Event evt;
     sf::RenderWindow & window = game->window;
 
     while (window.isOpen() && isrunning)
@@ -162,17 +161,17 @@ int main(int argc, char * argv[])
         game->OnTimer();
         game->fps_counter.update();
 
-        while (window.pollEvent(evt))
+        while (const std::optional<sf::Event> event = window.pollEvent())
         {
 
-            if (evt.type == sf::Event::Closed)
+            if (event->is<sf::Event::Closed>())
             {
                 isrunning = false;
                 window.close();
                 break;
             }
 
-            game->on_input_event(evt);
+            game->on_input_event(event.value());
         }
 
         {

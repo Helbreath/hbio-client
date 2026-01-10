@@ -3794,38 +3794,38 @@ void CGame::ChangeGameMode(char cMode)
     }
     disconnecting = false;
 
-    {
-        std::unique_lock<std::mutex> lock(thread_mut);
-        if (mapdata_object_counter)
-        {
-            mapdata_object_counter->join();
-            mapdata_object_counter.reset();
-        }
+    //{
+    //    std::unique_lock<std::mutex> lock(thread_mut);
+    //    if (mapdata_object_counter)
+    //    {
+    //        mapdata_object_counter->join();
+    //        mapdata_object_counter.reset();
+    //    }
 
-        if (cMode == DEF_GAMEMODE_ONMAINGAME && !mapdata_object_counter)
-        {
-            mapdata_object_counter = std::make_unique<std::thread>([&]()
-                {
-                    try
-                    {
-                        while (get_game_mode() == DEF_GAMEMODE_ONMAINGAME)
-                        {
-                            {
-                                std::unique_lock<std::mutex> l(screen_mtx);
-                                m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY);
-                                if (effect_frame_counter() == true) update_effects = true;
-                                weather_object_frame_counter();
-                            }
-                            std::this_thread::sleep_for(10ms);
-                        }
-                    }
-                    catch (std::exception & ex)
-                    {
-                        std::cout << ex.what() << '\n';
-                    }
-                });
-        }
-    }
+    //    if (cMode == DEF_GAMEMODE_ONMAINGAME && !mapdata_object_counter)
+    //    {
+    //        mapdata_object_counter = std::make_unique<std::thread>([&]()
+    //            {
+    //                try
+    //                {
+    //                    while (get_game_mode() == DEF_GAMEMODE_ONMAINGAME)
+    //                    {
+    //                        {
+    //                            std::unique_lock<std::mutex> l(screen_mtx);
+    //                            m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY);
+    //                            if (effect_frame_counter() == true) update_effects = true;
+    //                            weather_object_frame_counter();
+    //                        }
+    //                        std::this_thread::sleep_for(10ms);
+    //                    }
+    //                }
+    //                catch (std::exception & ex)
+    //                {
+    //                    std::cout << ex.what() << '\n';
+    //                }
+    //            });
+    //    }
+    //}
 
     if (cMode == DEF_GAMEMODE_ONSELECTCHARACTER)
     {
@@ -6511,29 +6511,29 @@ void CGame::PlaySound(char cType, int iNum, int iDist, long lPan)
     {
         case 'C':
             if (iNum >= MAX_CHARACTER_SOUNDS) return;
-            m_pCSound[iNum].setMinDistance(4.f);
-            m_pCSound[iNum].setAttenuation(1.f);
-            m_pCSound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
-            m_pCSound[iNum].setVolume(m_cSoundVolume);
-            m_pCSound[iNum].play();
+            m_pCSound[iNum]->setMinDistance(4.f);
+            m_pCSound[iNum]->setAttenuation(1.f);
+            m_pCSound[iNum]->setPosition({ (float)fPan, 0.f, 0.f });
+            m_pCSound[iNum]->setVolume(m_cSoundVolume);
+            m_pCSound[iNum]->play();
             break;
 
         case 'M':
             if (iNum >= MAX_MONSTER_SOUNDS) return;
-            m_pMSound[iNum].setMinDistance(4.f);
-            m_pMSound[iNum].setAttenuation(1.f);
-            m_pMSound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
-            m_pMSound[iNum].setVolume(m_cSoundVolume);
-            m_pMSound[iNum].play();
+            m_pMSound[iNum]->setMinDistance(4.f);
+            m_pMSound[iNum]->setAttenuation(1.f);
+            m_pMSound[iNum]->setPosition({ (float)fPan, 0.f, 0.f });
+            m_pMSound[iNum]->setVolume(m_cSoundVolume);
+            m_pMSound[iNum]->play();
             break;
 
         case 'E':
             if (iNum >= MAX_EFFECT_SOUNDS) return;
-            m_pESound[iNum].setMinDistance(4.f);
-            m_pESound[iNum].setAttenuation(1.f);
-            m_pESound[iNum].setPosition({ (float)fPan, 0.f, 0.f });
-            m_pESound[iNum].setVolume(m_cSoundVolume);
-            m_pESound[iNum].play();
+            m_pESound[iNum]->setMinDistance(4.f);
+            m_pESound[iNum]->setAttenuation(1.f);
+            m_pESound[iNum]->setPosition({ (float)fPan, 0.f, 0.f });
+            m_pESound[iNum]->setVolume(m_cSoundVolume);
+            m_pESound[iNum]->play();
             break;
     }
 }
@@ -6857,7 +6857,7 @@ void CGame::SetWhetherStatus(bool bStart, char cType)
     {
         m_bIsWhetherEffect = true;
         m_cWhetherEffectType = cType;
-        if ((m_bSoundStat == true) && (m_bSoundFlag) && (cType >= 1) && (cType <= 3)) m_pESound[38].play();
+        if ((m_bSoundStat == true) && (m_bSoundFlag) && (cType >= 1) && (cType <= 3)) m_pESound[38]->play();
 
         for (int i = 0; i < DEF_MAXWEATHEROBJECTS; i++)
         {
@@ -6874,7 +6874,7 @@ void CGame::SetWhetherStatus(bool bStart, char cType)
     {
         m_bIsWhetherEffect = false;
         m_cWhetherEffectType = 0;
-        if ((m_bSoundStat == true) && (m_bSoundFlag)) m_pESound[38].stop();
+        if ((m_bSoundStat == true) && (m_bSoundFlag)) m_pESound[38]->stop();
     }
 }
 
@@ -7624,28 +7624,25 @@ void CGame::CreateScreenShot()
     time_t t = time(nullptr); // get time now
     struct tm * now = localtime(&t);
 
-    _text.setOutlineThickness(0);
-    _text.setFont(*default_font);
-    _text.setString("Helbreath Xtreme");
-    _text.setFillColor(sf::Color::White);
-    sf::FloatRect bounds = _text.getLocalBounds();
-    _text.setPosition(float(get_width() - 180), 10.f);
-    _text.setCharacterSize(12);
+    _text->setOutlineThickness(0);
+    _text->setFont(*default_font);
+    _text->setString("Helbreath Xtreme");
+    _text->setFillColor(sf::Color::White);
+    sf::FloatRect bounds = _text->getLocalBounds();
+    _text->setPosition({float(get_width() - 180), 10.f});
+    _text->setCharacterSize(12);
 
-    sf::Texture tex;
-    sf::RenderTexture rtex;
-    tex.create(window.getSize().x, window.getSize().y);
-    rtex.create(window.getSize().x, window.getSize().y);
+    sf::Texture tex(sf::Vector2u{ window.getSize().x, window.getSize().y });
+    sf::RenderTexture rtex({ window.getSize().x, window.getSize().y });
     tex.update(window);
 
-    sf::Sprite sprite;
-    sprite.setTexture(tex);
+    sf::Sprite sprite(tex);
 
     rtex.draw(sprite);
-    rtex.draw(_text);
-    _text.setString(fmt::format("%F %T"));
-    _text.setPosition(float(get_width() - 180), 30.f);
-    rtex.draw(_text);
+    rtex.draw(*_text);
+    _text->setString(fmt::format("%F %T"));
+    _text->setPosition({float(get_width() - 180), 30.f});
+    rtex.draw(*_text);
 
     auto ret = _mkdir("screenshots");
     std::string tempstr;
@@ -9670,7 +9667,7 @@ void CGame::StartBGM()
 {
     if (m_bSoundFlag == false)
     {
-        m_pBGM.stop();
+        m_pBGM->stop();
         return;
     }
 
@@ -9703,16 +9700,16 @@ void CGame::StartBGM()
     // track is already current buffer. is it playing?
     if (bgm_current == music_name)
     {
-        if (m_pBGM.getStatus() != sf::Sound::Playing) m_pBGM.play();
+        if (m_pBGM->getStatus() != sf::SoundSource::Status::Playing) m_pBGM->play();
         return;
     }
 
-    m_pBGM.stop();
+    if (m_pBGM) m_pBGM->stop();
+    else m_pBGM = std::make_unique<sf::Sound>(bgmbuffer);
     bgmbuffer.loadFromFile(fmt::format("data\\music\\{}.ogg", music_name));
-    m_pBGM.setBuffer(bgmbuffer);
-    m_pBGM.setLoop(true);
-    m_pBGM.setVolume(m_cMusicVolume);
-    m_pBGM.play();
+    m_pBGM->setLooping(true);
+    m_pBGM->setVolume(m_cMusicVolume);
+    m_pBGM->play();
     bgm_current = music_name;
 }
 

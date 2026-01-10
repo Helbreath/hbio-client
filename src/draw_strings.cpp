@@ -186,24 +186,24 @@ void CGame::render_item_details_box(uint16_t iX, uint16_t iY, std::vector<chat_m
     if (strings.empty())
         return;
 
-    item_box.clear(background_color);
+    item_box->clear(background_color);
 
     uint16_t width = 0;
     uint16_t height = 5;
 
     for (int i = 0; i < strings.size(); i++)
     {
-        _text.setOutlineThickness(0);
-        _text.setFont(*arya_font);
-        _text.setString(strings[i].msg);
-        _text.setFillColor(strings[i].color);
-        _text.setPosition(5.f, (float)height);
-        _text.setCharacterSize(strings[i].size);
-        item_box.draw(_text);
+        _text->setOutlineThickness(0);
+        _text->setFont(*arya_font);
+        _text->setString(strings[i].msg);
+        _text->setFillColor(strings[i].color);
+        _text->setPosition({5.f, (float)height});
+        _text->setCharacterSize(strings[i].size);
+        item_box->draw(*_text);
 
-        sf::FloatRect bounds = _text.getLocalBounds();
-        if (bounds.width + 5.f > width)
-            width = bounds.width + 5.f;
+        sf::FloatRect bounds = _text->getLocalBounds();
+        if (bounds.size.x + 5.f > width)
+            width = bounds.size.x + 5.f;
         height += strings[i].size * 1.3;
     }
 
@@ -217,12 +217,12 @@ void CGame::render_item_details_box(uint16_t iX, uint16_t iY, std::vector<chat_m
         sf::Vertex(sf::Vector2f(float(width - 1), 1.f), Color(200, 200, 200)),
         sf::Vertex(sf::Vector2f(1.f, 1.f), Color(200, 200, 200)),
     };
-    item_box.draw(line, 5, sf::LineStrip);
+    item_box->draw(line, 5, sf::PrimitiveType::LineStrip);
 
-    item_box.display();
-    sf::Sprite sprite(item_box.getTexture());
-    sprite.setPosition((float)iX, (float)iY);
-    sprite.setTextureRect({ 0, 0, width, height });
+    item_box->display();
+    sf::Sprite sprite(item_box->getTexture());
+    sprite.setPosition({ (float)iX, (float)iY });
+    sprite.setTextureRect(sprite.getTextureRect());
     draw(sprite);
 }
 
@@ -273,10 +273,10 @@ void CGame::put_chat_string(uint16_t iX, uint16_t iY, std::string pString, Color
 
 void CGame::put_chat_window_string(uint16_t iX, uint16_t iY, std::string pString, Color color)
 {
-    chat_window_text.setString(pString);
-    chat_window_text.setFillColor(color);
-    chat_window_text.setPosition((float)iX, (float)iY);
-    draw(chat_window_text);
+    chat_window_text->setString(pString);
+    chat_window_text->setFillColor(color);
+    chat_window_text->setPosition({ (float)iX, (float)iY });
+    draw(*chat_window_text);
 }
 
 void CGame::put_font_string_size(sf::Font * font, uint16_t iX, uint16_t iY, std::string text, Color color, int size, int outline_size, Color outline_color)
@@ -286,17 +286,17 @@ void CGame::put_font_string_size(sf::Font * font, uint16_t iX, uint16_t iY, std:
 
 void CGame::draw_generic_text(sf::Font * font, uint16_t iX, uint16_t iY, std::string_view text, Color color, int size, int outline_size, Color outline_color)
 {
-    _text.setFont(*font);
-    _text.setString(std::string(text));
-    _text.setFillColor(color);
-    _text.setOutlineColor(outline_color);
+    _text->setFont(*font);
+    _text->setString(std::string(text));
+    _text->setFillColor(color);
+    _text->setOutlineColor(outline_color);
     if (outline_size > 0)
-        _text.setOutlineThickness(outline_size);
+        _text->setOutlineThickness(outline_size);
     else
-        _text.setOutlineThickness(0);
-    _text.setPosition((float)iX, (float)iY);
-    _text.setCharacterSize(size);
-    draw(_text);
+        _text->setOutlineThickness(0);
+    _text->setPosition({ (float)iX, (float)iY });
+    _text->setCharacterSize(size);
+    draw(*_text);
 }
 
 void CGame::put_font_string(sf::Font * font, uint16_t iX, uint16_t iY, std::string text, Color color)
@@ -306,34 +306,34 @@ void CGame::put_font_string(sf::Font * font, uint16_t iX, uint16_t iY, std::stri
 
 void CGame::put_aligned_string(uint16_t iX1, uint16_t iX2, uint16_t iY, std::string text, Color color, int size)
 {
-    _text.setOutlineThickness(0);
-    _text.setFont(*default_font);
-    _text.setString(text);
-    _text.setFillColor(color);
-    _text.setCharacterSize(size);
-    sf::FloatRect bounds = _text.getLocalBounds();
+    _text->setOutlineThickness(0);
+    _text->setFont(*default_font);
+    _text->setString(text);
+    _text->setFillColor(color);
+    _text->setCharacterSize(size);
+    sf::FloatRect bounds = _text->getLocalBounds();
     // convert to int first to avoid sub-pixel blurring
-    _text.setPosition(float(int(iX1 + (iX2 - iX1 - bounds.width) / 2)), iY);
+    _text->setPosition({ float(iX1 + (iX2 - iX1 - bounds.size.x) / 2), (float)iY });
 
-    draw(_text);
+    draw(*_text);
 }
 
 void CGame::put_overhead_string(uint16_t x, uint16_t y, std::string text, Color color, int multiplier, bool transparency, int size)
 {
-    overhead_text.setString(text);
-    overhead_text.setFillColor(Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, transparency ? 200 : 255));
-    overhead_text.setPosition((float)x, (float)y);
-    overhead_text.setCharacterSize(size);
-    draw(overhead_text);
+    overhead_text->setString(text);
+    overhead_text->setFillColor(Color(color.r * multiplier, color.g * multiplier, color.b * multiplier, transparency ? 200 : 255));
+    overhead_text->setPosition({ (float)x, (float)y });
+    overhead_text->setCharacterSize(size);
+    draw(*overhead_text);
 }
 
 void CGame::put_under_entity_string(uint16_t x, uint16_t y, std::string text, Color color, uint8_t size)
 {
-    under_text.setString(text);
-    under_text.setFillColor(color);
-    under_text.setPosition((float)x, (float)y);
-    under_text.setCharacterSize(size);
-    draw(under_text);
+    under_text->setString(text);
+    under_text->setFillColor(color);
+    under_text->setPosition({ (float)x, (float)y });
+    under_text->setCharacterSize(size);
+    draw(*under_text);
 }
 
 void CGame::put_string_sprite_font4(uint16_t iX, uint16_t iY, std::string_view pStr, uint8_t sR, uint8_t sG, uint8_t sB)

@@ -37,6 +37,7 @@ public:
     bool make_sprite_surface_(int sprite_id = 0);
     sf::Texture _localimage;
     sf::Image _image;
+    int sprite_id = 0;
 
     sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthFile, bool bAlphaEffect = true, int sprite_id = 0);
     ~sprite();
@@ -105,9 +106,9 @@ public:
     stBrush * brush = nullptr;
     uint64_t wPageid = 0;
 
-    sf::Sprite * sprite_ = nullptr;
-    sf::Sprite * shadow_ = nullptr;
+    sf::Sprite ** sprite_ = nullptr;
+    sf::Sprite ** shadow_ = nullptr;
 
-    sf::VertexArray * quads = nullptr;
+    sf::VertexArray * triangles = nullptr;
 
 };

@@ -5999,10 +5999,10 @@ void CGame::DrawDialogBox_SysMenu(short msX, short msY, char cLB)
             m_cMusicVolume = msX - (sX + 127);
             if (m_cMusicVolume > 100) m_cMusicVolume = 100;
             if (m_cMusicVolume < 0) m_cMusicVolume = 0;
-            if (m_bMusicStat && m_pBGM.getStatus() != sf::SoundSource::Status::Playing)
+            if (m_bMusicStat && m_pBGM->getStatus() != sf::SoundSource::Status::Playing)
                 StartBGM();
             else
-                m_pBGM.setVolume(m_cMusicVolume);
+                m_pBGM->setVolume(m_cMusicVolume);
         }
     }
     else m_stDialogBoxInfo[19].bIsScrollSelected = false;
@@ -8071,16 +8071,14 @@ void CGame::DrawChatMsgBox(short sX, short sY, int iChatIndex, bool bIsPreDC)
         default:
             int len = (int)str.length();
 
-            sf::Text chat_text;
+            sf::Text chat_text(*arya_font, str);
 
-            chat_text.setPosition(0.f, 0.f);
-            chat_text.setFont(*arya_font);
+            chat_text.setPosition({0.f, 0.f});
             chat_text.setCharacterSize(12);
-            chat_text.setString(str);
 
             sf::FloatRect fr = chat_text.getGlobalBounds();
 
-            switch (int(fr.width / 160))
+            switch (int(fr.size.x / 160))
             {
                 case 0:
                 default:

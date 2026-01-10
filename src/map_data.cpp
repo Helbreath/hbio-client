@@ -1958,8 +1958,8 @@ void CMapData::object_frame_counter(short sViewPointX, short sViewPointY, bool s
             // fix: update to handle dead players
             //m_pGame->player_action = m_pData[dX][dY].m_cOwnerAction;
 
-            if ((!self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID) || (self_only && !m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID))
-                continue;
+//             if ((!self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID) || (self_only && !m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID))
+//                 continue;
 
             lPan = sDist = m_pGame->get_distance_from_player(dX, dY).first;
 
@@ -2172,15 +2172,15 @@ void CMapData::object_frame_counter(short sViewPointX, short sViewPointY, bool s
 
                 if (frames_advanced != 0)
                 {
-                    if (self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID)
-                    {
-                        m_pGame->current_map_action = m_pData[dX][dY].m_cOwnerAction;
-                        if (loop)
-                        {
-                            if (tile->m_cOwnerAction == DEF_OBJECTATTACKMOVE && tile->m_cOwnerFrame >= tile->max_frames)
-                                m_pGame->dashing = false;
-                        }
-                    }
+//                     if (self_only && m_pData[dX][dY].m_wObjectID == m_pGame->m_sPlayerObjectID)
+//                     {
+//                         m_pGame->current_map_action = m_pData[dX][dY].m_cOwnerAction;
+//                         if (loop)
+//                         {
+//                             if (tile->m_cOwnerAction == DEF_OBJECTATTACKMOVE && tile->m_cOwnerFrame >= tile->max_frames)
+//                                 m_pGame->dashing = false;
+//                         }
+//                     }
 
                     if (memcmp(m_pData[dX][dY].m_cOwnerName, m_pGame->m_cPlayerName, 10) == 0)
                     {

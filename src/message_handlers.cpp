@@ -1411,7 +1411,7 @@ void CGame::ChatMsgHandler(char * pData, uint32_t size)
 
     while (bFlag == false)
     {
-        iLoc = m_Misc.iGetTextLengthLoc(chat_window_text, cMsg, 305);
+        iLoc = m_Misc.iGetTextLengthLoc(*chat_window_text, cMsg, 305);
         for (int i = 0; i < iLoc; i++) if (cMsg[i] < 0) sCheckByte++;
         if (iLoc == 0)
         {

@@ -4535,7 +4535,7 @@ void CGame::DlgBoxClick_SysMenu(short msX, short msY)
         {
             if (m_bSoundStat == true)
             {
-                m_pESound[38].stop();
+                m_pESound[38]->stop();
                 m_bSoundStat = false;
                 AddEventList(NOTIFY_MSG_SOUND_OFF, 10);
             }
@@ -4558,7 +4558,7 @@ void CGame::DlgBoxClick_SysMenu(short msX, short msY)
                 AddEventList(NOTIFY_MSG_MUSIC_OFF, 10);
                 if (m_bSoundFlag)
                 {
-                    m_pBGM.stop();
+                    m_pBGM->stop();
                 }
             }
             else

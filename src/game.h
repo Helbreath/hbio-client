@@ -12,6 +12,7 @@
 #include <queue>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <spdlog/spdlog.h>
 #include <ixwebsocket/IXWebSocketCloseConstants.h>
 #include "streams.h"
@@ -35,7 +36,7 @@ class CSkill;
 class CMagic;
 
 
-using sf::Keyboard;
+using namespace sf::Keyboard;
 using sf::Color;
 using namespace std::chrono_literals;
 
@@ -196,7 +197,7 @@ public:
     int viewdstxcharvar = 0;
     int viewdstycharvar = 0;
 
-    void on_input_event(sf::Event event);
+    void on_input_event(const sf::Event & event);
     bool calcoldviewport = true;
 
     bool autologin = false;
@@ -267,19 +268,19 @@ public:
     std::mutex loading_mtx;
     std::mutex map_sprite_mtx;
 
-    sf::RenderTexture visible;
-    sf::RenderTexture bg;
-    sf::RenderTexture dynamic_bg;
-    sf::RenderTexture charselect;
-    sf::RenderTexture dialog;
-    sf::RenderTexture item_box;
-    sf::RenderTexture map_text;
+    std::unique_ptr<sf::RenderTexture> visible;
+    std::unique_ptr<sf::RenderTexture> bg;
+    std::unique_ptr<sf::RenderTexture> dynamic_bg;
+    std::unique_ptr<sf::RenderTexture> charselect;
+    std::unique_ptr<sf::RenderTexture> dialog;
+    std::unique_ptr<sf::RenderTexture> item_box;
+    std::unique_ptr<sf::RenderTexture> map_text;
 
-    sf::Sprite bg_sprite;
-    sf::Sprite dynbg_sprite;
-    sf::Sprite dialog_sprite;
-    sf::Sprite item_box_sprite;
-    sf::Sprite map_text_sprite;
+    std::unique_ptr<sf::Sprite> bg_sprite;
+    std::unique_ptr<sf::Sprite> dynbg_sprite;
+    std::unique_ptr<sf::Sprite> dialog_sprite;
+    std::unique_ptr<sf::Sprite> item_box_sprite;
+    std::unique_ptr<sf::Sprite> map_text_sprite;
 
     // todo: cleanup
     uint16_t modx{};
@@ -304,22 +305,22 @@ public:
         if (drawState == DS_VISIBLE)
         {
             //render to visible
-            visible.draw(drawable, states);
+            visible->draw(drawable, states);
         }
         else if (drawState == DS_BG)
         {
             //render to bg
-            bg.draw(drawable, states);
+            bg->draw(drawable, states);
         }
         else if (drawState == DS_DYNBG)
         {
             //render to dynamic bg
-            dynamic_bg.draw(drawable, states);
+            dynamic_bg->draw(drawable, states);
         }
         else if (drawState == DS_CS)
         {
             //render to charselect
-            charselect.draw(drawable, states);
+            charselect->draw(drawable, states);
         }
         else if (drawState == DS_WIN)
         {
@@ -329,12 +330,12 @@ public:
         else if (drawState == DS_DIALOGS)
         {
             //render to dialog
-            dialog.draw(drawable, states);
+            dialog->draw(drawable, states);
         }
         else if (drawState == DS_MAPTEXT)
         {
             //render to map text
-            map_text.draw(drawable, states);
+            map_text->draw(drawable, states);
         }
     }
 
@@ -343,22 +344,22 @@ public:
         if (draw_mode == DS_VISIBLE)
         {
             //render to visible
-            visible.draw(drawable, states);
+            visible->draw(drawable, states);
         }
         else if (draw_mode == DS_BG)
         {
             //render to bg
-            bg.draw(drawable, states);
+            bg->draw(drawable, states);
         }
         else if (drawState == DS_DYNBG)
         {
             //render to dynamic bg
-            dynamic_bg.draw(drawable, states);
+            dynamic_bg->draw(drawable, states);
         }
         else if (draw_mode == DS_CS)
         {
             //render to charselect
-            charselect.draw(drawable, states);
+            charselect->draw(drawable, states);
         }
         else if (draw_mode == DS_WIN)
         {
@@ -368,12 +369,12 @@ public:
         else if (drawState == DS_DIALOGS)
         {
             //render to dialog
-            dialog.draw(drawable, states);
+            dialog->draw(drawable, states);
         }
         else if (drawState == DS_MAPTEXT)
         {
             //render to map text
-            map_text.draw(drawable, states);
+            map_text->draw(drawable, states);
         }
     }
 
@@ -391,32 +392,32 @@ public:
         if (s == DS_VISIBLE)
         {
             if (clearbuffer)
-                visible.clear(color);
+                visible->clear(color);
         }
         else if (s == DS_BG)
         {
             if (clearbuffer)
-                bg.clear(color);
+                bg->clear(color);
         }
         else if (s == DS_DYNBG)
         {
             if (clearbuffer)
-                dynamic_bg.clear(color);
+                dynamic_bg->clear(color);
         }
         else if (s == DS_CS)
         {
             if (clearbuffer)
-                charselect.clear(color);
+                charselect->clear(color);
         }
         else if (s == DS_DIALOGS)
         {
             if (clearbuffer)
-                dialog.clear(color);
+                dialog->clear(color);
         }
         else if (s == DS_MAPTEXT)
         {
             if (clearbuffer)
-                map_text.clear(color);
+                map_text->clear(color);
         }
     };
 
@@ -497,15 +498,16 @@ public:
     void create_window();
     sf::WindowHandle handle;
     sf::Shader shader;
+    sf::Shader transparency_shader;
 
     void put_font_string_size(std::string fontname, uint16_t iX, uint16_t iY, std::string text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black)
     {
-        put_font_string_size(&_font.at(fontname), iX, iY, text, color, size, outline_size, outline_color);
+        put_font_string_size(_font.at(fontname).get(), iX, iY, text, color, size, outline_size, outline_color);
     }
     void put_font_string_size(sf::Font * font, uint16_t iX, uint16_t iY, std::string text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black);
     void put_font_string(std::string fontname, uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255))
     {
-        put_font_string(&_font.at(fontname), iX, iY, pString, color);
+        put_font_string(_font.at(fontname).get(), iX, iY, pString, color);
     }
     void put_font_string(sf::Font * font, uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255));
     void put_overhead_string(uint16_t x, uint16_t y, std::string text, Color color = Color(255, 255, 255), int multiplier = 1, bool transparency = false, int size = 12);
@@ -522,7 +524,7 @@ public:
     void draw_generic_text(sf::Font * font, uint16_t iX, uint16_t iY, std::string_view text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black);
     void draw_generic_text(std::string fontname, uint16_t iX, uint16_t iY, std::string_view text, Color color, int size, int outline_size = 0, Color outline_color = Color::Black)
     {
-        draw_generic_text(&_font.at(fontname), iX, iY, text, color, size, outline_size, outline_color);
+        draw_generic_text(_font.at(fontname).get(), iX, iY, text, color, size, outline_size, outline_color);
     }
     void render_item_details_box(uint16_t iX, uint16_t iY, std::vector<chat_msg> strings, Color background_color = Color(0, 0, 0, 200));
     void put_string(uint16_t iX, uint16_t iY, std::string pString, Color color = Color(255, 255, 255), bool bHide = false, char cBGtype = 2);
@@ -552,11 +554,11 @@ public:
     {
         auto it = _font.find(font);
         if (it != _font.end())
-            return it->second;
+            return *it->second;
 
         it = _font.find("default");
         if (it != _font.end())
-            return it->second;
+            return *it->second;
 
         throw std::out_of_range("Font not found");
     }
@@ -573,11 +575,11 @@ public:
     int16_t get_game_mode(std::string _gamemode);
     int16_t get_game_mode() { return m_cGameMode; };
 
-    std::map<std::string, sf::Font> _font;
-    sf::Text _text;
-    sf::Text chat_window_text;
-    sf::Text overhead_text;
-    sf::Text under_text;
+    std::map<std::string, std::unique_ptr<sf::Font>> _font;
+    std::unique_ptr<sf::Text> _text;
+    std::unique_ptr<sf::Text> chat_window_text;
+    std::unique_ptr<sf::Text> overhead_text;
+    std::unique_ptr<sf::Text> under_text;
     sf::Font * default_font;
     sf::Font * arya_font;
     sf::Font * test_font;
@@ -588,13 +590,13 @@ public:
     bool clipmousegame = false;
     bool clipmousewindow;
     bool isactive;
-    uint16_t screenwidth;
-    uint16_t screenheight;
-    uint16_t screenwidth_windowed;
-    uint16_t screenheight_windowed;
-    uint16_t screenwidth_v;
-    uint16_t screenheight_v;
-    void set_resolution(uint16_t width, uint16_t height)
+    int32_t screenwidth;
+    int32_t screenheight;
+    int32_t screenwidth_windowed;
+    int32_t screenheight_windowed;
+    int32_t screenwidth_v;
+    int32_t screenheight_v;
+    void set_resolution(int32_t width, int32_t height)
     {
         screenwidth = width;
         screenheight = height;
@@ -604,7 +606,7 @@ public:
             screenheight_windowed = height;
         }
     }
-    void set_virtual_resolution(uint16_t width, uint16_t height)
+    void set_virtual_resolution(int32_t width, int32_t height)
     {
         screenwidth_v = width;
         screenheight_v = height;
@@ -612,14 +614,14 @@ public:
 
     void init_dialogs();
 
-    __forceinline uint16_t get_width() { return screenwidth; }
-    __forceinline uint16_t get_height() { return screenheight; }
+    __forceinline int32_t get_width() { return screenwidth; }
+    __forceinline int32_t get_height() { return screenheight; }
 
-    __forceinline uint16_t get_windowed_width() { return screenwidth_windowed; }
-    __forceinline uint16_t get_windowed_height() { return screenheight_windowed; }
+    __forceinline int32_t get_windowed_width() { return screenwidth_windowed; }
+    __forceinline int32_t get_windowed_height() { return screenheight_windowed; }
 
-    __forceinline uint16_t get_virtual_width() { return screenwidth_v; }
-    __forceinline uint16_t get_virtual_height() { return screenheight_v; }
+    __forceinline int32_t get_virtual_width() { return screenwidth_v; }
+    __forceinline int32_t get_virtual_height() { return screenheight_v; }
 
     void send_screen_settings_to_server();
 
@@ -629,7 +631,7 @@ public:
     void make_tile_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect);
     void make_effect_sprite(char * FileName, short sStart, short sCount, bool bAlphaEffect);
 
-    sf::Text version_text;
+    std::unique_ptr<sf::Text> version_text;
     bool draw_version = false;
 
     std::map<int, std::string> game_mode_map = {
@@ -655,14 +657,14 @@ public:
         { DEF_GAMEMODE_ONSELECTSERVER, "select-server" },
     };
 
-    sf::Sound m_pCSound[MAX_CHARACTER_SOUNDS];
-    sf::Sound m_pMSound[MAX_MONSTER_SOUNDS];
-    sf::Sound m_pESound[MAX_EFFECT_SOUNDS];
+    std::unique_ptr<sf::Sound> m_pCSound[MAX_CHARACTER_SOUNDS];
+    std::unique_ptr <sf::Sound> m_pMSound[MAX_MONSTER_SOUNDS];
+    std::unique_ptr <sf::Sound> m_pESound[MAX_EFFECT_SOUNDS];
     sf::SoundBuffer CSoundBuffer[MAX_CHARACTER_SOUNDS];
     sf::SoundBuffer MSoundBuffer[MAX_MONSTER_SOUNDS];
     sf::SoundBuffer ESoundBuffer[MAX_EFFECT_SOUNDS];
     sf::SoundBuffer bgmbuffer;
-    sf::Sound m_pBGM;
+    std::unique_ptr <sf::Sound> m_pBGM;
     bool bgm_override = false;
     std::string bgm_override_name;
     std::string bgm_current;

@@ -59,6 +59,7 @@ sprite::sprite(std::ifstream & hPakFile, std::string & cPakFileName, short sNthF
     m_cPakFileName = cPakFileName;
     m_bAlphaEffect = bAlphaEffect;
     wPageid = sNthFile;
+    this->sprite_id = sprite_id;
     //make_sprite_surface_(sprite_id);
 }
 
@@ -99,74 +100,99 @@ bool sprite::make_sprite_surface_(int sprite_id)
         brush = new stBrush[m_iTotalFrame];
         szfile.read((char *)brush, 12 * m_iTotalFrame);
 
-        sprite_ = new sf::Sprite[m_iTotalFrame];
-        shadow_ = new sf::Sprite[m_iTotalFrame];
-        quads = new sf::VertexArray[m_iTotalFrame];
+        sprite_ = new sf::Sprite*[m_iTotalFrame];
+        shadow_ = new sf::Sprite*[m_iTotalFrame];
+        triangles = new sf::VertexArray[m_iTotalFrame];
     }
     //////////////////////////////////////////////////////////////////////////
 
     szfile.seekg(m_dwBitmapFileStartLoc, std::ios::beg);
 
-    uint32_t filesize = 0;
-    uint32_t encryption = 0;
-    unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES] = {};
-    szfile.read((char *)&filesize, 4);
-    m_lpDib = (unsigned char *)new unsigned char[filesize];
-    szfile.read((char *)&encryption, 4);
-    if (encryption == 0x3f8ebc3d)
-        szfile.read((char *)header, 24);
-    szfile.read((char *)m_lpDib, filesize);
-
-    //check for invalid frames
-    if (filesize > 100'000'000'000)
-        __debugbreak();
-
-    int a = (int)szfile.gcount();
+    uint32_t fileSize = 0;
+    szfile.seekg(m_dwBitmapFileStartLoc + 2, std::ios::beg);
+    szfile.read(reinterpret_cast<char *>(&fileSize), sizeof(fileSize));
+    std::vector<char> buffer(fileSize);
+    szfile.seekg(m_dwBitmapFileStartLoc, std::ios::beg);
+    szfile.read(buffer.data(), fileSize);
     szfile.close();
-    if (encryption == 0x3f8ebc3d)
+
+    if (!_image.loadFromMemory(buffer.data(), buffer.size()))
     {
-        if (!game->has_key)
-        {
-            //error, has not received decryption key
-            MessageBoxA(0, fmt::format("Cannot open {}", m_cPakFileName).c_str(), "Error", MB_OK);
-            delete[] m_lpDib;
-            isrunning = false;
-            return false;
-        }
-        unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES] = { 0xf4, 0xb7, 0xdd, 0x28, 0xc5, 0xaf, 0xff, 0x3f, 0xdf, 0xd5, 0xa2, 0x9d, 0x68, 0x58, 0xde, 0x91, 0xd7, 0x4c, 0x4c, 0xf5, 0xbe, 0x74, 0xc3, 0xa7, 0xc9, 0xf3, 0x5, 0x81, 0x43, 0xee, 0x6f, 0x71 };
-        unsigned char * decrypted = new unsigned char[(int)(filesize * 1.5)];
-        unsigned long long decrypted_len;
-
-        if (crypto_aead_xchacha20poly1305_ietf_decrypt(decrypted, &decrypted_len, nullptr, m_lpDib, filesize, nullptr, 0, header, /*game->*/key) != -1)
-        {
-            delete[] m_lpDib;
-            m_lpDib = new unsigned char[decrypted_len];
-            memcpy(m_lpDib, decrypted, decrypted_len);
-            delete[] decrypted;
-        }
-        else
-        {
-            // error decrypting
-            delete[] decrypted;
-        }
+        std::cout << "Failed to load " << m_cPakFileName << "\n";
+        return false;
     }
-    else if (encryption == 0xa8b73afe)
+    sf::Color colorKey = _image.getPixel({ 0, 0 });
+    //_image.createMaskFromColor(colorKey);
+
+
+//     uint32_t filesize = 0;
+//     uint32_t encryption = 0;
+//     unsigned char header[crypto_secretstream_xchacha20poly1305_HEADERBYTES] = {};
+//     szfile.read((char *)&filesize, 4);
+//     m_lpDib = (unsigned char *)new unsigned char[filesize];
+//     szfile.read((char *)&encryption, 4);
+//     if (encryption == 0x3f8ebc3d)
+//         szfile.read((char *)header, 24);
+//     szfile.read((char *)m_lpDib, filesize);
+// 
+//     //check for invalid frames
+//     if (filesize > 100'000'000'000)
+//         __debugbreak();
+// 
+//     int a = (int)szfile.gcount();
+//     szfile.close();
+//     if (encryption == 0x3f8ebc3d)
+//     {
+//         if (!game->has_key)
+//         {
+//             //error, has not received decryption key
+//             MessageBoxA(0, fmt::format("Cannot open {}", m_cPakFileName).c_str(), "Error", MB_OK);
+//             delete[] m_lpDib;
+//             isrunning = false;
+//             return false;
+//         }
+//         unsigned char key[crypto_secretstream_xchacha20poly1305_KEYBYTES] = { 0xf4, 0xb7, 0xdd, 0x28, 0xc5, 0xaf, 0xff, 0x3f, 0xdf, 0xd5, 0xa2, 0x9d, 0x68, 0x58, 0xde, 0x91, 0xd7, 0x4c, 0x4c, 0xf5, 0xbe, 0x74, 0xc3, 0xa7, 0xc9, 0xf3, 0x5, 0x81, 0x43, 0xee, 0x6f, 0x71 };
+//         unsigned char * decrypted = new unsigned char[(int)(filesize * 1.5)];
+//         unsigned long long decrypted_len;
+// 
+//         if (crypto_aead_xchacha20poly1305_ietf_decrypt(decrypted, &decrypted_len, nullptr, m_lpDib, filesize, nullptr, 0, header, /*game->*/key) != -1)
+//         {
+//             delete[] m_lpDib;
+//             m_lpDib = new unsigned char[decrypted_len];
+//             memcpy(m_lpDib, decrypted, decrypted_len);
+//             delete[] decrypted;
+//         }
+//         else
+//         {
+//             // error decrypting
+//             delete[] decrypted;
+//         }
+//     }
+//     else if (encryption == 0xa8b73afe)
+//     {
+//         //do nothing
+//     }
+
+//     sf::MemoryInputStream is((char *)m_lpDib, filesize);
+// 
+//     _image.loadFromStream(is);
+
+    if (_image.getSize().x > 0 && _image.getSize().y > 0)
     {
-        //do nothing
+        sf::Color colorKey = _image.getPixel({ 0, 0 });
+        // 2. Turn the color key pixels into actual transparency (Alpha = 0)
+        _image.createMaskFromColor(colorKey);
     }
-
-    sf::MemoryInputStream is;
-    is.open((char *)m_lpDib, filesize);
-
-    _image.loadFromStream(is);
 
     if (!_localimage.loadFromImage(_image))
     {
         std::cout << "Failed to load " << m_cPakFileName << "\n";
-        delete[] m_lpDib;
+        //delete[] m_lpDib;
         return false;
     }
-    delete[] m_lpDib;
+    //delete[] m_lpDib;
+
+    _localimage.setSmooth(false);
 
     for (int i = 0; i < m_iTotalFrame; ++i)
     {
@@ -177,18 +203,17 @@ bool sprite::make_sprite_surface_(int sprite_id)
         float pvx = brush[i].pvx;
         float pvy = brush[i].pvy;
 
-        sprite_[i].setTexture(_localimage);
-        sprite_[i].setTextureRect(sf::IntRect(sx, sy, szx, szy));
+        sprite_[i] = new sf::Sprite(_localimage, sf::IntRect({ sx, sy }, { szx, szy }));
+        shadow_[i] = new sf::Sprite(_localimage, sf::IntRect({ sx, sy }, { szx, szy }));
 
-        shadow_[i].setTexture(_localimage);
-        shadow_[i].setTextureRect(sf::IntRect(sx, sy, szx, szy));
+        triangles[i] = sf::VertexArray(sf::PrimitiveType::Triangles, 6);
 
-        quads[i] = sf::VertexArray(sf::Quads, 4);
-
-        quads[i][0].texCoords = sf::Vector2f((float)sx, (float)sy);
-        quads[i][1].texCoords = sf::Vector2f((float)sx + szx, (float)sy);
-        quads[i][2].texCoords = sf::Vector2f((float)sx + szx, (float)sy + szy);
-        quads[i][3].texCoords = sf::Vector2f((float)sx, (float)sy + szy);
+        triangles[i][0].texCoords = sf::Vector2f((float)sx, (float)sy);
+        triangles[i][1].texCoords = sf::Vector2f((float)sx + szx, (float)sy);
+        triangles[i][2].texCoords = sf::Vector2f((float)sx, (float)sy + szy);
+        triangles[i][3].texCoords = sf::Vector2f((float)sx + szx, (float)sy);
+        triangles[i][4].texCoords = sf::Vector2f((float)sx + szx, (float)sy + szy);
+        triangles[i][5].texCoords = sf::Vector2f((float)sx, (float)sy + szy);
     }
 
     m_bIsSurfaceEmpty = false;
@@ -215,7 +240,7 @@ void sprite::draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color
 {
     if (m_bIsSurfaceEmpty) if (open_sprite_() == false) return;
 
-    states.texture = shadow_[sFrame].getTexture();
+    states.texture = &shadow_[sFrame]->getTexture();
 
     auto sx = brush[sFrame].sx;
     auto sy = brush[sFrame].sy;
@@ -224,26 +249,30 @@ void sprite::draw_shadow(int sX, int sY, int sFrame, int64_t dwTime, Color color
     float pvx = brush[sFrame].pvx;
     float pvy = brush[sFrame].pvy;
 
-    quads[sFrame][0].position = sf::Vector2f(sX + (pvx / 3) * 2 - (szx/3)*2, sY + pvy + (szy/3)*2);
-    quads[sFrame][1].position = sf::Vector2f(sX + (pvx / 3) + (szx/3), sY + pvy + (szy/3)*2);
-    quads[sFrame][2].position = sf::Vector2f(sX + pvx + szx    , sY + pvy + szy);
-    quads[sFrame][3].position = sf::Vector2f(sX + pvx          , sY + pvy + szy);
+    triangles[sFrame][0].position = sf::Vector2f(sX + (pvx / 3) * 2 - (szx / 3) * 2, sY + pvy + (szy / 3) * 2);
+    triangles[sFrame][1].position = sf::Vector2f(sX + (pvx / 3) + (szx / 3), sY + pvy + (szy / 3) * 2);
+    triangles[sFrame][2].position = sf::Vector2f(sX + pvx + szx, sY + pvy + szy);
+    triangles[sFrame][3].position = sf::Vector2f(sX + (pvx / 3) + (szx / 3), sY + pvy + (szy / 3) * 2);
+    triangles[sFrame][4].position = sf::Vector2f(sX + pvx, sY + pvy + szy);
+    triangles[sFrame][5].position = sf::Vector2f(sX + pvx + szx, sY + pvy + szy);
 
-    quads[sFrame][0].color = color;
-    quads[sFrame][1].color = color;
-    quads[sFrame][2].color = color;
-    quads[sFrame][3].color = color;
+    triangles[sFrame][0].color = color;
+    triangles[sFrame][1].color = color;
+    triangles[sFrame][2].color = color;
+    triangles[sFrame][3].color = color;
+    triangles[sFrame][4].color = color;
+    triangles[sFrame][5].color = color;
 
-    game->draw(quads[sFrame], states);
+    game->draw(triangles[sFrame], states);
 }
 
 void sprite::draw_sub_sprite(int sX, int sY, int sFrame, int64_t dwTime, Color color, const RenderStates & states)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw(sprite_[sFrame], states);
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw(*sprite_[sFrame], states);
 }
 
 void sprite::draw_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, Color color, const RenderStates & states)
@@ -260,9 +289,9 @@ void sprite::draw_rgb_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, C
         std::cout << "Sprite out_of_bounds! - " << sFrame << " - " << m_cPakFileName << '\n';
         return;
     }
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw(sprite_[sFrame], states);
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw(*sprite_[sFrame], states);
 
     // update bounding box for checking collisions
     short dX, dY, sx, sy, szx, szy, pvx, pvy;
@@ -303,9 +332,9 @@ void sprite::draw_sprite_colored(int sX, int sY, int sFrame, int64_t dwTime, Col
         //std::cout << "Sprite out_of_bounds! - " << sFrame << " - " << m_cPakFileName << '\n';
         return;
     }
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw(sprite_[sFrame], states);
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw(*sprite_[sFrame], states);
 
     // update bounding box for checking collisions
     short dX, dY, sx, sy, szx, szy, pvx, pvy;
@@ -335,33 +364,33 @@ void sprite::draw_to(int sX, int sY, int sFrame, int64_t dwTime, Color color, in
         std::cout << "Sprite out_of_bounds! - " << sFrame << " - " << m_cPakFileName << '\n';
         return;
     }
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw_to(sprite_[sFrame], draw_mode, states);
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw_to(*sprite_[sFrame], draw_mode, states);
 }
 
 void sprite::draw_scaled_sprite(int sX, int sY, int sFrame, int sWidth, int sHeight, int64_t dwTime, Color color, const RenderStates & states)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
-    sf::FloatRect f = sprite_[sFrame].getLocalBounds();
-    sf::Vector2f old_scale = sprite_[sFrame].getScale();
-    sprite_[sFrame].setScale((sWidth / f.width) * 100, (sHeight / f.height) * 100);
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw(sprite_[sFrame], states);
-    sprite_[sFrame].setScale(old_scale);
+    sf::FloatRect f = sprite_[sFrame]->getLocalBounds();
+    sf::Vector2f old_scale = sprite_[sFrame]->getScale();
+    sprite_[sFrame]->setScale({ (sWidth / f.size.x) * 100, (sHeight / f.size.y) * 100 });
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw(*sprite_[sFrame], states);
+    sprite_[sFrame]->setScale(old_scale);
 }
 
 void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t dwTime, Color color, const RenderStates & states)
 {
     if (m_bIsSurfaceEmpty && open_sprite_() == false)
         return;
-    sprite_[sFrame].setTextureRect(sf::IntRect(brush[sFrame].sx, brush[sFrame].sy, sWidth, brush[sFrame].szy));
-    sprite_[sFrame].setColor(color);
-    sprite_[sFrame].setPosition(float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy));
-    game->draw(sprite_[sFrame], states);
-    sprite_[sFrame].setTextureRect(sf::IntRect(brush[sFrame].sx, brush[sFrame].sy, brush[sFrame].szx, brush[sFrame].szy));
+    sprite_[sFrame]->setTextureRect(sf::IntRect({ brush[sFrame].sx, brush[sFrame].sy }, { sWidth, brush[sFrame].szy }));
+    sprite_[sFrame]->setColor(color);
+    sprite_[sFrame]->setPosition({ float(sX + brush[sFrame].pvx), float(sY + brush[sFrame].pvy) });
+    game->draw(*sprite_[sFrame], states);
+    sprite_[sFrame]->setTextureRect(sf::IntRect({ brush[sFrame].sx, brush[sFrame].sy }, { brush[sFrame].szx, brush[sFrame].szy }));
 }
 
 [[deprecated]] void sprite::put_sprite_fast(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
@@ -394,14 +423,26 @@ void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t d
     draw_shadow(sX, sY, sFrame, dwTime, Color(20, 20, 20), states);
 }
 
-[[deprecated]] void sprite::put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth, const RenderStates & states)
+void sprite::put_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth, const RenderStates & states)
 {
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth), states);
 }
 
 [[deprecated]] void sprite::put_trans_sprite_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, int alphaDepth, const RenderStates & states)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth), states);
+    if (m_bIsSurfaceEmpty && open_sprite_() == false) return;
+    if ((uint32_t)sFrame >= m_iTotalFrame) return;
+
+    // Set the intensity (replaces dAlpha scaling)
+    // alphaDepth 255 = 100%, 128 = 50%, etc.
+    sprite_[sFrame]->setColor(sf::Color(255, 255, 255, (uint8_t)alphaDepth));
+    sprite_[sFrame]->setPosition({ (float)(sX + brush[sFrame].pvx), (float)(sY + brush[sFrame].pvy) });
+
+    // sf::BlendAdd replicates the Case 1 math: Result = (Src * Alpha) + Dst
+    sf::RenderStates new_states;
+    new_states.blendMode = sf::BlendAdd;
+
+    game->draw(*sprite_[sFrame], new_states);
 }
 
 [[deprecated]] void sprite::put_trans_sprite70(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
@@ -416,17 +457,18 @@ void sprite::draw_sprite_width(int sX, int sY, int sFrame, int sWidth, int64_t d
 
 [[deprecated]] void sprite::put_trans_sprite50(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125), states);
+    put_trans_sprite(sX, sY, sFrame, dwTime, 127, states);
 }
 
 [[deprecated]] void sprite::put_trans_sprite50_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 125), states);
+    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 127), states);
 }
 
 [[deprecated]] void sprite::put_trans_sprite25(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
 {
-    draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64), states);
+    put_trans_sprite(sX, sY, sFrame, dwTime, 178, states);
+    //draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, 64), states);
 }
 
 [[deprecated]] void sprite::put_trans_sprite25_no_color_key(int sX, int sY, int sFrame, int64_t dwTime, const RenderStates & states)
@@ -631,8 +673,8 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
         return false;
 
     auto image_size = _image.getSize();
-    int tarX = 0;
-    int tarY = 0;
+    uint32_t tarX = 0;
+    uint32_t tarY = 0;
     Color pixel;
 
     if (msX - dX - 10 > (int)image_size.x) tarX = image_size.x - 1;
@@ -641,7 +683,7 @@ bool sprite::check_collison(int sX, int sY, short sFrame, int msX, int msY)
     if (msY - dY - 10 > (int)image_size.y) tarY = image_size.y - 1;
     else if (msY - dY - 10 < 0) tarY = 0;
     else tarY = msY - dY - 10;
-    Color pixel4 = _image.getPixel(tarX, tarY);
+    Color pixel4 = _image.getPixel({ tarX, tarY });
 
     if (pixel != sf::Color::Transparent)
         return true;
@@ -657,8 +699,8 @@ void sprite::put_reverse_trans_sprite(int sX, int sY, int sFrame, int64_t dwTime
 {
     if (this == nullptr || (m_bIsSurfaceEmpty && open_sprite_() == false) || sFrame >= m_iTotalFrame)
         return;
-    sf::Vector2f scale = sprite_[sFrame].getScale();
-    sprite_[sFrame].setScale({ scale.x * -1.0f, scale.y });
+    sf::Vector2f scale = sprite_[sFrame]->getScale();
+    sprite_[sFrame]->setScale({ scale.x * -1.0f, scale.y });
     draw_sprite(sX, sY, sFrame, dwTime, Color(255, 255, 255, alphaDepth), states);
-    sprite_[sFrame].setScale(scale);
+    sprite_[sFrame]->setScale(scale);
 }

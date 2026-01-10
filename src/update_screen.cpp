@@ -46,7 +46,7 @@ extern int iFocusApprColor;
 void CGame::UpdateScreen()
 {
     G_dwGlobalTime = m_dwCurTime = unixtime();
-    visible.clear();
+    visible->clear();
 
     switch (m_cGameMode)
     {
@@ -137,7 +137,7 @@ void CGame::UpdateScreen()
     int mx = int(m_stMCursor.sX * diffx);
     int my = int(m_stMCursor.sY * diffy);
 
-    if (m_bSoundFlag && m_bMusicStat && (m_pBGM.Stopped || m_pBGM.getBuffer() == nullptr) && get_game_mode() == DEF_GAMEMODE_ONMAINGAME)
+    if (m_bSoundFlag && m_bMusicStat && m_pBGM && m_pBGM->getStatus() == sf::SoundSource::Status::Stopped && get_game_mode() == DEF_GAMEMODE_ONMAINGAME)
         StartBGM();
 
     //Change 0x0107
@@ -147,11 +147,11 @@ void CGame::UpdateScreen()
             (int)G_iBytesInLast, (int)G_iBytesOutLast, fps_counter.getFPS()
         ), Color::White, 12, 0.5, Color::Black);
 
-    visible.display();
+    visible->display();
 
-    sf::Sprite sprite = sf::Sprite(visible.getTexture());
-    sprite.setPosition(0.f, 0.f);
-    sprite.setScale(static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v);
+    sf::Sprite sprite = sf::Sprite(visible->getTexture());
+    sprite.setPosition({ 0.f, 0.f });
+    sprite.setScale({ static_cast<float>(screenwidth) / screenwidth_v, static_cast<float>(screenheight) / screenheight_v });
 
     window.clear();
 
@@ -159,9 +159,7 @@ void CGame::UpdateScreen()
 
     m_stMCursor.sZ = 0;
 
-    sf::Text TESTTEXT;
-
-    TESTTEXT.setFont(*arya_font);
+    sf::Text TESTTEXT(*arya_font);
 
     int drawcursorx = mx;
     int drawcursory = my - 40;
@@ -171,17 +169,17 @@ void CGame::UpdateScreen()
     if (my < 55)
         drawcursory = my + 50;
 
-    _text.setFont(*arya_font);
-    _text.setOutlineThickness(0);
-    _text.setOutlineColor(sf::Color::Black);
-    _text.setFillColor(sf::Color::White);
-    _text.setCharacterSize(14);
+    _text->setFont(*arya_font);
+    _text->setOutlineThickness(0);
+    _text->setOutlineColor(sf::Color::Black);
+    _text->setFillColor(sf::Color::White);
+    _text->setCharacterSize(14);
 
     //window.draw(_text);
 
-    _text.setPosition(5.f, 40.f);
-    _text.setString(fmt::format("x: {} - y: {}", testx, testy));
-    window.draw(_text);
+    _text->setPosition({ 5.f, 40.f });
+    _text->setString(fmt::format("x: {} - y: {}", testx, testy));
+    window.draw(*_text);
 
     // Time elapsed since the last frame advanced
     int64_t time_elapsed = G_dwGlobalTime - self_owner_time;
@@ -221,7 +219,7 @@ void CGame::UpdateScreen()
         }
     };
 
-    _text.setPosition(5.f, 80.f);
+    _text->setPosition({ 5.f, 80.f });
     //_text.setString(fmt::format(
     //    "x: {} - y: {}\n"
     //    "VP x: {} - y: {}\n"
@@ -262,7 +260,7 @@ void CGame::UpdateScreen()
     //    debug_x1, debug_x2
     //));
 
-    window.draw(_text);
+    window.draw(*_text);
 
     render_mouse(mx, my);
 }
@@ -1028,55 +1026,55 @@ void CGame::create_load_list()
     {
         path = fmt::format("data\\sounds\\C{}.wav", i);
         CSoundBuffer[i].loadFromFile(path);
-        m_pCSound[i].setBuffer(CSoundBuffer[i]);
+        m_pCSound[i] = std::make_unique<sf::Sound>(CSoundBuffer[i]);
     }
     for (i = 1; i <= 50; i++)
     {
         path = fmt::format("data\\sounds\\M{}.wav", i);
         MSoundBuffer[i].loadFromFile(path);
-        m_pMSound[i].setBuffer(MSoundBuffer[i]);
+        m_pMSound[i] = std::make_unique<sf::Sound>(MSoundBuffer[i]);
     }
     for (i = 1; i <= 15; i++)
     {
         path = fmt::format("data\\sounds\\E{}.wav", i);
         ESoundBuffer[i].loadFromFile(path);
-        m_pESound[i].setBuffer(ESoundBuffer[i]);
+        m_pESound[i] = std::make_unique<sf::Sound>(ESoundBuffer[i]);
     }
     for (i = 9; i <= 16; i++)
     {
         path = fmt::format("data\\sounds\\C{}.wav", i);
         CSoundBuffer[i].loadFromFile(path);
-        m_pCSound[i].setBuffer(CSoundBuffer[i]);
+        m_pCSound[i] = std::make_unique<sf::Sound>(CSoundBuffer[i]);
     }
     for (i = 51; i <= 100; i++)
     {
         path = fmt::format("data\\sounds\\M{}.wav", i);
         MSoundBuffer[i].loadFromFile(path);
-        m_pMSound[i].setBuffer(MSoundBuffer[i]);
+        m_pMSound[i] = std::make_unique<sf::Sound>(MSoundBuffer[i]);
     }
     for (i = 16; i <= 30; i++)
     {
         path = fmt::format("data\\sounds\\E{}.wav", i);
         ESoundBuffer[i].loadFromFile(path);
-        m_pESound[i].setBuffer(ESoundBuffer[i]);
+        m_pESound[i] = std::make_unique<sf::Sound>(ESoundBuffer[i]);
     }
     for (i = 17; i <= 24; i++)
     {
         path = fmt::format("data\\sounds\\C{}.wav", i);
         CSoundBuffer[i].loadFromFile(path);
-        m_pCSound[i].setBuffer(CSoundBuffer[i]);
+        m_pCSound[i] = std::make_unique<sf::Sound>(CSoundBuffer[i]);
     }
     for (i = 101; i <= 156; i++)
     {
         path = fmt::format("data\\sounds\\M{}.wav", i);
         MSoundBuffer[i].loadFromFile(path);
-        m_pMSound[i].setBuffer(MSoundBuffer[i]);
+        m_pMSound[i] = std::make_unique<sf::Sound>(MSoundBuffer[i]);
     }
     for (i = 31; i <= 54; i++)
     {
         path = fmt::format("data\\sounds\\E{}.wav", i);
         ESoundBuffer[i].loadFromFile(path);
-        m_pESound[i].setBuffer(ESoundBuffer[i]);
+        m_pESound[i] = std::make_unique<sf::Sound>(ESoundBuffer[i]);
     }
 
 
@@ -1326,10 +1324,10 @@ void CGame::UpdateScreen_OnConnectionLost()
     if (m_cGameModeCount == 0)
     {
         dwTime = m_dwCurTime;
-        if (m_bSoundFlag) m_pESound[38].stop();
+        if (m_bSoundFlag) m_pESound[38]->stop();
         if ((m_bSoundFlag) && (m_bMusicStat == true))
         {
-            m_pBGM.stop();
+            m_pBGM->stop();
         }
     }
     m_cGameModeCount++;
@@ -2680,7 +2678,7 @@ void CGame::UpdateScreen_OnLogResMsg()
         m_cArrowPressed = 0;
         dwCTime = m_dwCurTime;
 
-        if (m_bSoundFlag) m_pESound[38].stop();
+        if (m_bSoundFlag) m_pESound[38]->stop();
     }
     m_cGameModeCount++;
     if (m_cGameModeCount > 100) m_cGameModeCount = 100;
@@ -3411,7 +3409,7 @@ void CGame::UpdateScreen_OnGame()
     static int16_t mouse_x = ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1;
     static int16_t mouse_y = ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1;
 
-    m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY, true);
+    //m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY, true);
 
     {
         if (iUpdateRet == 0)
@@ -3424,14 +3422,14 @@ void CGame::UpdateScreen_OnGame()
         }
     }
 
-    if (
-        update_background
-        || update_objects
-        || mouse_x != ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1
-        || mouse_y != ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1
-        )
+//     if (
+//         update_background
+//         || update_objects
+//         || mouse_x != ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1
+//         || mouse_y != ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1
+//         )
     {
-        map_text.clear(Color(0, 0, 0, 0));
+        map_text->clear(Color(0, 0, 0, 0));
         mouse_x = ((sDivX) * 32 + sModX + m_stMCursor.sX - 17) / 32 + 1;
         mouse_y = ((sDivY) * 32 + sModY + m_stMCursor.sY - 17) / 32 + 1;
         render_target(DS_BG, true, Color(0, 0, 0, 0));
@@ -3444,14 +3442,14 @@ void CGame::UpdateScreen_OnGame()
         update_objects = false;
         update_background = false;
 
-        bg.display();
-        bg_sprite = sf::Sprite(bg.getTexture());
+        bg->display();
+        bg_sprite = std::make_unique<sf::Sprite>(bg->getTexture());
 
-        dynamic_bg.display();
-        dynbg_sprite = sf::Sprite(dynamic_bg.getTexture());
+        dynamic_bg->display();
+        dynbg_sprite = std::make_unique<sf::Sprite>(dynamic_bg->getTexture());
 
-        map_text.display();
-        map_text_sprite = sf::Sprite(map_text.getTexture());
+        map_text->display();
+        map_text_sprite = std::make_unique<sf::Sprite>(map_text->getTexture());
     }
 
     if ((m_iGatePositX >= m_sViewPointX / 32) && (m_iGatePositX <= m_sViewPointX / 32 + 20)
@@ -3476,15 +3474,15 @@ void CGame::UpdateScreen_OnGame()
     //	m_pEffectSpr[89]->put_trans_sprite(1648 - m_sViewPointX, 3913 - m_sViewPointY, _tmp_iEffectFrame %12, 0);
     //}
 
-    bg_sprite.setScale(zoom / 100, zoom / 100);
-    bg_sprite.setPosition(-sModX, -sModY);
-    dynbg_sprite.setScale(zoom / 100, zoom / 100);
-    map_text_sprite.setScale(zoom / 100, zoom / 100);
+    bg_sprite->setScale({ zoom / 100, zoom / 100 });
+    bg_sprite->setPosition(sf::Vector2f({ (float)-sModX, (float)-sModY}));
+    dynbg_sprite->setScale({ zoom / 100, zoom / 100 });
+    map_text_sprite->setScale({ zoom / 100, zoom / 100 });
     render_target(oldTarget);
     DrawWhetherEffects();
-    visible.draw(bg_sprite);
-    visible.draw(dynbg_sprite);
-    visible.draw(map_text_sprite);
+    visible->draw(*bg_sprite);
+    visible->draw(*dynbg_sprite);
+    visible->draw(*map_text_sprite);
 
     //if (update_dialogs)
     if (iUpdateRet != 0)
@@ -3506,14 +3504,14 @@ void CGame::UpdateScreen_OnGame()
 
         ShowEventList(m_dwCurTime);
 
-        dialog.display();
+        dialog->display();
 
         render_target(oldTarget);
     }
 
-    dialog_sprite = sf::Sprite(dialog.getTexture());
-    dialog_sprite.setScale(zoom / 100, zoom / 100);
-    visible.draw(dialog_sprite);
+    dialog_sprite = std::make_unique<sf::Sprite>(dialog->getTexture());
+    dialog_sprite->setScale({ zoom / 100, zoom / 100 });
+    visible->draw(*dialog_sprite);
 
     if ((iUpdateRet != 0) && (m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_ITEM) &&
         (m_pItemList[m_stMCursor.sSelectedObjectID] != 0))
@@ -3637,8 +3635,8 @@ void CGame::UpdateScreen_OnGame()
         m_bEscPressed = false;
 
         PlaySound('E', 14, 5);
-        if (m_bSoundFlag) m_pESound[38].stop();
-        if ((m_bSoundFlag) && (m_bMusicStat == true)) m_pBGM.stop();
+        if (m_bSoundFlag) m_pESound[38]->stop();
+        if ((m_bSoundFlag) && (m_bMusicStat == true)) m_pBGM->stop();
 
         ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
         return;
@@ -3768,6 +3766,10 @@ void CGame::UpdateScreen_OnGame()
             }
         }
     }
+
+    m_pMapData->object_frame_counter(m_sViewPointX, m_sViewPointY);
+    if (effect_frame_counter() == true) update_effects = true;
+    weather_object_frame_counter();
 
     if (next_command <= dwTime) can_take_action(true);
 

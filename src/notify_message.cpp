@@ -2404,9 +2404,9 @@ void CGame::NotifyMsg_ForceDisconn(char * pData)
         close(ix::WebSocketCloseConstants::kNormalClosureCode, ix::WebSocketCloseConstants::kNormalClosureMessage);
         m_bEscPressed = false;
 
-        if (m_bSoundFlag) m_pESound[38].stop();
+        if (m_bSoundFlag) m_pESound[38]->stop();
 
-        if ((m_bSoundFlag) && (m_bMusicStat == true)) m_pBGM.stop();
+        if ((m_bSoundFlag) && (m_bMusicStat == true)) m_pBGM->stop();
         ChangeGameMode(DEF_GAMEMODE_ONMAINMENU);
     }
 }

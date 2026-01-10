@@ -109,11 +109,11 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
 
     if (m_showGrid)
     {
-        _text.setOutlineThickness(0);
-        _text.setFont(_font.at("test"));
-        _text.setFillColor(Color(255, 127, 127, 255));
-        _text.setCharacterSize(14);
-        _text.setStyle(sf::Text::Regular);
+        _text->setOutlineThickness(0);
+        _text->setFont(*_font.at("test"));
+        _text->setFillColor(Color(255, 127, 127, 255));
+        _text->setCharacterSize(14);
+        _text->setStyle(sf::Text::Regular);
         std::string text;
 
         // todo: optimize this to only draw entire lines across the screen instead of 4 per tile
@@ -127,26 +127,26 @@ void CGame::DrawBackground(short sDivX, short sModX, short sDivY, short sModY)
                     sf::Vertex line[] = {
                         sf::Vertex(sf::Vector2f(float(ix - 16 + sModX), float(iy - 16 + sModY)), Color(0, 0, 0, 255)),
                         sf::Vertex(sf::Vector2f(float(ix - 16 + sModX), float(iy + 16 + sModY)), Color(0, 0, 0, 255)) };
-                    bg.draw(line, 2, sf::Lines);
+                    bg->draw(line, 2, sf::PrimitiveType::Lines);
                 }
                 {
                     sf::Vertex line[] = {
                         sf::Vertex(sf::Vector2f(float(ix - 16 + sModX), float(iy - 16 + sModY)), Color(0, 0, 0, 255)),
                         sf::Vertex(sf::Vector2f(float(ix + 16 + sModX), float(iy - 16 + sModY)), Color(0, 0, 0, 255)) };
-                    bg.draw(line, 2, sf::Lines);
+                    bg->draw(line, 2, sf::PrimitiveType::Lines);
                 }
 
                 if (show_tile_details)
                 {
                     text = fmt::format("{}\n{}\n{},{}", indexX, indexY, abs(m_sPlayerX - indexX), abs(m_sPlayerY - indexY));
 
-                    _text.setCharacterSize(8);
-                    _text.setOutlineThickness(0.5);
-                    _text.setOutlineColor(sf::Color::Black);
-                    _text.setFillColor(sf::Color::White);
-                    _text.setString(text);
-                    _text.setPosition(float(ix - 16 + sModX), float(iy + 16 + sModY));
-                    bg.draw(_text);
+                    _text->setCharacterSize(8);
+                    _text->setOutlineThickness(0.5);
+                    _text->setOutlineColor(sf::Color::Black);
+                    _text->setFillColor(sf::Color::White);
+                    _text->setString(text);
+                    _text->setPosition({float(ix - 16 + sModX), float(iy + 16 + sModY)});
+                    bg->draw(*_text);
                 }
                 indexX++;
             }
